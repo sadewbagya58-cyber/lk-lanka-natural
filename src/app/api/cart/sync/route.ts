@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
-      cartItems: dbItems.map((item) => ({
+      cartItems: dbItems.map((item: typeof dbItems[number]) => ({
         productId: item.productId,
         quantity: item.quantity,
         selectedVariantId: item.variantId === "" ? null : item.variantId,

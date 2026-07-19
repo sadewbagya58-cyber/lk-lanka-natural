@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
-      wishlistIds: dbItems.map((item) => item.productId),
+      wishlistIds: dbItems.map((item: typeof dbItems[number]) => item.productId),
     });
   } catch (error: unknown) {
     console.error("Wishlist sync API error:", error);
