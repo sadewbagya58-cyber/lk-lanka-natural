@@ -1,0 +1,267 @@
+datasource db {
+  provider = "mysql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String?
+  email         String?        @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?        // Encrypted credentials password
+  phone         String?
+  accounts      Account[]
+  sessions      Session[]
+  addresses     Address[]
+  reviews       Review[]
+  orders        Order[]
+  cartItems     CartItem[]
+  wishlistItems WishlistItem[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Category {
+  id            String        @id @default(uuid())
+  name          String
+  slug          String        @unique
+  description   String        @db.Text
+  icon          String        // Lucide icon name
+  colorClasses  String
+  image         String?
+  featured      Boolean       @default(false)
+  sortOrder     Int           @default(0)
+  subCategories SubCategory[]
+  products      Product[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model SubCategory {
+  id               String    @id @default(uuid())
+  name             String
+  slug             String    @unique
+  parentCategoryId String
+  description      String?   @db.Text
+  category         Category  @relation(fields: [parentCategoryId], references: [id], onDelete: Cascade)
+  products         Product[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Brand {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?   @db.Text
+  logoUrl     String?
+  featured    Boolean   @default(false)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id                String           @id @default(uuid())
+  name              String
+  slug              String           @unique
+  description       String           @db.Text
+  shortDescription  String?          @db.Text
+  
+  // Relations
+  categoryId        String
+  category          Category         @relation(fields: [categoryId], references: [id])
+  subCategoryId     String?
+  subCategory       SubCategory?     @relation(fields: [subCategoryId], references: [id])
+  brandId           String
+  brand             Brand            @relation(fields: [brandId], references: [id])
+
+  // Pricing (USD)
+  price             Float
+  originalPrice     Float?
+  currency          String           @default("USD")
+
+  // Display
+  badge             String?
+  tags              String           // Comma-separated tags
+  gradient          String
+  visualSeed        String           // SVG drawing type
+
+  // Inventory
+  inStock           Boolean          @default(true)
+  stockQuantity     Int              @default(0)
+  lowStockThreshold Int              @default(5)
+  totalStock        Int              @default(100)
+
+  // Ratings
+  rating            Float            @default(0)
+  reviewsCount      Int              @default(0)
+
+  // Catalog Grouping
+  isFeatured        Boolean          @default(false)
+  isBestSeller      Boolean          @default(false)
+  isNewArrival      Boolean          @default(false)
+  isFlashDeal       Boolean          @default(false)
+  flashDealEndsAt   DateTime?
+
+  // SEO
+  metaTitle         String?
+  metaDescription   String?
+
+  images            ProductImage[]
+  variants          ProductVariant[]
+  reviews           Review[]
+  orderItems        OrderItem[]
+  cartItems         CartItem[]
+  wishlistItems     WishlistItem[]
+
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model ProductImage {
+  id         String   @id @default(uuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url        String
+  alt        String
+  isPrimary  Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ProductVariant {
+  id            String   @id @default(uuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name          String
+  sku           String   @unique
+  price         Float
+  originalPrice Float?
+  inStock       Boolean  @default(true)
+  stockQuantity Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Address {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String   // E.g., "Home"
+  phone      String
+  street     String
+  city       String
+  state      String?
+  postalCode String?
+  country    String   @default("LK")
+  isDefault  Boolean  @default(false)
+  orders     Order[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating     Int      // 1 to 5
+  title      String?
+  comment    String   @db.Text
+  verified   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addressId     String
+  address       Address     @relation(fields: [addressId], references: [id])
+  totalAmount   Float
+  status        String      @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  paymentMethod String
+  paymentStatus String      @default("PENDING")
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  variantId String?
+  quantity  Int
+  price     Float
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantId String?
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId, variantId])
+}
+
+model WishlistItem {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}

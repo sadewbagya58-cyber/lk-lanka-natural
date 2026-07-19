@@ -1,0 +1,34 @@
+- [x] Create data layer (types, catalog data, helper utilities)
+  - [x] `src/data/types.ts` — Full TypeScript interfaces
+  - [x] `src/data/categories.ts` — 3 categories with subcategories
+  - [x] `src/data/brands.ts` — 8 brands
+  - [x] `src/data/products.ts` — 12 products across 3 categories
+  - [x] `src/data/reviews.ts` — 6 verified reviews
+  - [x] `src/data/catalog.ts` — Query engine (filter, sort, search, paginate)
+  - [x] `src/data/index.ts` — Barrel export
+- [x] Create dynamic product routes
+  - [x] `/products` page (listing with filters, search, sort, pagination)
+  - [x] `/products/[slug]` page (product detail with variants, reviews, related)
+  - [x] `/category/[slug]` page (category listing with subcategory tabs)
+- [x] Refactor homepage components to use centralized data
+  - [x] Navbar — dynamic category dropdown + mobile drawer
+  - [x] QuickCategories — renders from getAllCategories()
+  - [x] HeroBanner — left menu from centralized data
+  - [x] FlashDeals — uses getFlashDealProducts()
+  - [x] ProductGrid — uses getFeaturedProducts/getBestSellers/getNewArrivals
+  - [x] ProductCard — accepts ProductCardData, links to detail
+  - [x] BrandShowcase — uses getFeaturedBrands()
+  - [x] CustomerReviews — uses getFeaturedReviews()
+  - [x] PromotionalBanner — links to actual category
+  - [x] Footer — dynamic category list
+- [x] Phase 2 Final Polish & Improvements
+  - [x] Standardize layout spacing & top/bottom padding across all sections
+  - [x] Increase HeroBanner desktop height to 460px & align side promo cards
+  - [x] Unify product cards height, align buttons, and optimize ratings display
+  - [x] Shared ProductIllustration SVG system for premium product drawings
+  - [x] Sleek dark-slate countdown timer & mobile guide for FlashDeals
+  - [x] Dynamic categories dropdown and improved mobile drawer menu
+  - [x] payment credit badges, trust elements, and social media styling
+  - [x] Add semantic ARIA tags & keyboard navigation focus outlines
+  - [x] Remove duplicate CatalogCard code & optimize rendering import
+- [x] Run npm run build — zero errors ✅
