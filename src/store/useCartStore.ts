@@ -16,6 +16,7 @@ interface CartState {
   removeFromCart: (productId: string, selectedVariantId?: string | null) => void;
   updateQuantity: (productId: string, quantity: number, selectedVariantId?: string | null) => void;
   clearCart: () => void;
+  setCartItems: (items: CartItem[]) => void;
   
   // Dynamic totals fetched from database-ready products layer
   getCartTotalItems: () => number;
@@ -80,6 +81,10 @@ export const useCartStore = create<CartState>()(
       
       clearCart: () => {
         set({ cartItems: [] });
+      },
+
+      setCartItems: (items: CartItem[]) => {
+        set({ cartItems: items });
       },
       
       getCartTotalItems: () => {

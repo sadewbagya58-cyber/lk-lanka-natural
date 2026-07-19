@@ -10,6 +10,7 @@ interface WishlistState {
   toggleWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
   clearWishlist: () => void;
+  setWishlistIds: (ids: string[]) => void;
 }
 
 export const useWishlistStore = create<WishlistState>()(
@@ -45,6 +46,10 @@ export const useWishlistStore = create<WishlistState>()(
       
       clearWishlist: () => {
         set({ wishlistIds: [] });
+      },
+
+      setWishlistIds: (ids: string[]) => {
+        set({ wishlistIds: ids });
       },
     }),
     {
