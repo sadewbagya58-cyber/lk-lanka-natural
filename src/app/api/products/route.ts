@@ -1,69 +1,43 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import type { ProductCardData } from '@/types/product';
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const categorySlug = searchParams.get("category");
-    const brandSlug = searchParams.get("brand");
-    const search = searchParams.get("search");
-    const sort = searchParams.get("sort") || "relevance";
-
-    const whereClause: Record<string, unknown> = {};
-
-    if (categorySlug) {
-      whereClause.category = { slug: categorySlug };
-    }
-
-    if (brandSlug) {
-      whereClause.brand = { slug: brandSlug };
-    }
-
-    if (search) {
-      whereClause.OR = [
-        { name: { contains: search } },
-        { description: { contains: search } },
-      ];
-    }
-
-    let orderBy: Record<string, string> = { createdAt: 'desc' };
-
-    switch (sort) {
-      case 'price-asc':
-        orderBy = { price: 'asc' };
-        break;
-      case 'price-desc':
-        orderBy = { price: 'desc' };
-        break;
-      case 'rating':
-        orderBy = { rating: 'desc' };
-        break;
-      case 'newest':
-        orderBy = { createdAt: 'desc' };
-        break;
-      case 'name-asc':
-        orderBy = { name: 'asc' };
-        break;
-      case 'name-desc':
-        orderBy = { name: 'desc' };
-        break;
-    }
-
     const products = await prisma.product.findMany({
-      where: whereClause,
-      include: {
-        category: true,
-        subCategory: true,
-        brand: true,
-        images: true,
-        variants: true,
-      },
-      orderBy,
+      include: { category: true, brand: true },
+      orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json({ products });
-  } catch (error: unknown) {
-    console.error("Public products GET error:", error);
-    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
+    const data: ProductCardData[] = products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: p.price,
+      originalPrice: p.originalPrice ?? undefined,
+      badge: p.badge ?? undefined,
+      category: p.category?.name ?? '',
+      categorySlug: p.category?.slug ?? '',
+      categoryId: p.categoryId,
+      brandName: p.brand?.name ?? '',
+      inStock: p.inStock,
+      rating: p.rating,
+      reviewsCount: p.reviewsCount,
+      gradient: p.gradient,
+      visualSeed: p.visualSeed,
+      isFeatured: p.isFeatured,
+      isBestSeller: p.isBestSeller,
+      isNewArrival: p.isNewArrival,
+      isFlashDeal: p.isFlashDeal,
+      flashDealEndsAt: p.flashDealEndsAt?.toISOString() ?? null,
+      stockQuantity: p.stockQuantity,
+      totalStock: p.totalStock,
+      lowStockThreshold: p.lowStockThreshold,
+    }));
+
+    return NextResponse.json({ products: data });
+  } catch (error) {
+    console.error('Products GET error:', error);
+    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
   }
 }

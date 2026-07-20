@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from './ProductCard';
 import { Sparkles, Flame, CheckCircle2 } from 'lucide-react';
-import { getFeaturedProducts, getBestSellers, getNewArrivals } from '@/data';
-import type { ProductCardData } from '@/data';
+// Removed mock data imports; product data will be fetched from /api/products
+import type { ProductCardData } from '@/types/product';
 
 export default function ProductGrid() {
   const [activeTab, setActiveTab] = useState<'featured' | 'bestseller' | 'new'>('featured');
@@ -17,10 +17,20 @@ export default function ProductGrid() {
   ] as const;
 
   // Data-driven: pull from centralized catalog instead of inline arrays
+  const [allProducts, setAllProducts] = useState<ProductCardData[]>([]);
+
+  // Fetch products from API on mount
+  useEffect(() => {
+    fetch('/api/products')
+      .then((res) => res.json())
+      .then((data) => setAllProducts(data.products))
+      .catch((err) => console.error('Failed to load products:', err));
+  }, []);
+
   const dataMap: Record<string, ProductCardData[]> = {
-    featured: getFeaturedProducts(8),
-    bestseller: getBestSellers(8),
-    new: getNewArrivals(8),
+    featured: allProducts.filter((p) => p.isFeatured).slice(0, 8),
+    bestseller: allProducts.filter((p) => p.isBestSeller).slice(0, 8),
+    new: allProducts.filter((p) => p.isNewArrival).slice(0, 8),
   };
 
   const filteredProducts = dataMap[activeTab] || [];

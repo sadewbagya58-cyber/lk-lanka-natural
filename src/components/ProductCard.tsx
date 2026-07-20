@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Eye, Heart, Star } from 'lucide-react';
 import Link from 'next/link';
-import type { ProductCardData } from '@/data';
+import type { ProductCardData } from '@/types/product';
 import ProductIllustration from './ProductIllustration';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
@@ -26,18 +26,17 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
-    addToCart(product.id, 1, null);
+    addToCart(product.id, 1, null, product.price);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
 
   return (
-    <div 
+    <div
       className="group bg-white rounded-2xl border border-slate-100 p-4 flex flex-col justify-between shadow-sm hover:shadow-lg hover:border-slate-200/80 transition-all duration-300 relative h-full focus-within:ring-2 focus-within:ring-emerald-500/20"
       role="group"
       aria-label={`Product card for ${product.name}`}
     >
-      {/* Top Section wrapper for layout constraints */}
       <div className="flex flex-col flex-1">
         {/* Badges Overlay */}
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5 pointer-events-none">
@@ -79,13 +78,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         <Link href={`/products/${product.slug}`} className="block relative mb-4 select-none focus:outline-none">
           <div className="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
             <div className={`absolute inset-0 bg-gradient-to-tr ${product.gradient} opacity-20 group-hover:scale-105 transition-transform duration-500`} />
-            
-            {/* Shared Premium SVG Illustrations */}
             <div className="w-1/2 h-1/2 transform group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
               <ProductIllustration type={product.visualSeed} className="w-full h-full text-slate-700/70" />
             </div>
-
-            {/* Ambient Glow */}
             <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-2/3 h-10 bg-emerald-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           </div>
         </Link>
@@ -110,9 +105,8 @@ export default function ProductCard({ product }: ProductCardProps) {
         </Link>
       </div>
 
-      {/* Bottom Section (Pricing & Actions) aligned perfectly */}
+      {/* Bottom Section */}
       <div className="flex flex-col gap-3 mt-auto pt-2 border-t border-slate-50">
-        
         {/* Pricing */}
         <div className="flex items-baseline gap-2">
           <span className="text-lg font-black text-slate-900">${product.price.toFixed(2)}</span>
@@ -145,7 +139,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
             <span>{isAdded ? 'Added' : 'Add to Cart'}</span>
           </button>
-          
+
           <Link
             href={`/products/${product.slug}`}
             className="col-span-1 h-10 rounded-xl bg-slate-50 border border-slate-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-slate-400/40"

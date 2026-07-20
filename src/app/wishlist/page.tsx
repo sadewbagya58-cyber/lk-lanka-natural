@@ -1,21 +1,27 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useWishlistStore } from '@/store/useWishlistStore';
-import { getProductById, toCardData } from '@/data';
 import Link from 'next/link';
 import { Heart, ChevronRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import type { ProductCardData } from '@/types/product';
 
 export default function WishlistPage() {
   const { wishlistIds, clearWishlist } = useWishlistStore();
+  const [allProducts, setAllProducts] = useState<ProductCardData[]>([]);
 
-  // Map product IDs to actual cards payloads
-  const wishlistProducts = wishlistIds
-    .map((id) => getProductById(id))
-    .filter((prod): prod is NonNullable<typeof prod> => prod !== undefined)
-    .map(toCardData);
+  useEffect(() => {
+    if (wishlistIds.length === 0) return;
+    fetch('/api/products')
+      .then((r) => r.json())
+      .then((data: { products: ProductCardData[] }) => setAllProducts(data.products ?? []))
+      .catch(console.error);
+  }, [wishlistIds.length]);
+
+  const wishlistProducts = allProducts.filter((p) => wishlistIds.includes(p.id));
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
@@ -32,14 +38,11 @@ export default function WishlistPage() {
         {/* Title Bar */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3.5xl font-black text-slate-900">My Saved Wishlist</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">My Saved Wishlist</h1>
             <p className="text-xs text-slate-500 font-medium mt-1">Keep track of your favorite organic natural products</p>
           </div>
           {wishlistProducts.length > 0 && (
-            <button
-              onClick={() => clearWishlist()}
-              className="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline focus:outline-none"
-            >
+            <button onClick={() => clearWishlist()} className="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline focus:outline-none">
               Remove All
             </button>
           )}
@@ -60,10 +63,7 @@ export default function WishlistPage() {
             <p className="text-sm text-slate-500 max-w-sm leading-relaxed mb-8">
               Explore our premium marketplace and click the heart icon on any product to save it to your wishlist.
             </p>
-            <Link
-              href="/products"
-              className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all uppercase tracking-widest focus:outline-none"
-            >
+            <Link href="/products" className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all uppercase tracking-widest focus:outline-none">
               Discover Products
             </Link>
           </div>

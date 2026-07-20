@@ -1,33 +1,47 @@
 import { Star, ShieldCheck } from 'lucide-react';
-import { getFeaturedReviews } from '@/data';
-import { products } from '@/data';
+import { prisma } from '@/lib/prisma';
 
-export default function CustomerReviews() {
-  const reviews = getFeaturedReviews(3);
+async function getTopReviews() {
+  try {
+    const reviews = await prisma.review.findMany({
+      where: { verified: true },
+      include: {
+        user: { select: { name: true } },
+        product: { select: { name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 3,
+    });
+    return reviews;
+  } catch {
+    return [];
+  }
+}
+
+export default async function CustomerReviews() {
+  const reviews = await getTopReviews();
+
+  if (reviews.length === 0) return null;
 
   return (
     <section className="w-full py-10 md:py-16 bg-white border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header */}
         <div className="text-center mb-12">
           <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Client Reviews</span>
           <h2 className="text-xl md:text-2xl font-black text-slate-900 mt-1">What Our Customers Say</h2>
-          <p className="text-xs text-slate-500 font-light mt-1">Real ratings and feedback from verified purchasers in Sri Lanka</p>
+          <p className="text-xs text-slate-500 font-light mt-1">Real ratings and feedback from verified purchasers</p>
         </div>
 
         {/* Reviews Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {reviews.map((rev) => {
-            // Build avatar initials from author name
-            const initials = rev.authorName
+            const initials = (rev.user?.name ?? 'A')
               .split(' ')
               .map((n) => n[0])
               .join('')
               .toUpperCase();
-
-            // Find the product name for context
-            const product = products.find((p) => p.id === rev.productId);
 
             return (
               <div
@@ -41,7 +55,7 @@ export default function CustomerReviews() {
                       <Star key={i} className="w-4 h-4 fill-current" />
                     ))}
                   </div>
-                  
+
                   {/* Title */}
                   {rev.title && (
                     <h4 className="text-xs font-bold text-slate-800">{rev.title}</h4>
@@ -53,9 +67,9 @@ export default function CustomerReviews() {
                   </p>
 
                   {/* Product reference */}
-                  {product && (
+                  {rev.product && (
                     <span className="text-[10px] text-emerald-600 font-semibold">
-                      Purchased: {product.name}
+                      Purchased: {rev.product.name}
                     </span>
                   )}
                 </div>
@@ -67,7 +81,7 @@ export default function CustomerReviews() {
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1">
-                      {rev.authorName}
+                      {rev.user?.name ?? 'Anonymous'}
                       {rev.verified && (
                         <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
                           <ShieldCheck className="w-3 h-3" />
@@ -75,12 +89,8 @@ export default function CustomerReviews() {
                         </span>
                       )}
                     </h4>
-                    {rev.authorLocation && (
-                      <p className="text-[10px] text-slate-400 font-medium">{rev.authorLocation}</p>
-                    )}
                   </div>
                 </div>
-
               </div>
             );
           })}

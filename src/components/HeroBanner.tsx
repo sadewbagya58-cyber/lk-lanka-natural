@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ShoppingBag, Percent, Truck, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { getAllCategories } from '@/data';
+import type { CategoryData } from '@/types/product';
 
 const PROMO_SLIDES = [
   {
@@ -31,7 +31,7 @@ const PROMO_SLIDES = [
     id: 3,
     title: 'Handcrafted Luxury Jewellery',
     subtitle: 'CEYLON GEMSTONE COLLECTION',
-    desc: 'Discover Sri Lanka\'s finest sapphires, moonstones, and garnets set in premium gold and silver. Each piece certified authentic.',
+    desc: "Discover Sri Lanka's finest sapphires, moonstones, and garnets set in premium gold and silver. Each piece certified authentic.",
     bgClass: 'from-amber-700 to-orange-950',
     tag: 'Exclusive Rings',
     ctaText: 'Explore Jewellery',
@@ -66,7 +66,14 @@ const SIDE_OFFERS = [
 
 export default function HeroBanner() {
   const [current, setCurrent] = useState(0);
-  const categories = getAllCategories();
+  const [categories, setCategories] = useState<CategoryData[]>([]);
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then((r) => r.json())
+      .then((data) => setCategories(data.categories ?? []))
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -75,19 +82,14 @@ export default function HeroBanner() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleNext = () => {
-    setCurrent((prev) => (prev + 1) % PROMO_SLIDES.length);
-  };
-
-  const handlePrev = () => {
-    setCurrent((prev) => (prev - 1 + PROMO_SLIDES.length) % PROMO_SLIDES.length);
-  };
+  const handleNext = () => setCurrent((prev) => (prev + 1) % PROMO_SLIDES.length);
+  const handlePrev = () => setCurrent((prev) => (prev - 1 + PROMO_SLIDES.length) % PROMO_SLIDES.length);
 
   return (
     <section className="w-full bg-slate-50 py-4 sm:py-6" aria-label="Hero Showcase">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
-        
-        {/* DESKTOP LEFT SIDE: Categories Menu */}
+
+        {/* Desktop Left: Categories */}
         <div className="hidden lg:flex flex-col bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden p-4 h-[460px]">
           <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-3.5 mb-2.5">
             All Categories
@@ -99,7 +101,6 @@ export default function HeroBanner() {
                 href={`/category/${cat.slug}`}
                 className="text-xs font-semibold text-slate-600 hover:text-emerald-600 hover:bg-slate-50 py-2.5 px-3 rounded-lg transition-all flex items-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
               >
-                <cat.icon className="w-4 h-4 shrink-0 text-slate-400 group-hover:text-emerald-600" />
                 <span>{cat.name}</span>
               </Link>
             ))}
@@ -112,7 +113,7 @@ export default function HeroBanner() {
           </nav>
         </div>
 
-        {/* CENTER COLUMN: Large Promotional Auto-Slider */}
+        {/* Center: Promotional Slider */}
         <div className="lg:col-span-2 relative h-[360px] sm:h-[400px] lg:h-[460px] rounded-2xl overflow-hidden shadow-sm bg-slate-900 border border-slate-200/50">
           <AnimatePresence mode="wait">
             <motion.div
@@ -123,7 +124,6 @@ export default function HeroBanner() {
               transition={{ duration: 0.4 }}
               className={`absolute inset-0 bg-gradient-to-br ${PROMO_SLIDES[current].bgClass} p-6 sm:p-10 md:p-12 flex flex-col justify-between text-white`}
             >
-              {/* Decorative graphic patterns */}
               <div className="absolute right-0 top-0 w-80 h-full bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
               <div className="absolute right-[5%] top-1/3 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
 
@@ -154,46 +154,33 @@ export default function HeroBanner() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Slider Controls */}
-          <button
-            onClick={handlePrev}
+          <button onClick={handlePrev}
             className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-black/15 hover:bg-black/30 active:scale-90 text-white backdrop-blur-sm transition-all z-20 focus:outline-none focus:ring-2 focus:ring-white/40"
-            aria-label="Previous slide"
-          >
+            aria-label="Previous slide">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button
-            onClick={handleNext}
+          <button onClick={handleNext}
             className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-black/15 hover:bg-black/30 active:scale-90 text-white backdrop-blur-sm transition-all z-20 focus:outline-none focus:ring-2 focus:ring-white/40"
-            aria-label="Next slide"
-          >
+            aria-label="Next slide">
             <ChevronRight className="w-5 h-5" />
           </button>
 
-          {/* Indicators */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
             {PROMO_SLIDES.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrent(idx)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  idx === current ? 'w-6 bg-white' : 'w-1.5 bg-white/40'
-                }`}
-                aria-label={`Go to slide ${idx + 1}`}
-              />
+              <button key={idx} onClick={() => setCurrent(idx)}
+                className={`h-1.5 rounded-full transition-all duration-300 ${idx === current ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`}
+                aria-label={`Go to slide ${idx + 1}`} />
             ))}
           </div>
         </div>
 
-        {/* DESKTOP RIGHT COLUMN: 2 Promotional Cards (Matching Slider Height exactly on Desktop) */}
+        {/* Right: Promotional Cards */}
         <div className="flex flex-col sm:flex-row lg:flex-col gap-6 lg:h-[460px] justify-between">
           {SIDE_OFFERS.map((offer) => {
             const Icon = offer.icon;
             return (
-              <div
-                key={offer.id}
-                className={`flex-1 flex flex-col justify-between p-6 rounded-2xl border ${offer.bgClass} shadow-sm transition-all duration-300 hover:shadow-md`}
-              >
+              <div key={offer.id}
+                className={`flex-1 flex flex-col justify-between p-6 rounded-2xl border ${offer.bgClass} shadow-sm transition-all duration-300 hover:shadow-md`}>
                 <div className="flex flex-col gap-3">
                   <div className="flex justify-between items-start">
                     <div className="p-2.5 bg-white rounded-xl shadow-sm border border-slate-100">
@@ -208,12 +195,9 @@ export default function HeroBanner() {
                     <p className="text-xs text-slate-500 font-light mt-1.5 leading-relaxed">{offer.desc}</p>
                   </div>
                 </div>
-                
                 <div className="mt-4">
-                  <Link
-                    href={offer.href}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline focus:outline-none"
-                  >
+                  <Link href={offer.href}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline focus:outline-none">
                     <span>Shop Now</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
@@ -222,7 +206,6 @@ export default function HeroBanner() {
             );
           })}
         </div>
-
       </div>
     </section>
   );
