@@ -51,6 +51,7 @@ export async function POST(request: Request) {
           select: { id: true, stockQuantity: true }
         });
         const productStockMap = new Map(products.map(p => [p.id, p.stockQuantity]));
+        const validProductIds = new Set(products.map(p => p.id));
 
         // Fetch inventory limits for variants
         const variantIds = items.map((i: SyncCartItem) => i.selectedVariantId).filter(Boolean) as string[];
@@ -61,6 +62,11 @@ export async function POST(request: Request) {
         const variantStockMap = new Map(variants.map(v => [v.id, v.stockQuantity]));
 
         for (const item of items) {
+          // Verify that product exists in database before performing foreign key insert
+          if (!validProductIds.has(item.productId)) {
+            continue;
+          }
+
           const variantId = item.selectedVariantId || "";
           const maxStock = (item.selectedVariantId ? variantStockMap.get(item.selectedVariantId) : productStockMap.get(item.productId)) ?? 99;
 

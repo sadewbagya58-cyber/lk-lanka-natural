@@ -34,7 +34,17 @@ export async function POST(request: Request) {
 
       // 3. Upsert client payload items
       if (ids.length > 0) {
+        const products = await tx.product.findMany({
+          where: { id: { in: ids } },
+          select: { id: true }
+        });
+        const validProductIds = new Set(products.map(p => p.id));
+
         for (const productId of ids) {
+          if (!validProductIds.has(productId)) {
+            continue;
+          }
+
           await tx.wishlistItem.upsert({
             where: {
               userId_productId: {

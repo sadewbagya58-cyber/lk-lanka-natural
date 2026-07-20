@@ -20,25 +20,32 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Email or Phone", type: "text" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Missing email or password");
+          throw new Error("Missing credentials");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+        const identifier = credentials.email.trim();
+
+        const user = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: identifier },
+              { phone: identifier }
+            ]
+          }
         });
 
         if (!user || !user.password) {
-          throw new Error("Invalid email or password");
+          throw new Error("Invalid email, phone, or password");
         }
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
         if (!isPasswordValid) {
-          throw new Error("Invalid email or password");
+          throw new Error("Invalid email, phone, or password");
         }
 
         return {
@@ -46,7 +53,8 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           image: user.image,
-          phone: user.phone
+          phone: user.phone,
+          role: user.role,
         };
       }
     })
@@ -110,10 +118,11 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.phone = (user as { phone?: string | null }).phone;
+        token.role = (user as { role?: string }).role;
       }
 
-      // Fallback DB check if token.id is missing during OAuth callback
-      if (!token.id && token.email) {
+      // Fallback DB check if token.id or token.role is missing during OAuth callback
+      if ((!token.id || !token.role) && token.email) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { email: token.email }
@@ -121,6 +130,7 @@ export const authOptions: NextAuthOptions = {
           if (dbUser) {
             token.id = dbUser.id;
             token.phone = dbUser.phone;
+            token.role = dbUser.role;
           }
         } catch (error) {
           console.error("Error fetching user in jwt callback:", error);
@@ -137,6 +147,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as { id?: string }).id = token.id as string;
         (session.user as { phone?: string | null }).phone = token.phone as string | null;
+        (session.user as { role?: string }).role = token.role as string;
       }
       return session;
     }

@@ -13,28 +13,36 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPhone = phone && typeof phone === 'string' && phone.trim() !== '' ? phone.trim() : null;
+
+    // Check if user already exists by email or phone
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: cleanEmail },
+          ...(cleanPhone ? [{ phone: cleanPhone }] : [])
+        ]
+      },
     });
 
     if (existingUser) {
+      const isEmailMatch = existingUser.email === cleanEmail;
       return NextResponse.json(
-        { error: "Email is already registered" },
+        { error: isEmailMatch ? "Email is already registered" : "Phone number is already registered" },
         { status: 400 }
       );
     }
 
-    // Hash password with bcrypt
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user in Hostinger MySQL database
     const newUser = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: name.trim(),
+        email: cleanEmail,
         password: hashedPassword,
-        phone: phone || null,
+        phone: cleanPhone,
+        role: "USER",
       },
     });
 
@@ -45,6 +53,8 @@ export async function POST(request: Request) {
           id: newUser.id,
           name: newUser.name,
           email: newUser.email,
+          phone: newUser.phone,
+          role: newUser.role,
         },
       },
       { status: 201 }

@@ -18,20 +18,22 @@ export function useHostingerSync() {
 
   // Synchronization status refs to prevent feedback loops and duplicate runs
   const mergedRef = useRef(false);
+  const prevStatusRef = useRef(status);
   const lastCartSyncRef = useRef<string>('');
   const lastWishlistSyncRef = useRef<string>('');
   const isSyncingCartRef = useRef(false);
   const isSyncingWishlistRef = useRef(false);
 
-  // Clear local stores on sign out
+  // Clear local stores ONLY on explicit logout transition (authenticated -> unauthenticated)
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (prevStatusRef.current === 'authenticated' && status === 'unauthenticated') {
       clearCart();
       clearWishlist();
       mergedRef.current = false;
       lastCartSyncRef.current = '';
       lastWishlistSyncRef.current = '';
     }
+    prevStatusRef.current = status;
   }, [status, clearCart, clearWishlist]);
 
   // Synchronize cart
