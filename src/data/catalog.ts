@@ -21,9 +21,9 @@ export function getProductBySlug(slug: string): Product | undefined {
   return products.find((p) => p.slug === slug);
 }
 
-/** Full product by ID */
+/** Full product by ID or Slug */
 export function getProductById(id: string): Product | undefined {
-  return products.find((p) => p.id === id);
+  return products.find((p) => p.id === id || p.slug === id);
 }
 
 /** All products (unfiltered) */

@@ -58,15 +58,13 @@ function LoginInner() {
 
   const handleGoogleOAuth = () => {
     setError(null);
-    startTransition(async () => {
-      try {
-        await signIn('google', {
-          callbackUrl: redirectPath,
-        });
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'An unexpected error occurred during Google Sign In.');
-      }
-    });
+    try {
+      signIn('google', {
+        callbackUrl: redirectPath,
+      });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred during Google Sign In.');
+    }
   };
 
   return (

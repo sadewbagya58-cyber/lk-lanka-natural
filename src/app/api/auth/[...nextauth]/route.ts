@@ -6,8 +6,8 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import type { Adapter } from "next-auth/adapters";
 
-// Ensure NextAuth uses either Hostinger AUTH_SECRET or standard NEXTAUTH_SECRET
 const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "hostinger_default_secret_32_chars_long";
+const useSecure = process.env.NODE_ENV === "production" || (process.env.NEXTAUTH_URL ? process.env.NEXTAUTH_URL.startsWith("https://") : false);
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as unknown as Adapter,
@@ -15,6 +15,7 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "placeholder",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "placeholder",
+      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -53,6 +54,53 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
+  useSecureCookies: useSecure,
+  cookies: {
+    sessionToken: {
+      name: useSecure ? `__Secure-next-auth.session-token` : `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecure,
+      },
+    },
+    callbackUrl: {
+      name: useSecure ? `__Secure-next-auth.callback-url` : `next-auth.callback-url`,
+      options: {
+        sameSite: "lax",
+        path: "/",
+        secure: useSecure,
+      },
+    },
+    csrfToken: {
+      name: useSecure ? `__Host-next-auth.csrf-token` : `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecure,
+      },
+    },
+    pkceCodeVerifier: {
+      name: useSecure ? `__Secure-next-auth.pkce.code_verifier` : `next-auth.pkce.code_verifier`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecure,
+      },
+    },
+    state: {
+      name: useSecure ? `__Secure-next-auth.state` : `next-auth.state`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecure,
+      },
+    },
+  },
   pages: {
     signIn: "/login",
     error: "/login",
@@ -63,6 +111,22 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.phone = (user as { phone?: string | null }).phone;
       }
+
+      // Fallback DB check if token.id is missing during OAuth callback
+      if (!token.id && token.email) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: token.email }
+          });
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.phone = dbUser.phone;
+          }
+        } catch (error) {
+          console.error("Error fetching user in jwt callback:", error);
+        }
+      }
+
       if (trigger === "update" && session) {
         token.name = session.name;
         token.phone = session.phone;

@@ -11,16 +11,16 @@ export interface CartItem {
 }
 
 interface CartState {
-  cartItems: CartItem[]; // Store only product IDs and variants
+  cartItems: CartItem[]; // Store product IDs, quantities, and optional variant IDs
   addToCart: (productId: string, quantity?: number, selectedVariantId?: string | null) => void;
   removeFromCart: (productId: string, selectedVariantId?: string | null) => void;
   updateQuantity: (productId: string, quantity: number, selectedVariantId?: string | null) => void;
   clearCart: () => void;
   setCartItems: (items: CartItem[]) => void;
   
-  // Dynamic totals fetched from database-ready products layer
+  // Dynamic totals
   getCartTotalItems: () => number;
-  getCartSubtotal: () => number; // Returns sum of product * quantity in USD base
+  getCartSubtotal: () => number;
 }
 
 export const useCartStore = create<CartState>()(
@@ -30,49 +30,58 @@ export const useCartStore = create<CartState>()(
       
       addToCart: (productId: string, quantity = 1, selectedVariantId = null) => {
         const items = get().cartItems;
+        const normalizedVariantId = selectedVariantId ?? null;
+
         const existingIndex = items.findIndex(
-          (item) => item.productId === productId && item.selectedVariantId === selectedVariantId
+          (item) => item.productId === productId && (item.selectedVariantId ?? null) === normalizedVariantId
         );
         
-        // Fetch product to respect max inventory limits
+        // Fetch product to respect max inventory limits if available
         const product = getProductById(productId);
-        if (!product) return;
-        const maxStock = product.inventory.stockQuantity;
+        const maxStock = product?.inventory?.stockQuantity ?? 99;
         
         if (existingIndex > -1) {
           const updatedItems = [...items];
-          const newQty = updatedItems[existingIndex].quantity + quantity;
-          updatedItems[existingIndex].quantity = Math.min(newQty, maxStock);
+          const currentQty = updatedItems[existingIndex].quantity;
+          const newQty = Math.min(currentQty + quantity, maxStock);
+          updatedItems[existingIndex] = {
+            ...updatedItems[existingIndex],
+            quantity: newQty,
+          };
           set({ cartItems: updatedItems });
         } else {
           set({
-            cartItems: [...items, { productId, quantity: Math.min(quantity, maxStock), selectedVariantId }],
+            cartItems: [
+              ...items,
+              { productId, quantity: Math.min(quantity, maxStock), selectedVariantId: normalizedVariantId },
+            ],
           });
         }
       },
       
       removeFromCart: (productId: string, selectedVariantId = null) => {
+        const normalizedVariantId = selectedVariantId ?? null;
         set({
           cartItems: get().cartItems.filter(
-            (item) => !(item.productId === productId && item.selectedVariantId === selectedVariantId)
+            (item) => !(item.productId === productId && (item.selectedVariantId ?? null) === normalizedVariantId)
           ),
         });
       },
       
       updateQuantity: (productId: string, quantity: number, selectedVariantId = null) => {
+        const normalizedVariantId = selectedVariantId ?? null;
         if (quantity <= 0) {
-          get().removeFromCart(productId, selectedVariantId);
+          get().removeFromCart(productId, normalizedVariantId);
           return;
         }
         
         const product = getProductById(productId);
-        if (!product) return;
-        const maxStock = product.inventory.stockQuantity;
+        const maxStock = product?.inventory?.stockQuantity ?? 99;
         const finalQuantity = Math.min(quantity, maxStock);
         
         set({
           cartItems: get().cartItems.map((item) =>
-            item.productId === productId && item.selectedVariantId === selectedVariantId
+            item.productId === productId && (item.selectedVariantId ?? null) === normalizedVariantId
               ? { ...item, quantity: finalQuantity }
               : item
           ),
@@ -96,7 +105,6 @@ export const useCartStore = create<CartState>()(
           const product = getProductById(item.productId);
           if (!product) return sum;
           
-          // Check if variant has custom price override
           let itemPrice = product.price;
           if (item.selectedVariantId && product.variants) {
             const variant = product.variants.find((v) => v.id === item.selectedVariantId);
@@ -108,7 +116,7 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: 'kl-lanka-cart-store', // LocalStorage persistence key
+      name: 'kl-lanka-cart-store',
     }
   )
 );
