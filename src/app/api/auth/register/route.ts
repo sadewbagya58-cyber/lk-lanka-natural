@@ -42,7 +42,6 @@ export async function POST(request: Request) {
         email: cleanEmail,
         password: hashedPassword,
         phone: cleanPhone,
-        role: "USER",
       },
     });
 
@@ -54,7 +53,6 @@ export async function POST(request: Request) {
           name: newUser.name,
           email: newUser.email,
           phone: newUser.phone,
-          role: newUser.role,
         },
       },
       { status: 201 }

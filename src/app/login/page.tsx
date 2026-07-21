@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
 import { signIn } from 'next-auth/react';
@@ -12,7 +12,6 @@ import Footer from '@/components/Footer';
  * Inner component — isolated so useSearchParams() is inside a Suspense boundary.
  */
 function LoginInner() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get('redirect') || '/account';
 
@@ -47,9 +46,8 @@ function LoginInner() {
 
         setSuccess('Logged in successfully! Redirecting...');
         setTimeout(() => {
-          router.push(redirectPath);
-          router.refresh();
-        }, 1500);
+          window.location.href = redirectPath;
+        }, 1000);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
       }

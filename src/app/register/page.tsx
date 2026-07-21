@@ -73,9 +73,8 @@ export default function RegisterPage() {
         setPassword('');
 
         setTimeout(() => {
-          router.push('/account');
-          router.refresh();
-        }, 1500);
+          window.location.href = '/account';
+        }, 1000);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'An unexpected registration error occurred.');
       }

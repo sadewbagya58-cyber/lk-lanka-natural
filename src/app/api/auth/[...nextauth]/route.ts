@@ -54,7 +54,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           image: user.image,
           phone: user.phone,
-          role: user.role,
+          role: "USER",
         };
       }
     })
@@ -118,11 +118,11 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.phone = (user as { phone?: string | null }).phone;
-        token.role = (user as { role?: string }).role;
+        token.role = (user as { role?: string }).role || "USER";
       }
 
-      // Fallback DB check if token.id or token.role is missing during OAuth callback
-      if ((!token.id || !token.role) && token.email) {
+      // Fallback DB check if token.id is missing during OAuth callback
+      if (!token.id && token.email) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { email: token.email }
@@ -130,7 +130,7 @@ export const authOptions: NextAuthOptions = {
           if (dbUser) {
             token.id = dbUser.id;
             token.phone = dbUser.phone;
-            token.role = dbUser.role;
+            token.role = "USER";
           }
         } catch (error) {
           console.error("Error fetching user in jwt callback:", error);

@@ -9,12 +9,12 @@ export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   if (path.startsWith('/account')) {
-    // NextAuth session token cookie keys
-    const sessionToken = 
-      request.cookies.get('next-auth.session-token')?.value || 
-      request.cookies.get('__Secure-next-auth.session-token')?.value;
+    // Check for active NextAuth session token cookie (standard or __Secure-)
+    const hasSessionToken = request.cookies.getAll().some(
+      (c) => c.name.includes('session-token')
+    );
 
-    if (!sessionToken) {
+    if (!hasSessionToken) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', path);
       return NextResponse.redirect(loginUrl);
