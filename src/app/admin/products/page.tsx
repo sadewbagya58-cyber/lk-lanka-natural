@@ -12,6 +12,7 @@ interface ProductItem {
   price: number;
   originalPrice?: number | null;
   stockQuantity: number;
+  lowStockThreshold?: number;
   inStock: boolean;
   category?: { name: string };
   brand?: { name: string } | null;
@@ -80,7 +81,7 @@ export default function AdminProducts() {
         <div>
           <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Store Management</span>
           <h1 className="text-2xl font-black text-slate-900 mt-1">Products Catalog</h1>
-          <p className="text-xs text-slate-400 font-light mt-1">Manage real products stored in Hostinger MySQL</p>
+          <p className="text-xs text-slate-400 font-light mt-1">Manage real products and stock inventory in Hostinger MySQL</p>
         </div>
 
         <Link
@@ -122,13 +123,27 @@ export default function AdminProducts() {
                 <th className="px-4 py-3">Category</th>
                 <th className="px-4 py-3">Brand</th>
                 <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">Stock</th>
+                <th className="px-4 py-3">Stock Status</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {products.map((p) => {
                 const thumbnail = p.images?.[0]?.url;
+                const qty = p.stockQuantity ?? 0;
+                const threshold = p.lowStockThreshold ?? 5;
+
+                let stockBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                let stockLabel = `${qty} in stock`;
+
+                if (qty === 0) {
+                  stockBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+                  stockLabel = '0 (Out of Stock)';
+                } else if (qty <= threshold) {
+                  stockBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                  stockLabel = `${qty} left (Low Stock)`;
+                }
+
                 return (
                   <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-4 py-3">
@@ -158,8 +173,8 @@ export default function AdminProducts() {
                     </td>
                     <td className="px-4 py-3 font-black text-slate-900">${p.price.toFixed(2)}</td>
                     <td className="px-4 py-3 font-semibold">
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${p.inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`}>
-                        {p.inStock ? `${p.stockQuantity} in stock` : 'Out of Stock'}
+                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${stockBadgeClass}`}>
+                        {stockLabel}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">

@@ -58,16 +58,23 @@ export default function ProductDetail({ product }: ProductDetailProps) {
     ? Math.round(((activeOriginal - activePrice) / activeOriginal) * 100)
     : null;
 
+  const currentStock = selectedVariant ? selectedVariant.stockQuantity : product.stockQuantity;
+  const threshold = product.lowStockThreshold ?? 5;
+  const isOut = currentStock === 0 || !product.inStock;
+  const isLow = !isOut && currentStock <= threshold;
+
   const handleAddToCart = () => {
+    if (isOut) return;
     addToCart(product.id, quantity, selectedVariant?.id ?? null, activePrice);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
 
   const handleQuantity = (delta: number) => {
+    if (isOut) return;
     setQuantity((prev) => {
       const next = prev + delta;
-      return next > 0 ? Math.min(next, product.stockQuantity) : 1;
+      return next > 0 ? Math.min(next, currentStock) : 1;
     });
   };
 
@@ -95,20 +102,34 @@ export default function ProductDetail({ product }: ProductDetailProps) {
       {/* Inventory & Progress Bar */}
       <div className="flex flex-col gap-3 py-4 border-y border-slate-100 bg-slate-50/50 px-4 rounded-2xl">
         <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full ${product.inStock ? (product.stockQuantity < product.lowStockThreshold ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500 animate-pulse') : 'bg-slate-350'}`} />
-          <span className="font-bold text-xs uppercase tracking-wider text-slate-700">
-            {product.inStock
-              ? product.stockQuantity < product.lowStockThreshold
-                ? `Only ${product.stockQuantity} items left in stock!`
-                : 'In Stock (Ready to dispatch)'
-              : 'Temporarily Out of Stock'}
-          </span>
+          {isOut ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span className="font-bold text-xs uppercase tracking-wider text-rose-600">
+                Out of Stock (Currently unavailable)
+              </span>
+            </>
+          ) : isLow ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              <span className="font-bold text-xs uppercase tracking-wider text-amber-700">
+                Low Stock — Only {currentStock} items left!
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-bold text-xs uppercase tracking-wider text-slate-700">
+                In Stock ({currentStock} available - Ready to dispatch)
+              </span>
+            </>
+          )}
         </div>
-        {product.inStock && product.stockQuantity < product.lowStockThreshold && (
+        {!isOut && isLow && (
           <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${(product.stockQuantity / product.totalStock) * 100}%` }}
+              animate={{ width: `${Math.min(100, Math.max(10, (currentStock / (product.totalStock || 100)) * 100))}%` }}
               className="bg-gradient-to-r from-rose-500 to-amber-500 h-full rounded-full"
               transition={{ duration: 0.5 }}
             />
@@ -144,15 +165,21 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         <div className="flex flex-col gap-2 shrink-0">
           <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Quantity</span>
           <div className="flex items-center border border-slate-200 rounded-xl h-12 bg-white w-full sm:w-32 shadow-sm focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500">
-            <button onClick={() => handleQuantity(-1)} disabled={quantity <= 1}
+            <button
+              onClick={() => handleQuantity(-1)}
+              disabled={isOut || quantity <= 1}
               className="w-10 h-full flex items-center justify-center text-slate-450 hover:text-slate-800 disabled:opacity-30 transition-colors focus:outline-none"
-              aria-label="Decrease quantity">
+              aria-label="Decrease quantity"
+            >
               <Minus className="w-4 h-4" />
             </button>
-            <span className="flex-1 text-center font-black text-slate-900 text-sm">{quantity}</span>
-            <button onClick={() => handleQuantity(1)} disabled={!product.inStock || quantity >= product.stockQuantity}
+            <span className="flex-1 text-center font-black text-slate-900 text-sm">{isOut ? 0 : quantity}</span>
+            <button
+              onClick={() => handleQuantity(1)}
+              disabled={isOut || quantity >= currentStock}
               className="w-10 h-full flex items-center justify-center text-slate-450 hover:text-slate-800 disabled:opacity-30 transition-colors focus:outline-none"
-              aria-label="Increase quantity">
+              aria-label="Increase quantity"
+            >
               <Plus className="w-4 h-4" />
             </button>
           </div>
@@ -160,15 +187,17 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
         <button
           onClick={handleAddToCart}
-          disabled={!product.inStock}
+          disabled={isOut}
           className={`flex-grow h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all select-none focus:outline-none focus:ring-2 focus:ring-emerald-550/40 ${
-            isAdded
+            isOut
+              ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+              : isAdded
               ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-              : 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 disabled:bg-slate-100 disabled:text-slate-400 disabled:active:scale-100 shadow-md hover:shadow-lg shadow-emerald-600/10'
+              : 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 shadow-md hover:shadow-lg shadow-emerald-600/10'
           }`}
         >
           <ShoppingBag className="w-5 h-5 shrink-0" />
-          <span>{isAdded ? 'Added to Cart' : 'Add to Cart'}</span>
+          <span>{isOut ? 'Out of Stock' : isAdded ? 'Added to Cart' : 'Add to Cart'}</span>
         </button>
 
         <button

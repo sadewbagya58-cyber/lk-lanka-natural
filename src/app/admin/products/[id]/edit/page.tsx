@@ -33,7 +33,8 @@ export default function EditProductPage() {
   const [price, setPrice] = useState('');
   const [originalPrice, setOriginalPrice] = useState('');
   const [badge, setBadge] = useState('');
-  const [stockQuantity, setStockQuantity] = useState('100');
+  const [stockQuantity, setStockQuantity] = useState('10');
+  const [lowStockThreshold, setLowStockThreshold] = useState('5');
   const [categoryId, setCategoryId] = useState('');
   const [brandId, setBrandId] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -73,7 +74,8 @@ export default function EditProductPage() {
           setPrice(p.price ? p.price.toString() : '');
           setOriginalPrice(p.originalPrice ? p.originalPrice.toString() : '');
           setBadge(p.badge || '');
-          setStockQuantity(p.stockQuantity ? p.stockQuantity.toString() : '100');
+          setStockQuantity(p.stockQuantity !== undefined ? p.stockQuantity.toString() : '0');
+          setLowStockThreshold(p.lowStockThreshold !== undefined ? p.lowStockThreshold.toString() : '5');
           setCategoryId(p.categoryId || '');
           setBrandId(p.brandId || '');
           setIsFeatured(Boolean(p.isFeatured));
@@ -113,6 +115,12 @@ export default function EditProductPage() {
       return;
     }
 
+    const parsedStock = parseInt(stockQuantity) || 0;
+    if (parsedStock < 0) {
+      setError('Stock quantity cannot be negative.');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -130,9 +138,10 @@ export default function EditProductPage() {
           price: parseFloat(price),
           originalPrice: originalPrice ? parseFloat(originalPrice) : null,
           badge,
-          stockQuantity: parseInt(stockQuantity),
-          totalStock: parseInt(stockQuantity),
-          inStock: parseInt(stockQuantity) > 0,
+          stockQuantity: parsedStock,
+          lowStockThreshold: parseInt(lowStockThreshold) || 5,
+          totalStock: parsedStock,
+          inStock: parsedStock > 0,
           categoryId,
           brandId: brandId || null,
           images,
@@ -267,7 +276,7 @@ export default function EditProductPage() {
         </div>
 
         {/* Pricing & Stock */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Price ($) *</label>
             <input
@@ -297,9 +306,23 @@ export default function EditProductPage() {
             <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Stock Quantity</label>
             <input
               type="number"
+              min="0"
               value={stockQuantity}
               onChange={(e) => setStockQuantity(e.target.value)}
-              placeholder="100"
+              placeholder="10"
+              className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
+              required
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Low Stock Limit</label>
+            <input
+              type="number"
+              min="1"
+              value={lowStockThreshold}
+              onChange={(e) => setLowStockThreshold(e.target.value)}
+              placeholder="5"
               className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
             />
           </div>

@@ -65,10 +65,9 @@ export async function POST(request: Request) {
       tags,
       gradient,
       visualSeed,
-      inStock = true,
-      stockQuantity = 100,
-      lowStockThreshold = 10,
-      totalStock = 100,
+      stockQuantity = 0,
+      lowStockThreshold = 5,
+      totalStock,
       categoryId,
       subCategoryId,
       brandId,
@@ -90,7 +89,9 @@ export async function POST(request: Request) {
 
     const parsedPrice = parseFloat(price);
     const parsedOriginalPrice = originalPrice ? parseFloat(originalPrice) : null;
-    const parsedStock = parseInt(stockQuantity) || 100;
+    const parsedStock = Math.max(0, parseInt(stockQuantity) || 0);
+    const parsedLowStock = Math.max(0, parseInt(lowStockThreshold) || 5);
+    const parsedTotalStock = totalStock ? Math.max(parsedStock, parseInt(totalStock)) : parsedStock;
 
     const product = await prisma.$transaction(async (tx) => {
       const created = await tx.product.create({
@@ -106,10 +107,10 @@ export async function POST(request: Request) {
           tags: tags || "natural,premium",
           gradient: gradient || "from-emerald-500 to-teal-700",
           visualSeed: visualSeed || "bottle",
-          inStock: Boolean(inStock),
+          inStock: parsedStock > 0,
           stockQuantity: parsedStock,
-          lowStockThreshold: parseInt(lowStockThreshold) || 10,
-          totalStock: parseInt(totalStock) || parsedStock,
+          lowStockThreshold: parsedLowStock,
+          totalStock: parsedTotalStock,
           categoryId,
           subCategoryId: subCategoryId || null,
           brandId: brandId || null,
@@ -134,7 +135,7 @@ export async function POST(request: Request) {
                 name: v.name,
                 sku: v.sku || null,
                 price: v.price ? parseFloat(v.price as unknown as string) : parsedPrice,
-                stockQuantity: v.stockQuantity ? parseInt(v.stockQuantity as unknown as string) : parsedStock,
+                stockQuantity: v.stockQuantity ? Math.max(0, parseInt(v.stockQuantity as unknown as string)) : parsedStock,
               })
             ),
           },
@@ -179,7 +180,6 @@ export async function PUT(request: Request) {
       tags,
       gradient,
       visualSeed,
-      inStock,
       stockQuantity,
       lowStockThreshold,
       totalStock,
@@ -203,6 +203,8 @@ export async function PUT(request: Request) {
 
     const parsedPrice = parseFloat(price);
     const parsedOriginalPrice = originalPrice ? parseFloat(originalPrice) : null;
+    const parsedStock = stockQuantity !== undefined ? Math.max(0, parseInt(stockQuantity) || 0) : undefined;
+    const parsedLowStock = lowStockThreshold !== undefined ? Math.max(0, parseInt(lowStockThreshold) || 5) : undefined;
 
     const product = await prisma.$transaction(async (tx) => {
       if (images !== undefined) {
@@ -225,9 +227,9 @@ export async function PUT(request: Request) {
           tags: tags || undefined,
           gradient: gradient || undefined,
           visualSeed: visualSeed || undefined,
-          inStock: inStock !== undefined ? Boolean(inStock) : undefined,
-          stockQuantity: stockQuantity !== undefined ? parseInt(stockQuantity) : undefined,
-          lowStockThreshold: lowStockThreshold !== undefined ? parseInt(lowStockThreshold) : undefined,
+          inStock: parsedStock !== undefined ? parsedStock > 0 : undefined,
+          stockQuantity: parsedStock,
+          lowStockThreshold: parsedLowStock,
           totalStock: totalStock !== undefined ? parseInt(totalStock) : undefined,
           categoryId: categoryId || undefined,
           subCategoryId: subCategoryId || null,

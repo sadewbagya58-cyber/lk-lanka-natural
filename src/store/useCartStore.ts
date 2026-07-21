@@ -13,9 +13,9 @@ export interface CartItem {
 
 interface CartState {
   cartItems: CartItem[];
-  addToCart: (productId: string, quantity: number, selectedVariantId: string | null, unitPrice: number) => void;
+  addToCart: (productId: string, quantity: number, selectedVariantId: string | null, unitPrice: number, maxStock?: number) => void;
   removeFromCart: (productId: string, selectedVariantId?: string | null) => void;
-  updateQuantity: (productId: string, quantity: number, selectedVariantId?: string | null) => void;
+  updateQuantity: (productId: string, quantity: number, selectedVariantId?: string | null, maxStock?: number) => void;
   clearCart: () => void;
   setCartItems: (items: CartItem[]) => void;
   getCartTotalItems: () => number;
@@ -27,7 +27,9 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       cartItems: [],
 
-      addToCart: (productId, quantity = 1, selectedVariantId = null, unitPrice) => {
+      addToCart: (productId, quantity = 1, selectedVariantId = null, unitPrice, maxStock) => {
+        if (maxStock !== undefined && maxStock <= 0) return;
+
         const items = get().cartItems;
         const normalizedVariantId = selectedVariantId ?? null;
 
@@ -38,17 +40,29 @@ export const useCartStore = create<CartState>()(
         );
 
         if (existingIndex > -1) {
+          const currentQty = items[existingIndex].quantity;
+          let newQty = currentQty + quantity;
+          if (maxStock !== undefined) {
+            newQty = Math.min(newQty, maxStock);
+          }
+
           const updatedItems = [...items];
           updatedItems[existingIndex] = {
             ...updatedItems[existingIndex],
-            quantity: updatedItems[existingIndex].quantity + quantity,
+            quantity: newQty,
           };
           set({ cartItems: updatedItems });
         } else {
+          let initialQty = quantity;
+          if (maxStock !== undefined) {
+            initialQty = Math.min(initialQty, maxStock);
+          }
+          if (initialQty <= 0) return;
+
           set({
             cartItems: [
               ...items,
-              { productId, quantity, selectedVariantId: normalizedVariantId, unitPrice },
+              { productId, quantity: initialQty, selectedVariantId: normalizedVariantId, unitPrice },
             ],
           });
         }
@@ -67,17 +81,23 @@ export const useCartStore = create<CartState>()(
         });
       },
 
-      updateQuantity: (productId, quantity, selectedVariantId = null) => {
+      updateQuantity: (productId, quantity, selectedVariantId = null, maxStock) => {
         const normalizedVariantId = selectedVariantId ?? null;
         if (quantity <= 0) {
           get().removeFromCart(productId, normalizedVariantId);
           return;
         }
+
+        let targetQty = quantity;
+        if (maxStock !== undefined) {
+          targetQty = Math.min(targetQty, maxStock);
+        }
+
         set({
           cartItems: get().cartItems.map((item) =>
             item.productId === productId &&
             (item.selectedVariantId ?? null) === normalizedVariantId
-              ? { ...item, quantity }
+              ? { ...item, quantity: targetQty }
               : item
           ),
         });

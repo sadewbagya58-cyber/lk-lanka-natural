@@ -21,12 +21,18 @@ export default function ProductCard({ product }: ProductCardProps) {
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist);
   const isWishlisted = useWishlistStore((state) => state.isInWishlist(product.id));
 
+  const stock = product.stockQuantity ?? 0;
+  const threshold = product.lowStockThreshold ?? 5;
+  const isOut = stock === 0 || !product.inStock;
+  const isLow = !isOut && stock <= threshold;
+
   const discountPercent = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (isOut) return;
     addToCart(product.id, 1, null, product.price);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
@@ -51,11 +57,15 @@ export default function ProductCard({ product }: ProductCardProps) {
               -{discountPercent}% OFF
             </span>
           )}
-          {!product.inStock && (
-            <span className="text-[9px] font-black tracking-wider uppercase bg-slate-200 text-slate-500 px-2 py-1 rounded shadow-sm">
-              Sold Out
+          {isOut ? (
+            <span className="text-[9px] font-black tracking-wider uppercase bg-slate-900 text-white px-2 py-1 rounded shadow-sm">
+              Out of Stock
             </span>
-          )}
+          ) : isLow ? (
+            <span className="text-[9px] font-black tracking-wider uppercase bg-amber-500 text-white px-2 py-1 rounded shadow-sm">
+              Low Stock ({stock} left)
+            </span>
+          ) : null}
         </div>
 
         {/* Wishlist toggle */}
@@ -130,27 +140,47 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Stock Status */}
+        {/* Stock Status Indicator */}
         <div className="flex items-center gap-1.5">
-          <span className={`w-1.5 h-1.5 rounded-full ${product.inStock ? 'bg-emerald-600 animate-pulse' : 'bg-slate-350'}`} />
-          <span className="text-[10px] text-slate-400 font-bold tracking-wide uppercase">
-            {product.inStock ? 'Ready to Ship' : 'Out of Stock'}
-          </span>
+          {isOut ? (
+            <>
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+              <span className="text-[10px] text-rose-600 font-bold tracking-wide uppercase">
+                Out of Stock
+              </span>
+            </>
+          ) : isLow ? (
+            <>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              <span className="text-[10px] text-amber-700 font-bold tracking-wide uppercase">
+                Low Stock — Only {stock} left
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+              <span className="text-[10px] text-slate-400 font-bold tracking-wide uppercase">
+                In Stock ({stock})
+              </span>
+            </>
+          )}
         </div>
 
         {/* Action Grid */}
         <div className="grid grid-cols-5 gap-2 pt-1">
           <button
             onClick={handleAddToCart}
-            disabled={!product.inStock}
+            disabled={isOut}
             className={`col-span-4 h-10 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all select-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
-              isAdded
+              isOut
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                : isAdded
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-95 disabled:bg-slate-100 disabled:text-slate-450 disabled:active:scale-100'
+                : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-95'
             }`}
           >
             <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-            <span>{isAdded ? 'Added' : 'Add to Cart'}</span>
+            <span>{isOut ? 'Out of Stock' : isAdded ? 'Added' : 'Add to Cart'}</span>
           </button>
 
           <Link
