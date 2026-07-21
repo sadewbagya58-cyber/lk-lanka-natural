@@ -1,8 +1,7 @@
 import Navbar from "@/components/Navbar";
-import HeroBanner from "@/components/HeroBanner";
 import QuickCategories from "@/components/QuickCategories";
-import FlashDeals from "@/components/FlashDeals";
 import ProductGrid from "@/components/ProductGrid";
+import FlashDeals from "@/components/FlashDeals";
 import BrandShowcase from "@/components/BrandShowcase";
 import PromotionalBanner from "@/components/PromotionalBanner";
 import CustomerReviews from "@/components/CustomerReviews";
@@ -54,36 +53,33 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* 1. Header (Double-Decker Layout + Integrated 2. Search) */}
+      {/* Header */}
       <Navbar />
 
       <main className="flex-grow flex flex-col">
-        {/* 3. Quick Categories */}
+        {/* Quick Category Bar */}
         <QuickCategories />
 
-        {/* 4. Hero Section (Categories Left, Banner Center, Side Offers Right) */}
-        <HeroBanner />
-
-        {/* 5. Flash Deals (Dynamic Countdown + Progress Bar + Slider) */}
-        <FlashDeals />
-
-        {/* 6. Featured Products / 7. Best Sellers / 8. New Arrivals (Integrated Filter Grid) */}
+        {/* Primary Product Collection Section (All Products Default View) */}
         <ProductGrid />
 
-        {/* 9. Brand Showcase (Authorized Brands scrolling panel) */}
+        {/* Flash Deals Section */}
+        <FlashDeals />
+
+        {/* Authorized Brand Showcase */}
         <BrandShowcase />
 
-        {/* 10. Promotional Banner Campaign Billboard */}
+        {/* Promotional Campaign Banner */}
         <PromotionalBanner />
 
-        {/* 11. Customer Reviews Star-Ratings */}
+        {/* Customer Reviews & Star Ratings */}
         <CustomerReviews />
 
-        {/* 12. Newsletter Value Badges */}
+        {/* Newsletter & Value Badges */}
         <Newsletter />
       </main>
 
-      {/* 13. Footer payment security block */}
+      {/* Footer */}
       <Footer />
 
       {/* Floating Global WhatsApp Widget */}
