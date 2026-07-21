@@ -9,6 +9,8 @@ export interface ProductCardData {
   price: number;
   originalPrice?: number;
   badge?: string;
+  image?: string;
+  images?: string[];
   category: string;
   categorySlug: string;
   brandName: string;

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Star, ChevronRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import ProductDetail, { type ProductDetailData } from '@/components/ProductDetail';
@@ -23,13 +24,29 @@ export async function generateMetadata({ params }: PageProps) {
   };
 }
 
-function ProductVisual({ visualSeed, gradient }: { visualSeed: string; gradient: string }) {
+function ProductVisual({
+  visualSeed,
+  gradient,
+  imageUrl,
+  name,
+}: {
+  visualSeed: string;
+  gradient: string;
+  imageUrl?: string | null;
+  name: string;
+}) {
   return (
     <div className="relative aspect-square w-full rounded-3xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center shadow-inner">
-      <div className={`absolute inset-0 bg-gradient-to-tr ${gradient} opacity-20`} />
-      <div className="w-2/3 h-2/3 flex items-center justify-center transform hover:scale-105 transition-transform duration-500">
-        <ProductIllustration type={visualSeed} className="w-full h-full text-slate-700/70" />
-      </div>
+      {imageUrl ? (
+        <Image src={imageUrl} alt={name} fill className="object-contain p-4" unoptimized />
+      ) : (
+        <>
+          <div className={`absolute inset-0 bg-gradient-to-tr ${gradient} opacity-20`} />
+          <div className="w-2/3 h-2/3 flex items-center justify-center transform hover:scale-105 transition-transform duration-500">
+            <ProductIllustration type={visualSeed} className="w-full h-full text-slate-700/70" />
+          </div>
+        </>
+      )}
       <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-emerald-500/20 blur-3xl rounded-full" />
     </div>
   );
@@ -87,7 +104,11 @@ export default async function ProductPage({ params }: PageProps) {
   // Fetch related products (same category, excluding this one)
   const relatedRaw = await prisma.product.findMany({
     where: { categoryId: p.categoryId, id: { not: p.id } },
-    include: { category: true, brand: true },
+    include: {
+      category: true,
+      brand: true,
+      images: { orderBy: { sortOrder: 'asc' } },
+    },
     take: 4,
     orderBy: { rating: 'desc' },
   });
@@ -99,6 +120,7 @@ export default async function ProductPage({ params }: PageProps) {
     price: r.price,
     originalPrice: r.originalPrice ?? undefined,
     badge: r.badge ?? undefined,
+    image: r.images[0]?.url,
     category: r.category?.name ?? '',
     categorySlug: r.category?.slug ?? '',
     brandName: r.brand?.name ?? '',
@@ -119,22 +141,26 @@ export default async function ProductPage({ params }: PageProps) {
     comment: r.comment,
     verified: r.verified,
     authorName: r.user?.name ?? 'Anonymous',
-    createdAt: r.createdAt.toISOString(),
+    createdAt: r.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
   }));
 
+  const primaryImage = p.images[0]?.url;
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <nav className="flex items-center text-sm font-medium text-slate-500">
-          <Link href="/" className="hover:text-emerald-600 transition-colors">Home</Link>
-          <ChevronRight className="w-4 h-4 mx-2" />
+    <div className="min-h-screen bg-slate-50 text-slate-900 pt-6">
+      {/* Breadcrumb Header */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 mb-4">
+        <nav className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+          <Link href="/" className="hover:text-slate-700 transition-colors">Home</Link>
+          <ChevronRight className="w-3.5 h-3.5" />
+          <Link href="/products" className="hover:text-slate-700 transition-colors">Products</Link>
+          <ChevronRight className="w-3.5 h-3.5" />
           {p.category && (
             <>
-              <Link href={`/category/${p.category.slug}`} className="hover:text-emerald-600 transition-colors">
+              <Link href={`/category/${p.category.slug}`} className="hover:text-slate-700 transition-colors">
                 {p.category.name}
               </Link>
-              <ChevronRight className="w-4 h-4 mx-2" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </>
           )}
           <span className="text-slate-900 truncate max-w-[200px] sm:max-w-none">{p.name}</span>
@@ -147,7 +173,12 @@ export default async function ProductPage({ params }: PageProps) {
           {/* Product Visual */}
           <div className="w-full lg:w-1/2">
             <div className="sticky top-24">
-              <ProductVisual visualSeed={p.visualSeed} gradient={p.gradient} />
+              <ProductVisual
+                visualSeed={p.visualSeed}
+                gradient={p.gradient}
+                imageUrl={primaryImage}
+                name={p.name}
+              />
             </div>
           </div>
 
@@ -180,65 +211,53 @@ export default async function ProductPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Full Description */}
-        <div className="border-t border-slate-100 py-16">
-          <div className="max-w-3xl">
-            <h2 className="text-2xl font-black text-slate-900 mb-6">Product Information</h2>
-            <p className="text-slate-600 leading-loose text-lg">{p.description}</p>
-            {product.tags && product.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-8">
-                {product.tags.map((tag) => (
-                  <span key={tag} className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-sm font-medium">{tag}</span>
+        {/* Full Description & Reviews Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-12 border-t border-slate-200">
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            <h2 className="text-2xl font-black text-slate-900">Product Description</h2>
+            <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed font-light">
+              <p>{p.description}</p>
+            </div>
+
+            {/* Reviews list */}
+            <div className="mt-8 pt-8 border-t border-slate-200 flex flex-col gap-6">
+              <h3 className="text-xl font-black text-slate-900">Customer Reviews ({reviews.length})</h3>
+              {reviews.length === 0 ? (
+                <p className="text-sm text-slate-400 font-light italic">No reviews yet for this product.</p>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {reviews.map((r) => (
+                    <div key={r.id} className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-900">{r.authorName}</span>
+                        <span className="text-[10px] text-slate-400 font-medium">{r.createdAt}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star key={s} className={`w-3.5 h-3.5 ${s <= r.rating ? 'text-amber-500 fill-amber-500' : 'text-slate-200 fill-slate-200'}`} />
+                        ))}
+                      </div>
+                      {r.title && <h4 className="text-xs font-bold text-slate-800">{r.title}</h4>}
+                      <p className="text-xs text-slate-600 font-light">{r.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Related Products Sidebar */}
+          {relatedProducts.length > 0 && (
+            <div className="flex flex-col gap-6">
+              <h3 className="text-lg font-black text-slate-900">Related Products</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                {relatedProducts.map((rel) => (
+                  <ProductCard key={rel.id} product={rel} />
                 ))}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Customer Reviews */}
-        <div className="border-t border-slate-100 py-16">
-          <h2 className="text-2xl font-black text-slate-900 mb-8">Customer Reviews</h2>
-          {reviews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {reviews.map((review) => (
-                <div key={review.id} className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">
-                        {review.authorName.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 text-sm">{review.authorName}</div>
-                        <div className="text-xs text-slate-500 font-medium">{new Date(review.createdAt).toLocaleDateString()}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className={`w-3.5 h-3.5 ${star <= review.rating ? 'text-amber-500 fill-amber-500' : 'text-slate-200 fill-slate-200'}`} />
-                      ))}
-                    </div>
-                  </div>
-                  {review.title && <h4 className="font-bold text-slate-800 mb-2">{review.title}</h4>}
-                  <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
-                </div>
-              ))}
             </div>
-          ) : (
-            <p className="text-slate-500 italic">No reviews yet. Be the first to review this product!</p>
           )}
         </div>
-
-        {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <div className="border-t border-slate-100 py-16">
-            <h2 className="text-2xl font-black text-slate-900 mb-8">You May Also Like</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-              {relatedProducts.map((prod) => (
-                <ProductCard key={prod.id} product={prod} />
-              ))}
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );

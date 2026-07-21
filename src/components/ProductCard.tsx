@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Eye, Heart, Star } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { ProductCardData } from '@/types/product';
 import ProductIllustration from './ProductIllustration';
 import { useCartStore } from '@/store/useCartStore';
@@ -77,10 +78,22 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Product Image Link */}
         <Link href={`/products/${product.slug}`} className="block relative mb-4 select-none focus:outline-none">
           <div className="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
-            <div className={`absolute inset-0 bg-gradient-to-tr ${product.gradient} opacity-20 group-hover:scale-105 transition-transform duration-500`} />
-            <div className="w-1/2 h-1/2 transform group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
-              <ProductIllustration type={product.visualSeed} className="w-full h-full text-slate-700/70" />
-            </div>
+            {product.image ? (
+              <Image
+                src={product.image}
+                alt={product.name}
+                fill
+                className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                unoptimized
+              />
+            ) : (
+              <>
+                <div className={`absolute inset-0 bg-gradient-to-tr ${product.gradient} opacity-20 group-hover:scale-105 transition-transform duration-500`} />
+                <div className="w-1/2 h-1/2 transform group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
+                  <ProductIllustration type={product.visualSeed} className="w-full h-full text-slate-700/70" />
+                </div>
+              </>
+            )}
             <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-2/3 h-10 bg-emerald-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           </div>
         </Link>

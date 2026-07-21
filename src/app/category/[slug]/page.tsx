@@ -1,6 +1,5 @@
 export const dynamic = 'force-dynamic';
 
-import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import CategoryView from '@/components/CategoryView';
@@ -18,7 +17,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     include: {
       subCategories: true,
       products: {
-        include: { category: true, brand: true },
+        include: {
+          category: true,
+          brand: true,
+          images: { orderBy: { sortOrder: 'asc' } },
+        },
         where: { inStock: true },
         orderBy: { rating: 'desc' },
       },
@@ -31,7 +34,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     id: s.id,
     name: s.name,
     slug: s.slug,
-    parentCategoryId: s.categoryId,
+    parentCategoryId: s.parentCategoryId || category.id,
     description: s.description ?? undefined,
   }));
 
@@ -42,6 +45,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     price: p.price,
     originalPrice: p.originalPrice ?? undefined,
     badge: p.badge ?? undefined,
+    image: p.images[0]?.url,
     category: p.category?.name ?? category.name,
     categorySlug: p.category?.slug ?? category.slug,
     brandName: p.brand?.name ?? '',
@@ -67,8 +71,6 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     sortOrder: category.sortOrder,
   };
 
-  // Build an icon node — since we can't pass React component instances from Prisma,
-  // we use a simple text badge fallback for the hero icon.
   const iconNode = (
     <span className="text-4xl font-black text-white select-none">
       {category.name.charAt(0)}

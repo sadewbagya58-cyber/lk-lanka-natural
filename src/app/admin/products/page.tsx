@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Plus, Trash2, Package } from 'lucide-react';
 
 interface ProductItem {
@@ -116,7 +117,8 @@ export default function AdminProducts() {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
               <tr>
-                <th className="px-4 py-3">Product</th>
+                <th className="px-4 py-3">Image</th>
+                <th className="px-4 py-3">Product Name</th>
                 <th className="px-4 py-3">Category</th>
                 <th className="px-4 py-3">Brand</th>
                 <th className="px-4 py-3">Price</th>
@@ -125,33 +127,47 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {products.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-4 py-3 font-bold text-slate-900">
-                    <div className="flex flex-col">
-                      <span>{p.name}</span>
-                      <span className="text-[10px] font-mono text-slate-400 font-normal">{p.slug}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-slate-600 font-medium">{p.category?.name || 'Uncategorized'}</td>
-                  <td className="px-4 py-3 text-slate-600 font-medium">{p.brand?.name || 'Unknown'}</td>
-                  <td className="px-4 py-3 font-black text-slate-900">${p.price.toFixed(2)}</td>
-                  <td className="px-4 py-3 font-semibold">
-                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${p.inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`}>
-                      {p.inStock ? `${p.stockQuantity} in stock` : 'Out of Stock'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleDeleteProduct(p.id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                      title="Delete product"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {products.map((p) => {
+                const thumbnail = p.images?.[0]?.url;
+                return (
+                  <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-4 py-3">
+                      {thumbnail ? (
+                        <div className="w-10 h-10 rounded-lg overflow-hidden relative border border-slate-200 bg-slate-50">
+                          <Image src={thumbnail} alt={p.name} fill className="object-contain p-1" unoptimized />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold">
+                          {p.name.charAt(0)}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-bold text-slate-900">
+                      <div className="flex flex-col">
+                        <span>{p.name}</span>
+                        <span className="text-[10px] font-mono text-slate-400 font-normal">{p.slug}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 font-medium">{p.category?.name || 'Uncategorized'}</td>
+                    <td className="px-4 py-3 text-slate-600 font-medium">{p.brand?.name || 'Unknown'}</td>
+                    <td className="px-4 py-3 font-black text-slate-900">${p.price.toFixed(2)}</td>
+                    <td className="px-4 py-3 font-semibold">
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${p.inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`}>
+                        {p.inStock ? `${p.stockQuantity} in stock` : 'Out of Stock'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleDeleteProduct(p.id)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                        title="Delete product"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
