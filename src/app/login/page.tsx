@@ -13,7 +13,8 @@ import Footer from '@/components/Footer';
  */
 function LoginInner() {
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get('redirect') || '/account';
+  const rawRedirect = searchParams.get('redirect');
+  const redirectPath = (rawRedirect && !rawRedirect.startsWith('/login')) ? rawRedirect : '/account';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
