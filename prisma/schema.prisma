@@ -113,8 +113,8 @@ model Product {
   category          Category         @relation(fields: [categoryId], references: [id])
   subCategoryId     String?
   subCategory       SubCategory?     @relation(fields: [subCategoryId], references: [id])
-  brandId           String
-  brand             Brand            @relation(fields: [brandId], references: [id])
+  brandId           String?
+  brand             Brand?           @relation(fields: [brandId], references: [id])
 
   // Pricing (USD)
   price             Float

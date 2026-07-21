@@ -5,14 +5,36 @@ async function verifyAdmin() {
   return true;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (id) {
+      const product = await prisma.product.findUnique({
+        where: { id },
+        include: {
+          category: true,
+          subCategory: true,
+          brand: true,
+          images: { orderBy: { sortOrder: 'asc' } },
+          variants: true,
+        },
+      });
+
+      if (!product) {
+        return NextResponse.json({ error: "Product not found" }, { status: 404 });
+      }
+
+      return NextResponse.json({ product });
+    }
+
     const products = await prisma.product.findMany({
       include: {
         category: true,
         subCategory: true,
         brand: true,
-        images: true,
+        images: { orderBy: { sortOrder: 'asc' } },
         variants: true,
       },
       orderBy: { createdAt: 'desc' }
@@ -59,9 +81,9 @@ export async function POST(request: Request) {
       flashDealEndsAt = null,
     } = await request.json();
 
-    if (!name || !slug || !price || !categoryId || !brandId) {
+    if (!name || !slug || !price || !categoryId) {
       return NextResponse.json(
-        { error: "Name, slug, price, categoryId, and brandId are required" },
+        { error: "Name, slug, price, and categoryId are required" },
         { status: 400 }
       );
     }
@@ -90,7 +112,7 @@ export async function POST(request: Request) {
           totalStock: parseInt(totalStock) || parsedStock,
           categoryId,
           subCategoryId: subCategoryId || null,
-          brandId,
+          brandId: brandId || null,
           isFeatured: Boolean(isFeatured),
           isBestSeller: Boolean(isBestSeller),
           isNewArrival: Boolean(isNewArrival),
@@ -164,6 +186,7 @@ export async function PUT(request: Request) {
       categoryId,
       subCategoryId,
       brandId,
+      images,
       isFeatured,
       isBestSeller,
       isNewArrival,
@@ -178,39 +201,62 @@ export async function PUT(request: Request) {
       );
     }
 
-    const product = await prisma.product.update({
-      where: { id },
-      data: {
-        name: name.trim(),
-        slug: slug.trim().toLowerCase(),
-        description: description || "",
-        shortDescription: shortDescription || null,
-        price: parseFloat(price),
-        originalPrice: originalPrice ? parseFloat(originalPrice) : null,
-        currency: currency || "USD",
-        badge: badge || null,
-        tags: tags || undefined,
-        gradient: gradient || undefined,
-        visualSeed: visualSeed || undefined,
-        inStock: inStock !== undefined ? Boolean(inStock) : undefined,
-        stockQuantity: stockQuantity !== undefined ? parseInt(stockQuantity) : undefined,
-        lowStockThreshold: lowStockThreshold !== undefined ? parseInt(lowStockThreshold) : undefined,
-        totalStock: totalStock !== undefined ? parseInt(totalStock) : undefined,
-        categoryId: categoryId || undefined,
-        subCategoryId: subCategoryId || null,
-        brandId: brandId || undefined,
-        isFeatured: isFeatured !== undefined ? Boolean(isFeatured) : undefined,
-        isBestSeller: isBestSeller !== undefined ? Boolean(isBestSeller) : undefined,
-        isNewArrival: isNewArrival !== undefined ? Boolean(isNewArrival) : undefined,
-        isFlashDeal: isFlashDeal !== undefined ? Boolean(isFlashDeal) : undefined,
-        flashDealEndsAt: flashDealEndsAt ? new Date(flashDealEndsAt) : null,
-      },
-      include: {
-        category: true,
-        brand: true,
-        images: true,
-        variants: true,
-      },
+    const parsedPrice = parseFloat(price);
+    const parsedOriginalPrice = originalPrice ? parseFloat(originalPrice) : null;
+
+    const product = await prisma.$transaction(async (tx) => {
+      if (images !== undefined) {
+        await tx.productImage.deleteMany({
+          where: { productId: id },
+        });
+      }
+
+      const updated = await tx.product.update({
+        where: { id },
+        data: {
+          name: name.trim(),
+          slug: slug.trim().toLowerCase(),
+          description: description || "",
+          shortDescription: shortDescription || null,
+          price: parsedPrice,
+          originalPrice: parsedOriginalPrice,
+          currency: currency || "USD",
+          badge: badge || null,
+          tags: tags || undefined,
+          gradient: gradient || undefined,
+          visualSeed: visualSeed || undefined,
+          inStock: inStock !== undefined ? Boolean(inStock) : undefined,
+          stockQuantity: stockQuantity !== undefined ? parseInt(stockQuantity) : undefined,
+          lowStockThreshold: lowStockThreshold !== undefined ? parseInt(lowStockThreshold) : undefined,
+          totalStock: totalStock !== undefined ? parseInt(totalStock) : undefined,
+          categoryId: categoryId || undefined,
+          subCategoryId: subCategoryId || null,
+          brandId: brandId !== undefined ? (brandId || null) : undefined,
+          isFeatured: isFeatured !== undefined ? Boolean(isFeatured) : undefined,
+          isBestSeller: isBestSeller !== undefined ? Boolean(isBestSeller) : undefined,
+          isNewArrival: isNewArrival !== undefined ? Boolean(isNewArrival) : undefined,
+          isFlashDeal: isFlashDeal !== undefined ? Boolean(isFlashDeal) : undefined,
+          flashDealEndsAt: flashDealEndsAt ? new Date(flashDealEndsAt) : null,
+          images: images !== undefined ? {
+            create: (images as Array<{ url: string; alt?: string; isPrimary?: boolean }>).map(
+              (img, index) => ({
+                url: img.url,
+                alt: img.alt || name,
+                isPrimary: index === 0 || Boolean(img.isPrimary),
+                sortOrder: index + 1,
+              })
+            ),
+          } : undefined,
+        },
+        include: {
+          category: true,
+          brand: true,
+          images: true,
+          variants: true,
+        },
+      });
+
+      return updated;
     });
 
     return NextResponse.json({ product });

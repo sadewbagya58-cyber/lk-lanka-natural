@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Trash2, Package } from 'lucide-react';
+import { Plus, Trash2, Pencil, Package } from 'lucide-react';
 
 interface ProductItem {
   id: string;
@@ -14,7 +14,7 @@ interface ProductItem {
   stockQuantity: number;
   inStock: boolean;
   category?: { name: string };
-  brand?: { name: string };
+  brand?: { name: string } | null;
   images?: Array<{ url: string }>;
 }
 
@@ -57,8 +57,8 @@ export default function AdminProducts() {
     };
   }, []);
 
-  const handleDeleteProduct = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+  const handleDeleteProduct = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
     try {
       const res = await fetch(`/api/admin/products?id=${id}`, {
@@ -149,7 +149,13 @@ export default function AdminProducts() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-600 font-medium">{p.category?.name || 'Uncategorized'}</td>
-                    <td className="px-4 py-3 text-slate-600 font-medium">{p.brand?.name || 'Unknown'}</td>
+                    <td className="px-4 py-3 text-slate-600 font-medium">
+                      {p.brand?.name ? (
+                        <span>{p.brand.name}</span>
+                      ) : (
+                        <span className="text-slate-400 italic">No Brand</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 font-black text-slate-900">${p.price.toFixed(2)}</td>
                     <td className="px-4 py-3 font-semibold">
                       <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${p.inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`}>
@@ -157,13 +163,22 @@ export default function AdminProducts() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => handleDeleteProduct(p.id)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                        title="Delete product"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Link
+                          href={`/admin/products/${p.id}/edit`}
+                          className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors"
+                          title="Edit product"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteProduct(p.id, p.name)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                          title="Delete product"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

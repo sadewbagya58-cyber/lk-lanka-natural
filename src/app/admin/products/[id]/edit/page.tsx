@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
 import ImageUpload from '@/components/admin/ImageUpload';
 
 interface CategoryItem {
@@ -16,8 +16,10 @@ interface BrandItem {
   name: string;
 }
 
-export default function NewProductPage() {
+export default function EditProductPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params?.id as string;
 
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [brands, setBrands] = useState<BrandItem[]>([]);
@@ -39,34 +41,62 @@ export default function NewProductPage() {
   // Flags
   const [isFeatured, setIsFeatured] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(false);
-  const [isNewArrival, setIsNewArrival] = useState(true);
+  const [isNewArrival, setIsNewArrival] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    async function loadFormOptions() {
+    async function loadData() {
+      if (!id) return;
       try {
-        const [catRes, brandRes] = await Promise.all([
+        const [catRes, brandRes, productRes] = await Promise.all([
           fetch('/api/admin/categories'),
           fetch('/api/admin/brands'),
+          fetch(`/api/admin/products?id=${id}`),
         ]);
+
         const catData = await catRes.json();
         const brandData = await brandRes.json();
+        const productData = await productRes.json();
 
         if (catData.categories) setCategories(catData.categories);
         if (brandData.brands) setBrands(brandData.brands);
 
-        if (catData.categories?.length > 0) setCategoryId(catData.categories[0].id);
+        if (productData.product) {
+          const p = productData.product;
+          setName(p.name || '');
+          setSlug(p.slug || '');
+          setDescription(p.description || '');
+          setShortDescription(p.shortDescription || '');
+          setPrice(p.price ? p.price.toString() : '');
+          setOriginalPrice(p.originalPrice ? p.originalPrice.toString() : '');
+          setBadge(p.badge || '');
+          setStockQuantity(p.stockQuantity ? p.stockQuantity.toString() : '100');
+          setCategoryId(p.categoryId || '');
+          setBrandId(p.brandId || '');
+          setIsFeatured(Boolean(p.isFeatured));
+          setIsBestSeller(Boolean(p.isBestSeller));
+          setIsNewArrival(Boolean(p.isNewArrival));
+
+          if (p.images && p.images.length > 0) {
+            const primary = p.images.find((img: { isPrimary?: boolean; url: string }) => img.isPrimary) || p.images[0];
+            setImageUrl(primary.url || '');
+          }
+        } else {
+          setError('Product not found.');
+        }
       } catch (err) {
-        console.error('Failed to load form options:', err);
+        console.error('Failed to load product edit data:', err);
+        setError('Failed to load product data.');
       } finally {
         setLoading(false);
       }
     }
 
-    loadFormOptions();
-  }, []);
+    loadData();
+  }, [id]);
 
   const handleNameChange = (val: string) => {
     setName(val);
@@ -76,6 +106,7 @@ export default function NewProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(false);
 
     if (!name || !slug || !price || !categoryId) {
       setError('Name, slug, price, and category are required.');
@@ -88,9 +119,10 @@ export default function NewProductPage() {
       const images = imageUrl ? [{ url: imageUrl, alt: name, isPrimary: true }] : [];
 
       const res = await fetch('/api/admin/products', {
-        method: 'POST',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id,
           name,
           slug,
           description,
@@ -113,14 +145,17 @@ export default function NewProductPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Failed to create product.');
+        setError(data.error || 'Failed to update product.');
         return;
       }
 
-      router.push('/admin/products');
-      router.refresh();
+      setSuccess(true);
+      setTimeout(() => {
+        router.push('/admin/products');
+        router.refresh();
+      }, 1200);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error creating product.');
+      setError(err instanceof Error ? err.message : 'Error updating product.');
     } finally {
       setSubmitting(false);
     }
@@ -146,7 +181,7 @@ export default function NewProductPage() {
         </Link>
         <div>
           <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Admin Control</span>
-          <h1 className="text-2xl font-black text-slate-900 mt-1">Create Product</h1>
+          <h1 className="text-2xl font-black text-slate-900 mt-1">Edit Product</h1>
         </div>
       </div>
 
@@ -154,6 +189,13 @@ export default function NewProductPage() {
         <div className="flex items-center gap-2 p-3.5 bg-rose-50 border border-rose-100 rounded-xl text-rose-800 text-xs font-bold">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
+        </div>
+      )}
+
+      {success && (
+        <div className="flex items-center gap-2 p-3.5 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-800 text-xs font-bold">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+          <span>Product updated successfully! Redirecting to products list...</span>
         </div>
       )}
 
@@ -196,7 +238,7 @@ export default function NewProductPage() {
               required
             >
               {categories.length === 0 ? (
-                <option value="">No categories (Create one first)</option>
+                <option value="">No categories available</option>
               ) : (
                 categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -344,7 +386,7 @@ export default function NewProductPage() {
           disabled={submitting}
           className="h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-md shadow-emerald-600/10 transition-all active:scale-95 disabled:opacity-50 mt-4"
         >
-          {submitting ? 'Creating Product...' : 'Save & Publish Product'}
+          {submitting ? 'Updating Product...' : 'Update Product'}
         </button>
       </form>
     </div>
