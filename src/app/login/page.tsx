@@ -38,6 +38,7 @@ function LoginInner() {
           email,
           password,
           redirect: false,
+          callbackUrl: redirectPath,
         });
 
         if (result?.error) {
@@ -46,9 +47,7 @@ function LoginInner() {
         }
 
         setSuccess('Logged in successfully! Redirecting...');
-        setTimeout(() => {
-          window.location.replace(redirectPath);
-        }, 500);
+        window.location.href = redirectPath;
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
       }

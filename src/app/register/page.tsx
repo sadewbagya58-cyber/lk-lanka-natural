@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, User, Phone, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
 import { signIn } from 'next-auth/react';
@@ -9,8 +8,6 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export default function RegisterPage() {
-  const router = useRouter();
-
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -56,13 +53,14 @@ export default function RegisterPage() {
           email,
           password,
           redirect: false,
+          callbackUrl: '/account',
         });
 
         if (result?.error) {
           setError('Could not automatically sign you in. Redirecting to login page...');
           setTimeout(() => {
-            router.push('/login');
-          }, 1500);
+            window.location.href = '/login';
+          }, 1000);
           return;
         }
 
@@ -72,9 +70,7 @@ export default function RegisterPage() {
         setPhone('');
         setPassword('');
 
-        setTimeout(() => {
-          window.location.replace('/account');
-        }, 500);
+        window.location.href = '/account';
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'An unexpected registration error occurred.');
       }
