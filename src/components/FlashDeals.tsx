@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ShoppingBag, Eye, Heart, Star, Flame, Clock } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { ProductCardData } from '@/types/product';
 import ProductIllustration from './ProductIllustration';
 import { useCartStore } from '@/store/useCartStore';
@@ -125,10 +126,22 @@ export default function FlashDeals() {
                   {/* Product Image */}
                   <Link href={`/products/${prod.slug}`} className="block relative mb-4 select-none focus:outline-none">
                     <div className="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
-                      <div className={`absolute inset-0 bg-gradient-to-tr ${prod.gradient} opacity-20`} />
-                      <div className="w-1/2 h-1/2 flex items-center justify-center">
-                        <ProductIllustration type={prod.visualSeed} className="w-full h-full text-slate-700/70" />
-                      </div>
+                      {prod.image ? (
+                        <Image
+                          src={prod.image}
+                          alt={prod.name}
+                          fill
+                          className="object-contain p-2 hover:scale-105 transition-transform duration-500"
+                          unoptimized
+                        />
+                      ) : (
+                        <>
+                          <div className={`absolute inset-0 bg-gradient-to-tr ${prod.gradient} opacity-20`} />
+                          <div className="w-1/2 h-1/2 flex items-center justify-center">
+                            <ProductIllustration type={prod.visualSeed} className="w-full h-full text-slate-700/70" />
+                          </div>
+                        </>
+                      )}
                     </div>
                   </Link>
 
