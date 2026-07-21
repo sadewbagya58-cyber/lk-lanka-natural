@@ -14,6 +14,8 @@ export default function QuickCategories() {
       .catch(console.error);
   }, []);
 
+  if (categories.length === 0) return null;
+
   return (
     <section className="w-full py-10 bg-white border-b border-slate-100" aria-label="Quick Category navigation">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,7 +1,28 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import type { CategoryData } from '@/types/product';
 
 export default function PromotionalBanner() {
+  const [featuredCategory, setFeaturedCategory] = useState<CategoryData | null>(null);
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then((r) => r.json())
+      .then((data) => {
+        const cats: CategoryData[] = data.categories ?? [];
+        if (cats.length > 0) {
+          const featured = cats.find((c) => c.featured) ?? cats[0];
+          setFeaturedCategory(featured);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  if (!featuredCategory) return null;
+
   return (
     <section className="w-full py-10 md:py-16 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -16,19 +37,19 @@ export default function PromotionalBanner() {
               Special Campaign Offer
             </div>
             <h2 className="text-2xl md:text-3xl font-black tracking-tight leading-tight">
-              Get an Extra 10% Off Health Products Above $40!
+              Explore {featuredCategory.name} Collection
             </h2>
             <p className="text-xs md:text-sm text-slate-100 font-light leading-relaxed">
-              Stock up on premium herbal supplements, vitamins, and natural wellness essentials. Use coupon code <strong className="font-bold text-white bg-slate-900/40 px-2 py-0.5 rounded border border-white/10">KLNATURAL</strong> at checkout.
+              {featuredCategory.description || `Discover authentic ${featuredCategory.name.toLowerCase()} sourced ethically and delivered safely across Sri Lanka.`} Use coupon code <strong className="font-bold text-white bg-slate-900/40 px-2 py-0.5 rounded border border-white/10">KLNATURAL</strong> at checkout.
             </p>
           </div>
 
           <div className="shrink-0 z-10">
             <Link
-              href="/category/health-products"
+              href={`/category/${featuredCategory.slug}`}
               className="inline-flex items-center gap-2 bg-white text-slate-900 font-bold px-6 py-3.5 rounded-xl hover:bg-slate-50 active:scale-95 transition-all text-xs md:text-sm shadow-md"
             >
-              <span>Explore Health Products</span>
+              <span>Explore {featuredCategory.name}</span>
               <ArrowRight className="w-4 h-4 text-emerald-600" />
             </Link>
           </div>
@@ -37,4 +58,5 @@ export default function PromotionalBanner() {
     </section>
   );
 }
+
 

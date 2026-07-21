@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from './ProductCard';
 import { Sparkles, Flame, CheckCircle2 } from 'lucide-react';
-// Removed mock data imports; product data will be fetched from /api/products
 import type { ProductCardData } from '@/types/product';
 
 export default function ProductGrid() {
@@ -28,12 +27,15 @@ export default function ProductGrid() {
   }, []);
 
   const dataMap: Record<string, ProductCardData[]> = {
-    featured: allProducts.filter((p) => p.isFeatured).slice(0, 8),
-    bestseller: allProducts.filter((p) => p.isBestSeller).slice(0, 8),
-    new: allProducts.filter((p) => p.isNewArrival).slice(0, 8),
+    featured: allProducts.filter((p) => p.isFeatured),
+    bestseller: allProducts.filter((p) => p.isBestSeller),
+    new: allProducts.filter((p) => p.isNewArrival),
   };
 
-  const filteredProducts = dataMap[activeTab] || [];
+  const matched = dataMap[activeTab] || [];
+  const filteredProducts = (matched.length > 0 ? matched : allProducts).slice(0, 8);
+
+  if (allProducts.length === 0) return null;
 
   return (
     <section className="w-full py-10 md:py-16 bg-slate-50 border-b border-slate-100">

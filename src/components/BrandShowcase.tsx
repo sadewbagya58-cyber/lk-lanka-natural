@@ -10,7 +10,11 @@ export default function BrandShowcase() {
   useEffect(() => {
     fetch('/api/brands')
       .then((r) => r.json())
-      .then((data) => setBrands((data.brands ?? []).filter((b: BrandData) => b.featured)))
+      .then((data) => {
+        const allBrands: BrandData[] = data.brands ?? [];
+        const featured = allBrands.filter((b) => b.featured);
+        setBrands(featured.length > 0 ? featured : allBrands);
+      })
       .catch(console.error);
   }, []);
 
