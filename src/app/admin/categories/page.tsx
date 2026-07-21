@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Layers, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Pencil, Layers, AlertCircle } from 'lucide-react';
 import ImageUpload from '@/components/admin/ImageUpload';
 import Image from 'next/image';
 
@@ -12,6 +12,7 @@ interface CategoryItem {
   description?: string | null;
   image?: string | null;
   icon?: string;
+  colorClasses?: string;
   _count?: { products: number };
 }
 
@@ -19,6 +20,9 @@ export default function AdminCategories() {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
+
+  // Form State
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
@@ -44,12 +48,34 @@ export default function AdminCategories() {
     }
   }
 
-  const handleNameChange = (val: string) => {
-    setName(val);
-    setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+  const openCreateModal = () => {
+    setEditingCategory(null);
+    setName('');
+    setSlug('');
+    setDescription('');
+    setImage('');
+    setError(null);
+    setShowModal(true);
   };
 
-  const handleCreateCategory = async (e: React.FormEvent) => {
+  const openEditModal = (cat: CategoryItem) => {
+    setEditingCategory(cat);
+    setName(cat.name || '');
+    setSlug(cat.slug || '');
+    setDescription(cat.description || '');
+    setImage(cat.image || '');
+    setError(null);
+    setShowModal(true);
+  };
+
+  const handleNameChange = (val: string) => {
+    setName(val);
+    if (!editingCategory) {
+      setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+    }
+  };
+
+  const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -61,34 +87,37 @@ export default function AdminCategories() {
     setSubmitting(true);
 
     try {
-      const res = await fetch('/api/admin/categories', {
-        method: 'POST',
+      const isEdit = Boolean(editingCategory);
+      const url = '/api/admin/categories';
+      const method = isEdit ? 'PUT' : 'POST';
+      const payload = isEdit
+        ? { id: editingCategory?.id, name, slug, description, image }
+        : { name, slug, description, image };
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, slug, description, image }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Failed to create category.');
+        setError(data.error || `Failed to ${isEdit ? 'update' : 'create'} category.`);
         return;
       }
 
-      setName('');
-      setSlug('');
-      setDescription('');
-      setImage('');
       setShowModal(false);
       loadCategories();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error creating category.');
+      setError(err instanceof Error ? err.message : 'Error saving category.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this category?')) return;
+  const handleDeleteCategory = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete category "${name}"?`)) return;
 
     try {
       const res = await fetch(`/api/admin/categories?id=${id}`, {
@@ -114,7 +143,7 @@ export default function AdminCategories() {
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={openCreateModal}
           className="h-11 px-5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-2xl flex items-center gap-2 shadow-md shadow-emerald-600/10 transition-all active:scale-95"
         >
           <Plus className="w-4 h-4" />
@@ -126,7 +155,9 @@ export default function AdminCategories() {
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-black text-slate-900">Create New Category</h2>
+            <h2 className="text-lg font-black text-slate-900">
+              {editingCategory ? 'Edit Category' : 'Create New Category'}
+            </h2>
 
             {error && (
               <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-800 text-xs font-bold">
@@ -135,7 +166,7 @@ export default function AdminCategories() {
               </div>
             )}
 
-            <form onSubmit={handleCreateCategory} className="flex flex-col gap-4">
+            <form onSubmit={handleSaveCategory} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Category Name *</label>
                 <input
@@ -162,7 +193,7 @@ export default function AdminCategories() {
 
               {/* Image Upload Component */}
               <ImageUpload
-                label="Category Banner / Icon Image"
+                label="Category Banner / Image"
                 value={image}
                 onChange={(url) => setImage(url)}
                 folder="categories"
@@ -184,7 +215,7 @@ export default function AdminCategories() {
                   disabled={submitting}
                   className="flex-1 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
                 >
-                  {submitting ? 'Creating...' : 'Save Category'}
+                  {submitting ? (editingCategory ? 'Updating...' : 'Creating...') : (editingCategory ? 'Update Category' : 'Save Category')}
                 </button>
                 <button
                   type="button"
@@ -240,13 +271,22 @@ export default function AdminCategories() {
                   <td className="px-4 py-3 font-mono text-slate-500">{cat.slug}</td>
                   <td className="px-4 py-3 text-slate-600 font-semibold">{cat._count?.products || 0} products</td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleDeleteCategory(cat.id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                      title="Delete category"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => openEditModal(cat)}
+                        className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors"
+                        title="Edit category"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                        title="Delete category"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

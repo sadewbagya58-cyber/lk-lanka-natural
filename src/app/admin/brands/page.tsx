@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Tag, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Pencil, Tag, AlertCircle } from 'lucide-react';
 import ImageUpload from '@/components/admin/ImageUpload';
 import Image from 'next/image';
 
@@ -18,6 +18,9 @@ export default function AdminBrands() {
   const [brands, setBrands] = useState<BrandItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingBrand, setEditingBrand] = useState<BrandItem | null>(null);
+
+  // Form State
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [logo, setLogo] = useState('');
@@ -43,12 +46,34 @@ export default function AdminBrands() {
     }
   }
 
-  const handleNameChange = (val: string) => {
-    setName(val);
-    setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+  const openCreateModal = () => {
+    setEditingBrand(null);
+    setName('');
+    setSlug('');
+    setLogo('');
+    setDescription('');
+    setError(null);
+    setShowModal(true);
   };
 
-  const handleCreateBrand = async (e: React.FormEvent) => {
+  const openEditModal = (b: BrandItem) => {
+    setEditingBrand(b);
+    setName(b.name || '');
+    setSlug(b.slug || '');
+    setLogo(b.logoUrl || '');
+    setDescription(b.description || '');
+    setError(null);
+    setShowModal(true);
+  };
+
+  const handleNameChange = (val: string) => {
+    setName(val);
+    if (!editingBrand) {
+      setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+    }
+  };
+
+  const handleSaveBrand = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -60,34 +85,37 @@ export default function AdminBrands() {
     setSubmitting(true);
 
     try {
-      const res = await fetch('/api/admin/brands', {
-        method: 'POST',
+      const isEdit = Boolean(editingBrand);
+      const url = '/api/admin/brands';
+      const method = isEdit ? 'PUT' : 'POST';
+      const payload = isEdit
+        ? { id: editingBrand?.id, name, slug, logo, description }
+        : { name, slug, logo, description };
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, slug, logo, description }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Failed to create brand.');
+        setError(data.error || `Failed to ${isEdit ? 'update' : 'create'} brand.`);
         return;
       }
 
-      setName('');
-      setSlug('');
-      setLogo('');
-      setDescription('');
       setShowModal(false);
       loadBrands();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error creating brand.');
+      setError(err instanceof Error ? err.message : 'Error saving brand.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeleteBrand = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this brand?')) return;
+  const handleDeleteBrand = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete brand "${name}"?`)) return;
 
     try {
       const res = await fetch(`/api/admin/brands?id=${id}`, {
@@ -113,7 +141,7 @@ export default function AdminBrands() {
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={openCreateModal}
           className="h-11 px-5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-2xl flex items-center gap-2 shadow-md shadow-emerald-600/10 transition-all active:scale-95"
         >
           <Plus className="w-4 h-4" />
@@ -125,7 +153,9 @@ export default function AdminBrands() {
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-black text-slate-900">Create New Brand</h2>
+            <h2 className="text-lg font-black text-slate-900">
+              {editingBrand ? 'Edit Brand' : 'Create New Brand'}
+            </h2>
 
             {error && (
               <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-800 text-xs font-bold">
@@ -134,7 +164,7 @@ export default function AdminBrands() {
               </div>
             )}
 
-            <form onSubmit={handleCreateBrand} className="flex flex-col gap-4">
+            <form onSubmit={handleSaveBrand} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Brand Name *</label>
                 <input
@@ -183,7 +213,7 @@ export default function AdminBrands() {
                   disabled={submitting}
                   className="flex-1 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
                 >
-                  {submitting ? 'Creating...' : 'Save Brand'}
+                  {submitting ? (editingBrand ? 'Updating...' : 'Creating...') : (editingBrand ? 'Update Brand' : 'Save Brand')}
                 </button>
                 <button
                   type="button"
@@ -239,13 +269,22 @@ export default function AdminBrands() {
                   <td className="px-4 py-3 font-mono text-slate-500">{b.slug}</td>
                   <td className="px-4 py-3 text-slate-600 font-semibold">{b._count?.products || 0} products</td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleDeleteBrand(b.id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                      title="Delete brand"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => openEditModal(b)}
+                        className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors"
+                        title="Edit brand"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteBrand(b.id, b.name)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                        title="Delete brand"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
