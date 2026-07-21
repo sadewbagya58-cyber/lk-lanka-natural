@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 
 const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "hostinger_market_place_auth_secret_secure_key_32_chars";
+const isProd = process.env.NODE_ENV === "production";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -58,6 +59,35 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  useSecureCookies: false,
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: isProd,
+      },
+    },
+    callbackUrl: {
+      name: `next-auth.callback-url`,
+      options: {
+        sameSite: "lax",
+        path: "/",
+        secure: isProd,
+      },
+    },
+    csrfToken: {
+      name: `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: isProd,
+      },
+    },
   },
   pages: {
     signIn: "/login",
