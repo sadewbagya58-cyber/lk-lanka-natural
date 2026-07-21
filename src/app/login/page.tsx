@@ -46,8 +46,8 @@ function LoginInner() {
 
         setSuccess('Logged in successfully! Redirecting...');
         setTimeout(() => {
-          window.location.href = redirectPath;
-        }, 1000);
+          window.location.replace(redirectPath);
+        }, 500);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
       }
