@@ -40,6 +40,9 @@ export async function POST(request: Request) {
       originalPrice,
       currency = "USD",
       badge,
+      tags,
+      gradient,
+      visualSeed,
       inStock = true,
       stockQuantity = 100,
       lowStockThreshold = 10,
@@ -63,21 +66,28 @@ export async function POST(request: Request) {
       );
     }
 
+    const parsedPrice = parseFloat(price);
+    const parsedOriginalPrice = originalPrice ? parseFloat(originalPrice) : null;
+    const parsedStock = parseInt(stockQuantity) || 100;
+
     const product = await prisma.$transaction(async (tx) => {
       const created = await tx.product.create({
         data: {
-          name,
-          slug,
+          name: name.trim(),
+          slug: slug.trim().toLowerCase(),
           description: description || "",
           shortDescription: shortDescription || null,
-          price: parseFloat(price),
-          originalPrice: originalPrice ? parseFloat(originalPrice) : null,
+          price: parsedPrice,
+          originalPrice: parsedOriginalPrice,
           currency,
           badge: badge || null,
+          tags: tags || "natural,premium",
+          gradient: gradient || "from-emerald-500 to-teal-700",
+          visualSeed: visualSeed || "bottle",
           inStock: Boolean(inStock),
-          stockQuantity: parseInt(stockQuantity),
-          lowStockThreshold: parseInt(lowStockThreshold),
-          totalStock: parseInt(totalStock),
+          stockQuantity: parsedStock,
+          lowStockThreshold: parseInt(lowStockThreshold) || 10,
+          totalStock: parseInt(totalStock) || parsedStock,
           categoryId,
           subCategoryId: subCategoryId || null,
           brandId,
@@ -101,8 +111,8 @@ export async function POST(request: Request) {
               (v) => ({
                 name: v.name,
                 sku: v.sku || null,
-                price: v.price ? parseFloat(v.price as unknown as string) : parseFloat(price),
-                stockQuantity: v.stockQuantity ? parseInt(v.stockQuantity as unknown as string) : parseInt(stockQuantity),
+                price: v.price ? parseFloat(v.price as unknown as string) : parsedPrice,
+                stockQuantity: v.stockQuantity ? parseInt(v.stockQuantity as unknown as string) : parsedStock,
               })
             ),
           },
@@ -121,7 +131,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ product }, { status: 201 });
   } catch (error: unknown) {
     console.error("Admin products POST error:", error);
-    return NextResponse.json({ error: "Failed to create product" }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to create product" },
+      { status: 500 }
+    );
   }
 }
 
@@ -141,6 +154,9 @@ export async function PUT(request: Request) {
       originalPrice,
       currency,
       badge,
+      tags,
+      gradient,
+      visualSeed,
       inStock,
       stockQuantity,
       lowStockThreshold,
@@ -165,14 +181,17 @@ export async function PUT(request: Request) {
     const product = await prisma.product.update({
       where: { id },
       data: {
-        name,
-        slug,
+        name: name.trim(),
+        slug: slug.trim().toLowerCase(),
         description: description || "",
         shortDescription: shortDescription || null,
         price: parseFloat(price),
         originalPrice: originalPrice ? parseFloat(originalPrice) : null,
         currency: currency || "USD",
         badge: badge || null,
+        tags: tags || undefined,
+        gradient: gradient || undefined,
+        visualSeed: visualSeed || undefined,
         inStock: inStock !== undefined ? Boolean(inStock) : undefined,
         stockQuantity: stockQuantity !== undefined ? parseInt(stockQuantity) : undefined,
         lowStockThreshold: lowStockThreshold !== undefined ? parseInt(lowStockThreshold) : undefined,
@@ -197,7 +216,10 @@ export async function PUT(request: Request) {
     return NextResponse.json({ product });
   } catch (error: unknown) {
     console.error("Admin products PUT error:", error);
-    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to update product" },
+      { status: 500 }
+    );
   }
 }
 
@@ -221,6 +243,9 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     console.error("Admin products DELETE error:", error);
-    return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to delete product" },
+      { status: 500 }
+    );
   }
 }
