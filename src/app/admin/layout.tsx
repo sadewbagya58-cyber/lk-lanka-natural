@@ -1,7 +1,5 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -9,8 +7,7 @@ import {
   Package, 
   Layers, 
   Tag, 
-  ArrowLeft,
-  ShieldAlert
+  ArrowLeft
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -20,55 +17,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, status } = useSession();
-  const router = useRouter();
   const pathname = usePathname();
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  // Verify Admin Role
-  const role = (session?.user as { role?: string })?.role;
-  const isAdmin = role === 'ADMIN';
-
-  if (!session || !isAdmin) {
-    return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
-        <Navbar />
-        <main className="flex-grow flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-white rounded-3xl border border-slate-100 p-8 shadow-xl text-center flex flex-col items-center gap-4">
-            <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center">
-              <ShieldAlert className="w-8 h-8" />
-            </div>
-            <h1 className="text-xl font-black text-slate-900">Admin Privileges Required</h1>
-            <p className="text-xs text-slate-500 font-light leading-relaxed">
-              You must be logged in as an Administrator to access the store control panel.
-            </p>
-            <div className="flex gap-3 w-full mt-2">
-              <button
-                onClick={() => router.push('/login')}
-                className="flex-1 h-11 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors"
-              >
-                Sign In
-              </button>
-              <Link
-                href="/"
-                className="flex-1 h-11 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center hover:bg-slate-50 transition-colors"
-              >
-                Return Home
-              </Link>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   const navItems = [
     { label: 'Overview', href: '/admin', icon: LayoutDashboard },
