@@ -37,9 +37,9 @@ export async function POST(request: Request) {
 
     const brand = await prisma.brand.create({
       data: {
-        name,
-        slug,
-        logo: logo || null,
+        name: name.trim(),
+        slug: slug.trim().toLowerCase(),
+        logoUrl: logo || null,
         description: description || null,
       }
     });
@@ -66,9 +66,9 @@ export async function PUT(request: Request) {
     const brand = await prisma.brand.update({
       where: { id },
       data: {
-        name,
-        slug,
-        logo: logo || null,
+        name: name.trim(),
+        slug: slug.trim().toLowerCase(),
+        logoUrl: logo || null,
         description: description || null,
       }
     });

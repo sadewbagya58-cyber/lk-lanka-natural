@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Plus, Trash2, Layers, AlertCircle } from 'lucide-react';
+import ImageUpload from '@/components/admin/ImageUpload';
+import Image from 'next/image';
 
 interface CategoryItem {
   id: string;
@@ -9,6 +11,7 @@ interface CategoryItem {
   slug: string;
   description?: string | null;
   image?: string | null;
+  icon?: string;
   _count?: { products: number };
 }
 
@@ -19,6 +22,7 @@ export default function AdminCategories() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
+  const [image, setImage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -60,7 +64,7 @@ export default function AdminCategories() {
       const res = await fetch('/api/admin/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, slug, description }),
+        body: JSON.stringify({ name, slug, description, image }),
       });
 
       const data = await res.json();
@@ -73,6 +77,7 @@ export default function AdminCategories() {
       setName('');
       setSlug('');
       setDescription('');
+      setImage('');
       setShowModal(false);
       loadCategories();
     } catch (err: unknown) {
@@ -120,7 +125,7 @@ export default function AdminCategories() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-black text-slate-900">Create New Category</h2>
 
             {error && (
@@ -130,9 +135,9 @@ export default function AdminCategories() {
               </div>
             )}
 
-            <form onSubmit={handleCreateCategory} className="flex flex-col gap-3">
+            <form onSubmit={handleCreateCategory} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Category Name</label>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Category Name *</label>
                 <input
                   type="text"
                   value={name}
@@ -144,7 +149,7 @@ export default function AdminCategories() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Slug</label>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Slug *</label>
                 <input
                   type="text"
                   value={slug}
@@ -154,6 +159,14 @@ export default function AdminCategories() {
                   required
                 />
               </div>
+
+              {/* Image Upload Component */}
+              <ImageUpload
+                label="Category Banner / Icon Image"
+                value={image}
+                onChange={(url) => setImage(url)}
+                folder="categories"
+              />
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Description</label>
@@ -165,7 +178,7 @@ export default function AdminCategories() {
                 />
               </div>
 
-              <div className="flex gap-3 mt-3">
+              <div className="flex gap-3 mt-2">
                 <button
                   type="submit"
                   disabled={submitting}
@@ -202,6 +215,7 @@ export default function AdminCategories() {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
               <tr>
+                <th className="px-4 py-3">Image</th>
                 <th className="px-4 py-3">Category Name</th>
                 <th className="px-4 py-3">Slug</th>
                 <th className="px-4 py-3">Products</th>
@@ -211,6 +225,17 @@ export default function AdminCategories() {
             <tbody className="divide-y divide-slate-100">
               {categories.map((cat) => (
                 <tr key={cat.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-4 py-3">
+                    {cat.image ? (
+                      <div className="w-10 h-10 rounded-lg overflow-hidden relative border border-slate-200 bg-slate-50">
+                        <Image src={cat.image} alt={cat.name} fill className="object-cover" unoptimized />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold">
+                        {cat.name.charAt(0)}
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-3 font-bold text-slate-900">{cat.name}</td>
                   <td className="px-4 py-3 font-mono text-slate-500">{cat.slug}</td>
                   <td className="px-4 py-3 text-slate-600 font-semibold">{cat._count?.products || 0} products</td>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
+import ImageUpload from '@/components/admin/ImageUpload';
 
 interface CategoryItem {
   id: string;
@@ -267,29 +268,24 @@ export default function NewProductPage() {
           </div>
         </div>
 
-        {/* Image & Badge */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Image URL</label>
-            <input
-              type="text"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://images.unsplash.com/photo-..."
-              className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
-            />
-          </div>
+        {/* Image Upload Component */}
+        <ImageUpload
+          label="Main Product Image"
+          value={imageUrl}
+          onChange={(url) => setImageUrl(url)}
+          folder="products"
+        />
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Badge (Optional)</label>
-            <input
-              type="text"
-              value={badge}
-              onChange={(e) => setBadge(e.target.value)}
-              placeholder="Popular / Organic / Best Seller"
-              className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
-            />
-          </div>
+        {/* Badge */}
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Badge (Optional)</label>
+          <input
+            type="text"
+            value={badge}
+            onChange={(e) => setBadge(e.target.value)}
+            placeholder="Popular / Organic / Best Seller"
+            className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
+          />
         </div>
 
         {/* Descriptions */}

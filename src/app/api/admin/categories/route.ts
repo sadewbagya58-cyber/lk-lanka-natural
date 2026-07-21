@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 });
     }
 
-    const { name, slug, description, image } = await request.json();
+    const { name, slug, description, image, icon, colorClasses } = await request.json();
 
     if (!name || !slug) {
       return NextResponse.json({ error: "Name and slug are required" }, { status: 400 });
@@ -38,10 +38,12 @@ export async function POST(request: Request) {
 
     const category = await prisma.category.create({
       data: {
-        name,
-        slug,
-        description: description || null,
+        name: name.trim(),
+        slug: slug.trim().toLowerCase(),
+        description: description || "",
         image: image || null,
+        icon: icon || "Package",
+        colorClasses: colorClasses || "bg-emerald-50 text-emerald-600 border-emerald-100",
       }
     });
 
@@ -58,7 +60,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 });
     }
 
-    const { id, name, slug, description, image } = await request.json();
+    const { id, name, slug, description, image, icon, colorClasses } = await request.json();
 
     if (!id || !name || !slug) {
       return NextResponse.json({ error: "ID, name, and slug are required" }, { status: 400 });
@@ -67,10 +69,12 @@ export async function PUT(request: Request) {
     const category = await prisma.category.update({
       where: { id },
       data: {
-        name,
-        slug,
-        description: description || null,
+        name: name.trim(),
+        slug: slug.trim().toLowerCase(),
+        description: description || "",
         image: image || null,
+        icon: icon || undefined,
+        colorClasses: colorClasses || undefined,
       }
     });
 

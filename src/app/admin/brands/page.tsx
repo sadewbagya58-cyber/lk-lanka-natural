@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { Plus, Trash2, Tag, AlertCircle } from 'lucide-react';
+import ImageUpload from '@/components/admin/ImageUpload';
+import Image from 'next/image';
 
 interface BrandItem {
   id: string;
   name: string;
   slug: string;
-  logo?: string | null;
+  logoUrl?: string | null;
   description?: string | null;
   _count?: { products: number };
 }
@@ -122,7 +124,7 @@ export default function AdminBrands() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-black text-slate-900">Create New Brand</h2>
 
             {error && (
@@ -132,9 +134,9 @@ export default function AdminBrands() {
               </div>
             )}
 
-            <form onSubmit={handleCreateBrand} className="flex flex-col gap-3">
+            <form onSubmit={handleCreateBrand} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Brand Name</label>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Brand Name *</label>
                 <input
                   type="text"
                   value={name}
@@ -146,7 +148,7 @@ export default function AdminBrands() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Slug</label>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Slug *</label>
                 <input
                   type="text"
                   value={slug}
@@ -157,16 +159,13 @@ export default function AdminBrands() {
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Logo Image URL</label>
-                <input
-                  type="text"
-                  value={logo}
-                  onChange={(e) => setLogo(e.target.value)}
-                  placeholder="https://example.com/logo.png"
-                  className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
-                />
-              </div>
+              {/* Image Upload Component for Logo */}
+              <ImageUpload
+                label="Brand Logo"
+                value={logo}
+                onChange={(url) => setLogo(url)}
+                folder="brands"
+              />
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Description</label>
@@ -178,7 +177,7 @@ export default function AdminBrands() {
                 />
               </div>
 
-              <div className="flex gap-3 mt-3">
+              <div className="flex gap-3 mt-2">
                 <button
                   type="submit"
                   disabled={submitting}
@@ -215,6 +214,7 @@ export default function AdminBrands() {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
               <tr>
+                <th className="px-4 py-3">Logo</th>
                 <th className="px-4 py-3">Brand Name</th>
                 <th className="px-4 py-3">Slug</th>
                 <th className="px-4 py-3">Products</th>
@@ -224,6 +224,17 @@ export default function AdminBrands() {
             <tbody className="divide-y divide-slate-100">
               {brands.map((b) => (
                 <tr key={b.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-4 py-3">
+                    {b.logoUrl ? (
+                      <div className="w-10 h-10 rounded-lg overflow-hidden relative border border-slate-200 bg-slate-50">
+                        <Image src={b.logoUrl} alt={b.name} fill className="object-contain p-1" unoptimized />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold">
+                        {b.name.charAt(0)}
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-3 font-bold text-slate-900">{b.name}</td>
                   <td className="px-4 py-3 font-mono text-slate-500">{b.slug}</td>
                   <td className="px-4 py-3 text-slate-600 font-semibold">{b._count?.products || 0} products</td>
