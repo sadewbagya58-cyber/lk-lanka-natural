@@ -4,7 +4,21 @@ import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 
-const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "hostinger_market_place_auth_secret_secure_key_32_chars";
+// 1. Programmatic environment overrides for production hosting reverse proxies
+if (typeof window === "undefined") {
+  if (!process.env.NEXTAUTH_URL) {
+    // Detect environment or fallback to production URL
+    process.env.NEXTAUTH_URL = process.env.NODE_ENV === "production"
+      ? "https://kllankanatural.com"
+      : "http://localhost:3000";
+  }
+  
+  if (!process.env.NEXTAUTH_SECRET) {
+    process.env.NEXTAUTH_SECRET = process.env.AUTH_SECRET || "hostinger_market_place_auth_secret_secure_key_32_chars";
+  }
+}
+
+const secret = process.env.NEXTAUTH_SECRET;
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -58,6 +72,18 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  // 2. Configure unified cookie settings to bypass dynamic secure-prefix mismatches behind reverse proxies
+  cookies: {
+    sessionToken: {
+      name: "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   },
   pages: {
     signIn: "/login",
