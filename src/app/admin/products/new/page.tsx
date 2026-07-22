@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
-import ImageUpload from '@/components/admin/ImageUpload';
+import MultiImageUpload, { MultiImageItem } from '@/components/admin/MultiImageUpload';
 
 interface CategoryItem {
   id: string;
@@ -35,7 +35,7 @@ export default function NewProductPage() {
   const [lowStockThreshold, setLowStockThreshold] = useState('5');
   const [categoryId, setCategoryId] = useState('');
   const [brandId, setBrandId] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [images, setImages] = useState<MultiImageItem[]>([]);
 
   // Flags
   const [isFeatured, setIsFeatured] = useState(false);
@@ -92,8 +92,6 @@ export default function NewProductPage() {
     setSubmitting(true);
 
     try {
-      const images = imageUrl ? [{ url: imageUrl, alt: name, isPrimary: true }] : [];
-
       const res = await fetch('/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -111,7 +109,11 @@ export default function NewProductPage() {
           inStock: parsedStock > 0,
           categoryId,
           brandId: brandId || null,
-          images,
+          images: images.map((img, index) => ({
+            url: img.url,
+            isPrimary: img.isPrimary,
+            sortOrder: index,
+          })),
           isFeatured,
           isBestSeller,
           isNewArrival,
@@ -285,11 +287,11 @@ export default function NewProductPage() {
           </div>
         </div>
 
-        {/* Image Upload Component */}
-        <ImageUpload
-          label="Main Product Image"
-          value={imageUrl}
-          onChange={(url) => setImageUrl(url)}
+        {/* Image Gallery Upload Component */}
+        <MultiImageUpload
+          label="Product Image Gallery (MAIN and ADDITIONAL images)"
+          value={images}
+          onChange={(items) => setImages(items)}
           folder="products"
         />
 

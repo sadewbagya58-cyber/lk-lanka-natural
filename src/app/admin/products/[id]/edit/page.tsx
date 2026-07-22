@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
-import ImageUpload from '@/components/admin/ImageUpload';
+import MultiImageUpload, { MultiImageItem } from '@/components/admin/MultiImageUpload';
 
 interface CategoryItem {
   id: string;
@@ -37,7 +37,7 @@ export default function EditProductPage() {
   const [lowStockThreshold, setLowStockThreshold] = useState('5');
   const [categoryId, setCategoryId] = useState('');
   const [brandId, setBrandId] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [images, setImages] = useState<MultiImageItem[]>([]);
 
   // Flags
   const [isFeatured, setIsFeatured] = useState(false);
@@ -83,8 +83,13 @@ export default function EditProductPage() {
           setIsNewArrival(Boolean(p.isNewArrival));
 
           if (p.images && p.images.length > 0) {
-            const primary = p.images.find((img: { isPrimary?: boolean; url: string }) => img.isPrimary) || p.images[0];
-            setImageUrl(primary.url || '');
+            setImages(
+              p.images.map((img: { id: string; url: string; isPrimary: boolean }) => ({
+                id: img.id,
+                url: img.url,
+                isPrimary: img.isPrimary,
+              }))
+            );
           }
         } else {
           setError('Product not found.');
@@ -124,8 +129,6 @@ export default function EditProductPage() {
     setSubmitting(true);
 
     try {
-      const images = imageUrl ? [{ url: imageUrl, alt: name, isPrimary: true }] : [];
-
       const res = await fetch('/api/admin/products', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -144,7 +147,12 @@ export default function EditProductPage() {
           inStock: parsedStock > 0,
           categoryId,
           brandId: brandId || null,
-          images,
+          images: images.map((img, index) => ({
+            id: img.id,
+            url: img.url,
+            isPrimary: img.isPrimary,
+            sortOrder: index,
+          })),
           isFeatured,
           isBestSeller,
           isNewArrival,
@@ -328,11 +336,11 @@ export default function EditProductPage() {
           </div>
         </div>
 
-        {/* Image Upload Component */}
-        <ImageUpload
-          label="Main Product Image"
-          value={imageUrl}
-          onChange={(url) => setImageUrl(url)}
+        {/* Image Gallery Upload Component */}
+        <MultiImageUpload
+          label="Product Image Gallery (MAIN and ADDITIONAL images)"
+          value={images}
+          onChange={(items) => setImages(items)}
           folder="products"
         />
 

@@ -207,10 +207,52 @@ export async function PUT(request: Request) {
     const parsedLowStock = lowStockThreshold !== undefined ? Math.max(0, parseInt(lowStockThreshold) || 5) : undefined;
 
     const product = await prisma.$transaction(async (tx) => {
-      if (images !== undefined) {
-        await tx.productImage.deleteMany({
+      if (images !== undefined && Array.isArray(images)) {
+        const existingDbImages = await tx.productImage.findMany({
           where: { productId: id },
         });
+
+        const incomingImages = images as Array<{ id?: string; url: string; isPrimary?: boolean; sortOrder?: number }>;
+
+        // Delete removed images
+        const incomingIds = incomingImages.map(img => img.id).filter(Boolean) as string[];
+        const idsToDelete = existingDbImages
+          .map(img => img.id)
+          .filter(dbId => !incomingIds.includes(dbId));
+
+        if (idsToDelete.length > 0) {
+          await tx.productImage.deleteMany({
+            where: { id: { in: idsToDelete } },
+          });
+        }
+
+        // Upsert remaining/new images
+        for (const [idx, img] of incomingImages.entries()) {
+          const finalSortOrder = img.sortOrder !== undefined ? img.sortOrder : idx;
+          const finalIsPrimary = img.isPrimary !== undefined ? img.isPrimary : (idx === 0);
+
+          if (img.id) {
+            await tx.productImage.update({
+              where: { id: img.id },
+              data: {
+                url: img.url,
+                alt: name,
+                isPrimary: finalIsPrimary,
+                sortOrder: finalSortOrder,
+              },
+            });
+          } else {
+            await tx.productImage.create({
+              data: {
+                productId: id,
+                url: img.url,
+                alt: name,
+                isPrimary: finalIsPrimary,
+                sortOrder: finalSortOrder,
+              },
+            });
+          }
+        }
       }
 
       const updated = await tx.product.update({
@@ -239,21 +281,11 @@ export async function PUT(request: Request) {
           isNewArrival: isNewArrival !== undefined ? Boolean(isNewArrival) : undefined,
           isFlashDeal: isFlashDeal !== undefined ? Boolean(isFlashDeal) : undefined,
           flashDealEndsAt: flashDealEndsAt ? new Date(flashDealEndsAt) : null,
-          images: images !== undefined ? {
-            create: (images as Array<{ url: string; alt?: string; isPrimary?: boolean }>).map(
-              (img, index) => ({
-                url: img.url,
-                alt: img.alt || name,
-                isPrimary: index === 0 || Boolean(img.isPrimary),
-                sortOrder: index + 1,
-              })
-            ),
-          } : undefined,
         },
         include: {
           category: true,
           brand: true,
-          images: true,
+          images: { orderBy: { sortOrder: 'asc' } },
           variants: true,
         },
       });

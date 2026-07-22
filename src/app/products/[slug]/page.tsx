@@ -2,12 +2,11 @@ export const dynamic = 'force-dynamic';
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Star, ChevronRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import ProductDetail, { type ProductDetailData } from '@/components/ProductDetail';
 import ProductCard from '@/components/ProductCard';
-import ProductIllustration from '@/components/ProductIllustration';
+import ProductGallery from '@/components/ProductGallery';
 import type { ProductCardData } from '@/types/product';
 
 interface PageProps {
@@ -24,33 +23,7 @@ export async function generateMetadata({ params }: PageProps) {
   };
 }
 
-function ProductVisual({
-  visualSeed,
-  gradient,
-  imageUrl,
-  name,
-}: {
-  visualSeed: string;
-  gradient: string;
-  imageUrl?: string | null;
-  name: string;
-}) {
-  return (
-    <div className="relative aspect-square w-full rounded-3xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center shadow-inner">
-      {imageUrl ? (
-        <Image src={imageUrl} alt={name} fill className="object-contain p-4" unoptimized />
-      ) : (
-        <>
-          <div className={`absolute inset-0 bg-gradient-to-tr ${gradient} opacity-20`} />
-          <div className="w-2/3 h-2/3 flex items-center justify-center transform hover:scale-105 transition-transform duration-500">
-            <ProductIllustration type={visualSeed} className="w-full h-full text-slate-700/70" />
-          </div>
-        </>
-      )}
-      <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-emerald-500/20 blur-3xl rounded-full" />
-    </div>
-  );
-}
+
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
@@ -144,7 +117,6 @@ export default async function ProductPage({ params }: PageProps) {
     createdAt: r.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
   }));
 
-  const primaryImage = p.images[0]?.url;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pt-6">
@@ -173,11 +145,16 @@ export default async function ProductPage({ params }: PageProps) {
           {/* Product Visual */}
           <div className="w-full lg:w-1/2">
             <div className="sticky top-24">
-              <ProductVisual
-                visualSeed={p.visualSeed}
-                gradient={p.gradient}
-                imageUrl={primaryImage}
+              <ProductGallery
+                images={p.images.map((img) => ({
+                  id: img.id,
+                  url: img.url,
+                  isPrimary: img.isPrimary,
+                  sortOrder: img.sortOrder,
+                }))}
                 name={p.name}
+                gradient={p.gradient}
+                visualSeed={p.visualSeed}
               />
             </div>
           </div>
