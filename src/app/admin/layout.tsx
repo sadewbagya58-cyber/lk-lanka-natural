@@ -7,7 +7,8 @@ import {
   Package, 
   Layers, 
   Tag, 
-  ArrowLeft
+  ArrowLeft,
+  ShoppingBag
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -22,6 +23,7 @@ export default function AdminLayout({
   const navItems = [
     { label: 'Overview', href: '/admin', icon: LayoutDashboard },
     { label: 'Products', href: '/admin/products', icon: Package },
+    { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
     { label: 'Categories', href: '/admin/categories', icon: Layers },
     { label: 'Brands', href: '/admin/brands', icon: Tag },
   ];
