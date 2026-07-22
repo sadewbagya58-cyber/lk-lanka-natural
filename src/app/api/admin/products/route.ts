@@ -133,7 +133,7 @@ export async function POST(request: Request) {
             create: (variants as Array<{ name: string; sku?: string; price?: number; stockQuantity?: number }>).map(
               (v) => ({
                 name: v.name,
-                sku: v.sku || null,
+                sku: v.sku || `sku-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
                 price: v.price ? parseFloat(v.price as unknown as string) : parsedPrice,
                 stockQuantity: v.stockQuantity ? Math.max(0, parseInt(v.stockQuantity as unknown as string)) : parsedStock,
               })
