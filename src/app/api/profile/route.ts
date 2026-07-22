@@ -3,9 +3,22 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 
+import { headers } from "next/headers";
+
 export async function GET() {
   try {
+    const reqHeaders = await headers();
+    const allCookies = reqHeaders.get("cookie") || "none";
+    const requestHost = reqHeaders.get("host") || "unknown";
+    const requestProto = reqHeaders.get("x-forwarded-proto") || "unknown";
+
+    console.log("[AUTH-DIAGNOSTIC] Request Host:", requestHost);
+    console.log("[AUTH-DIAGNOSTIC] X-Forwarded-Proto:", requestProto);
+    console.log("[AUTH-DIAGNOSTIC] Raw Cookies:", allCookies);
+
     const session = await getServerSession(authOptions);
+    console.log("[AUTH-DIAGNOSTIC] Resolved Session:", session ? "FOUND" : "NULL");
+
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
