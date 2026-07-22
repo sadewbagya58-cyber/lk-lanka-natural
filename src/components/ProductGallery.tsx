@@ -53,7 +53,7 @@ export default function ProductGallery({
   const [prevOverride, setPrevOverride] = useState<string | null>(null);
 
   if (activeImageOverride !== prevOverride) {
-    setPrevOverride(activeImageOverride);
+    setPrevOverride(activeImageOverride ?? null);
     if (overrideIdx !== -1) {
       setActiveIndex(overrideIdx);
     }

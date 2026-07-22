@@ -32,10 +32,12 @@ Create or upload a `.env` file in the root of your Hostinger app directory. Conf
 DATABASE_URL="mysql://u123456789_admin:SecurePassword123!@127.0.0.1:3306/u123456789_kllanka"
 
 # 2. NextAuth Configuration
-# Run `openssl rand -hex 32` or use a secure random 32-char string
+# Run `openssl rand -hex 32` or use a secure random 32-char string for NEXTAUTH_SECRET
+NEXTAUTH_SECRET="your-32-character-secret-goes-here"
 AUTH_SECRET="your-32-character-secret-goes-here"
 
-# Set your production URL
+# Set your production URL for NextAuth callbacks
+NEXTAUTH_URL="https://yourdomain.com"
 AUTH_URL="https://yourdomain.com"
 
 # 3. Google OAuth Credentials (Optional, configure in Google Cloud Console)

@@ -143,7 +143,7 @@ export default function ProductDetail({
             <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
               {minPrice === maxPrice ? `$${minPrice.toFixed(2)}` : `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`}
             </span>
-            {minOriginal && (
+            {minOriginal !== null && maxOriginal !== null && (
               <span className="text-xl text-slate-400 line-through font-bold">
                 {minOriginal === maxOriginal ? `$${minOriginal.toFixed(2)}` : `$${minOriginal.toFixed(2)} - $${maxOriginal.toFixed(2)}`}
               </span>
