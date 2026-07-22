@@ -67,7 +67,6 @@ export async function POST(request: Request) {
       visualSeed,
       stockQuantity = 0,
       lowStockThreshold = 5,
-      totalStock,
       categoryId,
       subCategoryId,
       brandId,
@@ -91,7 +90,12 @@ export async function POST(request: Request) {
     const parsedOriginalPrice = originalPrice ? parseFloat(originalPrice) : null;
     const parsedStock = Math.max(0, parseInt(stockQuantity) || 0);
     const parsedLowStock = Math.max(0, parseInt(lowStockThreshold) || 5);
-    const parsedTotalStock = totalStock ? Math.max(parsedStock, parseInt(totalStock)) : parsedStock;
+
+    const hasVariants = Array.isArray(variants) && variants.length > 0;
+    const finalStock = hasVariants
+      ? (variants as Array<{ stockQuantity: number }>).reduce((sum, v) => sum + Math.max(0, parseInt(v.stockQuantity as unknown as string) || 0), 0)
+      : parsedStock;
+    const finalInStock = finalStock > 0;
 
     const product = await prisma.$transaction(async (tx) => {
       const created = await tx.product.create({
@@ -107,10 +111,10 @@ export async function POST(request: Request) {
           tags: tags || "natural,premium",
           gradient: gradient || "from-emerald-500 to-teal-700",
           visualSeed: visualSeed || "bottle",
-          inStock: parsedStock > 0,
-          stockQuantity: parsedStock,
+          inStock: finalInStock,
+          stockQuantity: finalStock,
           lowStockThreshold: parsedLowStock,
-          totalStock: parsedTotalStock,
+          totalStock: finalStock,
           categoryId,
           subCategoryId: subCategoryId || null,
           brandId: brandId || null,
@@ -130,12 +134,24 @@ export async function POST(request: Request) {
             ),
           },
           variants: {
-            create: (variants as Array<{ name: string; sku?: string; price?: number; stockQuantity?: number }>).map(
-              (v) => ({
+            create: (variants as Array<{
+              name: string;
+              sku?: string;
+              price: number;
+              originalPrice?: number;
+              stockQuantity: number;
+              lowStockThreshold?: number;
+              imageUrl?: string;
+            }>).map(
+              (v, index) => ({
                 name: v.name,
                 sku: v.sku || `sku-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-                price: v.price ? parseFloat(v.price as unknown as string) : parsedPrice,
-                stockQuantity: v.stockQuantity ? Math.max(0, parseInt(v.stockQuantity as unknown as string)) : parsedStock,
+                price: parseFloat(v.price as unknown as string),
+                originalPrice: v.originalPrice ? parseFloat(v.originalPrice as unknown as string) : null,
+                stockQuantity: Math.max(0, parseInt(v.stockQuantity as unknown as string) || 0),
+                lowStockThreshold: v.lowStockThreshold !== undefined ? Math.max(0, parseInt(v.lowStockThreshold as unknown as string) || 0) : 5,
+                imageUrl: v.imageUrl || null,
+                sortOrder: index,
               })
             ),
           },
@@ -182,11 +198,11 @@ export async function PUT(request: Request) {
       visualSeed,
       stockQuantity,
       lowStockThreshold,
-      totalStock,
       categoryId,
       subCategoryId,
       brandId,
       images,
+      variants,
       isFeatured,
       isBestSeller,
       isNewArrival,
@@ -203,10 +219,88 @@ export async function PUT(request: Request) {
 
     const parsedPrice = parseFloat(price);
     const parsedOriginalPrice = originalPrice ? parseFloat(originalPrice) : null;
-    const parsedStock = stockQuantity !== undefined ? Math.max(0, parseInt(stockQuantity) || 0) : undefined;
-    const parsedLowStock = lowStockThreshold !== undefined ? Math.max(0, parseInt(lowStockThreshold) || 5) : undefined;
+    const parsedStock = stockQuantity !== undefined ? Math.max(0, parseInt(stockQuantity) || 0) : 0;
+    const parsedLowStock = lowStockThreshold !== undefined ? Math.max(0, parseInt(lowStockThreshold) || 5) : 5;
+
+    const hasVariants = Array.isArray(variants) && variants.length > 0;
+    const finalStock = hasVariants
+      ? (variants as Array<{ stockQuantity: number }>).reduce((sum, v) => sum + Math.max(0, parseInt(v.stockQuantity as unknown as string) || 0), 0)
+      : parsedStock;
+    const finalInStock = finalStock > 0;
 
     const product = await prisma.$transaction(async (tx) => {
+      // Sync Variants first if provided
+      if (variants !== undefined && Array.isArray(variants)) {
+        const existingDbVariants = await tx.productVariant.findMany({
+          where: { productId: id },
+        });
+
+        const incomingVariants = variants as Array<{
+          id?: string;
+          name: string;
+          sku?: string;
+          price: number;
+          originalPrice?: number;
+          stockQuantity: number;
+          lowStockThreshold?: number;
+          imageUrl?: string;
+          sortOrder?: number;
+        }>;
+
+        // Delete removed variants
+        const incomingIds = incomingVariants.map(v => v.id).filter(Boolean) as string[];
+        const idsToDelete = existingDbVariants
+          .map(v => v.id)
+          .filter(dbId => !incomingIds.includes(dbId));
+
+        if (idsToDelete.length > 0) {
+          await tx.productVariant.deleteMany({
+            where: { id: { in: idsToDelete } },
+          });
+        }
+
+        // Upsert remaining/new variants
+        for (const [idx, v] of incomingVariants.entries()) {
+          const finalSortOrder = v.sortOrder !== undefined ? v.sortOrder : idx;
+          const finalLowStockThreshold = v.lowStockThreshold !== undefined ? Math.max(0, parseInt(v.lowStockThreshold as unknown as string) || 0) : 5;
+          const finalPrice = parseFloat(v.price as unknown as string);
+          const finalOriginalPrice = v.originalPrice ? parseFloat(v.originalPrice as unknown as string) : null;
+          const finalStockQty = Math.max(0, parseInt(v.stockQuantity as unknown as string) || 0);
+
+          if (v.id) {
+            await tx.productVariant.update({
+              where: { id: v.id },
+              data: {
+                name: v.name,
+                sku: v.sku || `sku-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                price: finalPrice,
+                originalPrice: finalOriginalPrice,
+                stockQuantity: finalStockQty,
+                lowStockThreshold: finalLowStockThreshold,
+                imageUrl: v.imageUrl || null,
+                inStock: finalStockQty > 0,
+                sortOrder: finalSortOrder,
+              },
+            });
+          } else {
+            await tx.productVariant.create({
+              data: {
+                productId: id,
+                name: v.name,
+                sku: v.sku || `sku-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                price: finalPrice,
+                originalPrice: finalOriginalPrice,
+                stockQuantity: finalStockQty,
+                lowStockThreshold: finalLowStockThreshold,
+                imageUrl: v.imageUrl || null,
+                inStock: finalStockQty > 0,
+                sortOrder: finalSortOrder,
+              },
+            });
+          }
+        }
+      }
+
       if (images !== undefined && Array.isArray(images)) {
         const existingDbImages = await tx.productImage.findMany({
           where: { productId: id },
@@ -269,10 +363,10 @@ export async function PUT(request: Request) {
           tags: tags || undefined,
           gradient: gradient || undefined,
           visualSeed: visualSeed || undefined,
-          inStock: parsedStock !== undefined ? parsedStock > 0 : undefined,
-          stockQuantity: parsedStock,
+          inStock: finalInStock,
+          stockQuantity: finalStock,
           lowStockThreshold: parsedLowStock,
-          totalStock: totalStock !== undefined ? parseInt(totalStock) : undefined,
+          totalStock: finalStock,
           categoryId: categoryId || undefined,
           subCategoryId: subCategoryId || null,
           brandId: brandId !== undefined ? (brandId || null) : undefined,

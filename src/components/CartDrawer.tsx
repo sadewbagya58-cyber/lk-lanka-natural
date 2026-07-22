@@ -112,6 +112,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               const gradient = product?.gradient ?? 'from-slate-100 to-slate-200';
               const visualSeed = product?.visualSeed ?? 'leaf';
 
+              const variant = product?.variants?.find((v) => v.id === item.selectedVariantId);
+              const variantName = variant?.name;
+
               return (
                 <div
                   key={`${item.productId}-${item.selectedVariantId || ''}`}
@@ -127,6 +130,11 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   <div className="flex-1 flex flex-col justify-between min-w-0 pr-6">
                     <div>
                       <h4 className="text-xs font-bold text-slate-900 leading-snug line-clamp-1">{name}</h4>
+                      {variantName && (
+                        <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 border border-emerald-100/50 px-1.5 py-0.5 rounded-md mt-1 inline-block">
+                          Option: {variantName}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-sm font-black text-slate-900">{formatPrice(displayPrice)}</span>
@@ -139,9 +147,14 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="w-8 text-center text-xs font-black text-slate-900">{item.quantity}</span>
+                        <span className="w-8 text-center text-xs font-bold text-slate-900">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1, item.selectedVariantId)}
+                          onClick={() => updateQuantity(
+                            item.productId,
+                            item.quantity + 1,
+                            item.selectedVariantId,
+                            variant ? variant.stockQuantity : product?.stockQuantity
+                          )}
                           className="w-7 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 focus:outline-none"
                           aria-label="Increase quantity"
                         >

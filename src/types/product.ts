@@ -2,6 +2,19 @@
 // These are the ONLY types allowed to cross the API boundary. Raw Prisma models
 // must NEVER be imported into client components.
 
+export interface ProductCardVariantData {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  originalPrice?: number | null;
+  inStock: boolean;
+  stockQuantity: number;
+  lowStockThreshold: number;
+  imageUrl?: string | null;
+  sortOrder: number;
+}
+
 export interface ProductCardData {
   id: string;
   name: string;
@@ -28,6 +41,7 @@ export interface ProductCardData {
   totalStock?: number;
   lowStockThreshold?: number;
   categoryId?: string;
+  variants?: ProductCardVariantData[];
 }
 
 export type SortOption =

@@ -9,6 +9,7 @@ export async function GET() {
         category: true,
         brand: true,
         images: { orderBy: { sortOrder: 'asc' } },
+        variants: { orderBy: { sortOrder: 'asc' } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -42,6 +43,18 @@ export async function GET() {
         stockQuantity: p.stockQuantity,
         totalStock: p.totalStock,
         lowStockThreshold: p.lowStockThreshold,
+        variants: p.variants.map((v) => ({
+          id: v.id,
+          name: v.name,
+          sku: v.sku,
+          price: v.price,
+          originalPrice: v.originalPrice ?? null,
+          inStock: v.inStock,
+          stockQuantity: v.stockQuantity,
+          lowStockThreshold: v.lowStockThreshold,
+          imageUrl: v.imageUrl ?? null,
+          sortOrder: v.sortOrder,
+        })),
       };
     });
 

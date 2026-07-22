@@ -60,6 +60,9 @@ export default function CartPage() {
                   const category = product?.category ?? '';
                   const inStock = product?.inStock ?? true;
 
+                  const variant = product?.variants?.find((v) => v.id === item.selectedVariantId);
+                  const variantName = variant?.name;
+
                   return (
                     <div
                       key={`${item.productId}-${item.selectedVariantId || ''}`}
@@ -79,6 +82,11 @@ export default function CartPage() {
                             <Link href={`/products/${slug}`}>
                               <h3 className="text-sm font-bold text-slate-800 hover:text-emerald-600 transition-colors mt-0.5 leading-snug">{name}</h3>
                             </Link>
+                            {variantName && (
+                              <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 border border-emerald-100/50 px-1.5 py-0.5 rounded-md mt-1 inline-block">
+                                Option: {variantName}
+                              </span>
+                            )}
                           </div>
                           <div className="flex items-center gap-1.5 mt-2">
                             <span className={`w-1.5 h-1.5 rounded-full ${inStock ? 'bg-emerald-600' : 'bg-slate-300'}`} />
@@ -100,7 +108,12 @@ export default function CartPage() {
                                 <Minus className="w-3.5 h-3.5" />
                               </button>
                               <span className="w-9 text-center text-xs font-black text-slate-950">{item.quantity}</span>
-                              <button onClick={() => updateQuantity(item.productId, item.quantity + 1, item.selectedVariantId)}
+                              <button onClick={() => updateQuantity(
+                                item.productId,
+                                item.quantity + 1,
+                                item.selectedVariantId,
+                                variant ? variant.stockQuantity : product?.stockQuantity
+                              )}
                                 className="w-8 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors focus:outline-none"
                                 aria-label="Increase quantity">
                                 <Plus className="w-3.5 h-3.5" />

@@ -17,6 +17,7 @@ interface ProductGalleryProps {
   name: string;
   gradient: string;
   visualSeed: string;
+  activeImageOverride?: string | null;
 }
 
 export default function ProductGallery({
@@ -24,14 +25,39 @@ export default function ProductGallery({
   name,
   gradient,
   visualSeed,
+  activeImageOverride,
 }: ProductGalleryProps) {
-  const sortedImages = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
-  
+  // If activeImageOverride is provided, find its index, or insert it if not present
+  let displayImages = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
+  let overrideIdx = -1;
+
+  if (activeImageOverride) {
+    overrideIdx = displayImages.findIndex(img => img.url === activeImageOverride);
+    if (overrideIdx === -1) {
+      // Temporarily insert the variant image at the front
+      displayImages = [
+        { id: 'variant-override', url: activeImageOverride, isPrimary: true, sortOrder: -1 },
+        ...displayImages
+      ];
+      overrideIdx = 0;
+    }
+  }
+
+  const sortedImages = displayImages;
+
   // Find index of the primary image, default to 0
   const primaryIdx = sortedImages.findIndex((img) => img.isPrimary);
   const initialIndex = primaryIdx !== -1 ? primaryIdx : 0;
   
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [prevOverride, setPrevOverride] = useState<string | null>(null);
+
+  if (activeImageOverride !== prevOverride) {
+    setPrevOverride(activeImageOverride);
+    if (overrideIdx !== -1) {
+      setActiveIndex(overrideIdx);
+    }
+  }
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const handlePrev = () => {

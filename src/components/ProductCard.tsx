@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, Eye, Heart, Star } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import type { ProductCardData } from '@/types/product';
 import ProductIllustration from './ProductIllustration';
 import { useCartStore } from '@/store/useCartStore';
@@ -16,22 +17,44 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const [isAdded, setIsAdded] = useState(false);
+  const router = useRouter();
 
   const addToCart = useCartStore((state) => state.addToCart);
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist);
   const isWishlisted = useWishlistStore((state) => state.isInWishlist(product.id));
 
-  const stock = product.stockQuantity ?? 0;
+  const hasVariants = product.variants && product.variants.length > 0;
+  
+  // Calculate availability and stock
+  const stock = hasVariants
+    ? product.variants!.reduce((sum, v) => sum + v.stockQuantity, 0)
+    : (product.stockQuantity ?? 0);
+  
   const threshold = product.lowStockThreshold ?? 5;
-  const isOut = stock === 0 || !product.inStock;
-  const isLow = !isOut && stock <= threshold;
+  const isOut = hasVariants
+    ? product.variants!.every(v => v.stockQuantity === 0)
+    : (stock === 0 || !product.inStock);
 
-  const discountPercent = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+  const isLow = hasVariants
+    ? false // Variant low stock is handled per option inside details page
+    : (!isOut && stock <= threshold);
+
+  // Discount percentage based on min variant price or single price
+  const activePrice = hasVariants ? Math.min(...product.variants!.map(v => v.price)) : product.price;
+  const activeOriginal = hasVariants 
+    ? Math.min(...product.variants!.map(v => v.originalPrice).filter((p): p is number => p !== null && p !== undefined))
+    : product.originalPrice;
+
+  const discountPercent = activeOriginal
+    ? Math.round(((activeOriginal - activePrice) / activeOriginal) * 100)
     : null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (hasVariants) {
+      router.push(`/products/${product.slug}`);
+      return;
+    }
     if (isOut) return;
     addToCart(product.id, 1, null, product.price);
     setIsAdded(true);
@@ -132,8 +155,12 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="flex flex-col gap-3 mt-auto pt-2 border-t border-slate-50">
         {/* Pricing */}
         <div className="flex items-baseline gap-2">
-          <span className="text-lg font-black text-slate-900">${product.price.toFixed(2)}</span>
-          {product.originalPrice && (
+          {hasVariants ? (
+            <span className="text-lg font-black text-slate-900">From ${activePrice.toFixed(2)}</span>
+          ) : (
+            <span className="text-lg font-black text-slate-900">${product.price.toFixed(2)}</span>
+          )}
+          {!hasVariants && product.originalPrice && (
             <span className="text-xs text-slate-400 line-through font-semibold">
               ${product.originalPrice.toFixed(2)}
             </span>
@@ -147,6 +174,13 @@ export default function ProductCard({ product }: ProductCardProps) {
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
               <span className="text-[10px] text-rose-600 font-bold tracking-wide uppercase">
                 Out of Stock
+              </span>
+            </>
+          ) : hasVariants ? (
+            <>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+              <span className="text-[10px] text-emerald-600 font-bold tracking-wide uppercase">
+                Options Available
               </span>
             </>
           ) : isLow ? (
@@ -174,13 +208,15 @@ export default function ProductCard({ product }: ProductCardProps) {
             className={`col-span-4 h-10 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all select-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
               isOut
                 ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                : hasVariants
+                ? 'bg-slate-900 text-white hover:bg-slate-800 active:scale-95'
                 : isAdded
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
                 : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-95'
             }`}
           >
             <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-            <span>{isOut ? 'Out of Stock' : isAdded ? 'Added' : 'Add to Cart'}</span>
+            <span>{isOut ? 'Out of Stock' : hasVariants ? 'Select Options' : isAdded ? 'Added' : 'Add to Cart'}</span>
           </button>
 
           <Link

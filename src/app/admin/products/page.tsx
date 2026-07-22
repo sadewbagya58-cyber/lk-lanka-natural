@@ -17,6 +17,15 @@ interface ProductItem {
   category?: { name: string };
   brand?: { name: string } | null;
   images?: Array<{ url: string }>;
+  variants?: Array<{
+    id: string;
+    name: string;
+    sku?: string | null;
+    price: number;
+    stockQuantity: number;
+    lowStockThreshold?: number;
+    inStock: boolean;
+  }>;
 }
 
 export default function AdminProducts() {
@@ -130,18 +139,35 @@ export default function AdminProducts() {
             <tbody className="divide-y divide-slate-100">
               {products.map((p) => {
                 const thumbnail = p.images?.[0]?.url;
-                const qty = p.stockQuantity ?? 0;
+                const hasVariants = p.variants && p.variants.length > 0;
+                
+                const qty = hasVariants
+                  ? p.variants!.reduce((sum, v) => sum + v.stockQuantity, 0)
+                  : (p.stockQuantity ?? 0);
+                
                 const threshold = p.lowStockThreshold ?? 5;
 
                 let stockBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-                let stockLabel = `${qty} in stock`;
+                let stockLabel = 'IN STOCK';
 
-                if (qty === 0) {
-                  stockBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
-                  stockLabel = '0 (Out of Stock)';
-                } else if (qty <= threshold) {
-                  stockBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
-                  stockLabel = `${qty} left (Low Stock)`;
+                if (hasVariants) {
+                  const allOut = p.variants!.every(v => v.stockQuantity === 0);
+                  const anyLow = p.variants!.some(v => v.stockQuantity > 0 && v.stockQuantity <= (v.lowStockThreshold ?? 5));
+                  if (allOut) {
+                    stockBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+                    stockLabel = 'OUT OF STOCK';
+                  } else if (anyLow) {
+                    stockBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                    stockLabel = 'LOW STOCK';
+                  }
+                } else {
+                  if (qty === 0) {
+                    stockBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+                    stockLabel = 'OUT OF STOCK';
+                  } else if (qty <= threshold) {
+                    stockBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                    stockLabel = 'LOW STOCK';
+                  }
                 }
 
                 return (
@@ -160,7 +186,13 @@ export default function AdminProducts() {
                     <td className="px-4 py-3 font-bold text-slate-900">
                       <div className="flex flex-col">
                         <span>{p.name}</span>
-                        <span className="text-[10px] font-mono text-slate-400 font-normal">{p.slug}</span>
+                        {hasVariants ? (
+                          <span className="text-[10px] text-emerald-600 font-bold mt-0.5">
+                            {p.variants!.length} options: {p.variants!.map(v => `${v.name} (${v.stockQuantity})`).join(', ')}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-mono text-slate-400 font-normal">{p.slug}</span>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-600 font-medium">{p.category?.name || 'Uncategorized'}</td>
@@ -173,9 +205,12 @@ export default function AdminProducts() {
                     </td>
                     <td className="px-4 py-3 font-black text-slate-900">${p.price.toFixed(2)}</td>
                     <td className="px-4 py-3 font-semibold">
-                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${stockBadgeClass}`}>
-                        {stockLabel}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className={`px-2 py-0.5 rounded-lg text-[9px] font-extrabold border ${stockBadgeClass} w-max`}>
+                          {stockLabel}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-medium">{qty} total units</span>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">

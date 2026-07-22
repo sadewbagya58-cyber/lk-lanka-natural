@@ -4,9 +4,9 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Star, ChevronRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
-import ProductDetail, { type ProductDetailData } from '@/components/ProductDetail';
+import { type ProductDetailData } from '@/components/ProductDetail';
 import ProductCard from '@/components/ProductCard';
-import ProductGallery from '@/components/ProductGallery';
+import ProductStorefrontContainer from '@/components/ProductStorefrontContainer';
 import type { ProductCardData } from '@/types/product';
 
 interface PageProps {
@@ -71,6 +71,9 @@ export default async function ProductPage({ params }: PageProps) {
       originalPrice: v.originalPrice ?? null,
       inStock: v.inStock,
       stockQuantity: v.stockQuantity,
+      lowStockThreshold: v.lowStockThreshold,
+      imageUrl: v.imageUrl ?? null,
+      sortOrder: v.sortOrder,
     })),
   };
 
@@ -81,6 +84,7 @@ export default async function ProductPage({ params }: PageProps) {
       category: true,
       brand: true,
       images: { orderBy: { sortOrder: 'asc' } },
+      variants: { orderBy: { sortOrder: 'asc' } },
     },
     take: 4,
     orderBy: { rating: 'desc' },
@@ -105,6 +109,18 @@ export default async function ProductPage({ params }: PageProps) {
     isFeatured: r.isFeatured,
     isBestSeller: r.isBestSeller,
     isNewArrival: r.isNewArrival,
+    variants: r.variants.map((v) => ({
+      id: v.id,
+      name: v.name,
+      sku: v.sku,
+      price: v.price,
+      originalPrice: v.originalPrice ?? null,
+      inStock: v.inStock,
+      stockQuantity: v.stockQuantity,
+      lowStockThreshold: v.lowStockThreshold,
+      imageUrl: v.imageUrl ?? null,
+      sortOrder: v.sortOrder,
+    })),
   }));
 
   const reviews = p.reviews.map((r) => ({
@@ -140,53 +156,18 @@ export default async function ProductPage({ params }: PageProps) {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        {/* Top Section */}
-        <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 mb-16">
-          {/* Product Visual */}
-          <div className="w-full lg:w-1/2">
-            <div className="sticky top-24">
-              <ProductGallery
-                images={p.images.map((img) => ({
-                  id: img.id,
-                  url: img.url,
-                  isPrimary: img.isPrimary,
-                  sortOrder: img.sortOrder,
-                }))}
-                name={p.name}
-                gradient={p.gradient}
-                visualSeed={p.visualSeed}
-              />
-            </div>
-          </div>
-
-          {/* Details */}
-          <div className="w-full lg:w-1/2 flex flex-col pt-4">
-            <div className="flex items-center gap-3 mb-4">
-              {p.badge && (
-                <span className="text-[10px] font-black tracking-wider uppercase bg-emerald-600 text-white px-2.5 py-1 rounded-md shadow-sm">
-                  {p.badge}
-                </span>
-              )}
-              {p.brand && (
-                <span className="text-sm font-bold text-slate-500 uppercase tracking-wide">{p.brand.name}</span>
-              )}
-            </div>
-
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mb-4">{p.name}</h1>
-
-            <div className="flex items-center gap-4 mb-8">
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star key={star} className={`w-4 h-4 ${star <= Math.round(p.rating) ? 'text-amber-500 fill-amber-500' : 'text-slate-200 fill-slate-200'}`} />
-                ))}
-              </div>
-              <span className="text-sm font-bold text-slate-700">{p.rating}</span>
-              <span className="text-sm text-slate-500 font-medium">({p.reviewsCount} reviews)</span>
-            </div>
-
-            <ProductDetail product={product} />
-          </div>
-        </div>
+        <ProductStorefrontContainer
+          product={product}
+          initialImages={p.images.map((img) => ({
+            id: img.id,
+            url: img.url,
+            isPrimary: img.isPrimary,
+            sortOrder: img.sortOrder,
+          }))}
+          brand={p.brand}
+          rating={p.rating}
+          reviewsCount={p.reviewsCount}
+        />
 
         {/* Full Description & Reviews Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-12 border-t border-slate-200">
