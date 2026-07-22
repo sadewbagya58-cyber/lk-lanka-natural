@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE `ProductVariant` ADD COLUMN `lowStockThreshold` INTEGER NOT NULL DEFAULT 5,
+    ADD COLUMN `imageUrl` VARCHAR(191) NULL,
+    ADD COLUMN `sortOrder` INTEGER NOT NULL DEFAULT 0;
