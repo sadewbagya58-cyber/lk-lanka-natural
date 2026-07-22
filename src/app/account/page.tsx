@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { User, Phone, MapPin, ShieldCheck, AlertCircle, LogOut, ArrowRight, UserCheck, Key, ShoppingBag, Calendar, Receipt, ChevronDown, ChevronUp } from 'lucide-react';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession, signOut } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductIllustration from '@/components/ProductIllustration';

@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { getSessionUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const userSession = await getSessionUser();
+    if (!userSession) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { wishlistIds, merge = false } = await request.json();
-    const userId = (session.user as { id: string }).id;
+    const userId = userSession.id;
     const ids = Array.isArray(wishlistIds) ? wishlistIds : [];
 
     await prisma.$transaction(async (tx) => {

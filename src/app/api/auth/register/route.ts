@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
+import { signSession, setSessionCookie } from "@/lib/session";
 
 export async function POST(request: Request) {
   try {
@@ -45,15 +46,21 @@ export async function POST(request: Request) {
       },
     });
 
+    const sessionUser = {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      role: "USER"
+    };
+
+    // Auto-login the user after registration
+    const token = signSession(sessionUser);
+    await setSessionCookie(token);
+
     return NextResponse.json(
       {
         message: "User registered successfully",
-        user: {
-          id: newUser.id,
-          name: newUser.name,
-          email: newUser.email,
-          phone: newUser.phone,
-        },
+        user: sessionUser,
       },
       { status: 201 }
     );

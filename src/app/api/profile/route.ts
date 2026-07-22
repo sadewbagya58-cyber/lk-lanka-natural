@@ -1,29 +1,15 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { getSessionUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-
-import { headers } from "next/headers";
 
 export async function GET() {
   try {
-    const reqHeaders = await headers();
-    const allCookies = reqHeaders.get("cookie") || "none";
-    const requestHost = reqHeaders.get("host") || "unknown";
-    const requestProto = reqHeaders.get("x-forwarded-proto") || "unknown";
-
-    console.log("[AUTH-DIAGNOSTIC] Request Host:", requestHost);
-    console.log("[AUTH-DIAGNOSTIC] X-Forwarded-Proto:", requestProto);
-    console.log("[AUTH-DIAGNOSTIC] Raw Cookies:", allCookies);
-
-    const session = await getServerSession(authOptions);
-    console.log("[AUTH-DIAGNOSTIC] Resolved Session:", session ? "FOUND" : "NULL");
-
-    if (!session?.user) {
+    const userSession = await getSessionUser();
+    if (!userSession) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = (session.user as { id: string }).id;
+    const userId = userSession.id;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -56,12 +42,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const userSession = await getSessionUser();
+    if (!userSession) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = (session.user as { id: string }).id;
+    const userId = userSession.id;
     const { name, phone, address_street, address_city } = await request.json();
 
     // Update User Name and Phone
@@ -98,15 +84,14 @@ export async function POST(request: Request) {
           phone: phone || "",
           street: address_street || "",
           city: address_city || "",
-          country: "LK",
           isDefault: true,
         },
       });
     }
 
-    return NextResponse.json({ message: "Profile updated successfully!" });
+    return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    console.error("Profile update error:", error);
+    console.error("Profile POST error:", error);
     return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
   }
 }

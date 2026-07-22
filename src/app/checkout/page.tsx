@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore } from '@/store/useCartStore';
 import { formatPrice } from '@/lib/currency';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/components/AuthProvider';
 import { ShieldCheck, ChevronRight, AlertCircle, MapPin, Phone, User } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';

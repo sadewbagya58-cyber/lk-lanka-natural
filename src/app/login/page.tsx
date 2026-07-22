@@ -4,7 +4,7 @@ import { useState, useTransition, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
-import { signIn } from 'next-auth/react';
+import { signIn } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
