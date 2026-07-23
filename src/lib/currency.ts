@@ -27,9 +27,11 @@ export const ACTIVE_CURRENCY: CurrencyCode = 'USD';
  * Format a base price (assumed in USD) to the active currency.
  * Ready to support dynamic multi-currency display by changing ACTIVE_CURRENCY.
  */
-export function formatPrice(priceUSD: number, targetCurrency: CurrencyCode = ACTIVE_CURRENCY): string {
+export function formatPrice(priceUSD: number | string | undefined | null, targetCurrency: CurrencyCode = ACTIVE_CURRENCY): string {
+  const numPrice = typeof priceUSD === 'number' ? priceUSD : parseFloat(String(priceUSD ?? 0));
+  const validPrice = isNaN(numPrice) ? 0 : numPrice;
   const config = CURRENCIES[targetCurrency] || CURRENCIES.USD;
-  const convertedPrice = priceUSD * config.rate;
+  const convertedPrice = validPrice * config.rate;
   const formattedValue = convertedPrice.toFixed(config.decimalPlaces);
 
   return config.position === 'prefix'

@@ -40,8 +40,28 @@ async function generateOrderNumber(tx: any): Promise<string> {
   return `KLN-${year}-${seq}-${randomSuffix}`;
 }
 
+import { ensureOrderColumnsExist } from "@/lib/db-sync";
+
+const SRI_LANKAN_PROVINCES = [
+  "Western Province",
+  "Central Province",
+  "Southern Province",
+  "Northern Province",
+  "Eastern Province",
+  "North Western Province",
+  "North Central Province",
+  "Uva Province",
+  "Sabaragamuwa Province",
+];
+
+const VALID_PAYMENT_METHODS = ["COD", "BANK_TRANSFER"];
+const VALID_DELIVERY_METHODS = ["STANDARD_COURIER", "COD"];
+
 export async function POST(request: Request) {
   try {
+    // Ensure MariaDB database columns exist before executing queries
+    await ensureOrderColumnsExist();
+
     const userSession = await getSessionUser();
     const userId = userSession?.id || null;
 
@@ -53,7 +73,7 @@ export async function POST(request: Request) {
       items: CheckoutItemInput[];
     };
 
-    const { customerInfo, deliveryAddress, deliveryMethod = "COD", paymentMethod = "COD", items } = body;
+    const { customerInfo, deliveryAddress, deliveryMethod = "STANDARD_COURIER", paymentMethod = "COD", items } = body;
 
     // 1. Server-side validation of required input fields
     if (!customerInfo?.fullName?.trim()) {
@@ -86,8 +106,19 @@ export async function POST(request: Request) {
     if (!deliveryAddress?.province?.trim()) {
       return NextResponse.json({ error: "Province is required." }, { status: 400 });
     }
+    if (!SRI_LANKAN_PROVINCES.includes(deliveryAddress.province.trim())) {
+      return NextResponse.json({ error: "Please select a valid Sri Lankan Province." }, { status: 400 });
+    }
     if (!deliveryAddress?.postalCode?.trim()) {
       return NextResponse.json({ error: "Postal / ZIP Code is required." }, { status: 400 });
+    }
+
+    if (!paymentMethod || !VALID_PAYMENT_METHODS.includes(paymentMethod)) {
+      return NextResponse.json({ error: "Please select a valid Payment Method." }, { status: 400 });
+    }
+
+    if (!deliveryMethod || !VALID_DELIVERY_METHODS.includes(deliveryMethod)) {
+      return NextResponse.json({ error: "Please select a valid Delivery Method." }, { status: 400 });
     }
 
     if (!items || !Array.isArray(items) || items.length === 0) {

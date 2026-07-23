@@ -103,17 +103,38 @@ export async function POST(request: Request) {
       }
     });
 
-    // Fetch the final merged state from the database
+    // Fetch the final merged state from the database with prices
     const finalDbItems = await prisma.cartItem.findMany({
       where: { userId },
+      include: {
+        product: {
+          select: {
+            price: true,
+            variants: {
+              select: { id: true, price: true }
+            }
+          }
+        }
+      }
     });
 
     return NextResponse.json({
-      cartItems: finalDbItems.map((item: typeof finalDbItems[number]) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        selectedVariantId: item.variantId === "" ? null : item.variantId,
-      })),
+      cartItems: finalDbItems.map((item) => {
+        let unitPrice = item.product?.price ?? 0;
+        if (item.variantId) {
+          const v = item.product?.variants?.find((varItem) => varItem.id === item.variantId);
+          if (v && typeof v.price === 'number') {
+            unitPrice = v.price;
+          }
+        }
+
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          selectedVariantId: item.variantId === "" ? null : item.variantId,
+          unitPrice,
+        };
+      }),
     });
   } catch (error: unknown) {
     console.error("Cart sync API error:", error);

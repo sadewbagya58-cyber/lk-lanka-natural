@@ -174,7 +174,9 @@ function SuccessContent() {
             </div>
             <div className="flex justify-between">
               <span>Payment Method</span>
-              <span className="font-bold text-slate-800 uppercase">{order.paymentMethod.replace('_', ' ')} (COD)</span>
+              <span className="font-bold text-slate-800 uppercase">
+                {order.paymentMethod === 'BANK_TRANSFER' ? 'Bank Transfer' : 'Cash on Delivery (COD)'}
+              </span>
             </div>
           </div>
         </div>
@@ -206,6 +208,24 @@ function SuccessContent() {
           </div>
         </div>
       </div>
+
+      {order.paymentMethod === 'BANK_TRANSFER' && (
+        <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-6 mb-8 shadow-sm flex flex-col gap-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 uppercase tracking-wider">
+            <FileText className="w-4 h-4 text-emerald-600" />
+            <span>Bank Deposit Instructions</span>
+          </div>
+          <p className="text-xs text-slate-700 leading-relaxed">
+            Please transfer <strong className="text-slate-900">{formatPrice(order.totalAmount)}</strong> to our bank account using your order number <strong className="font-mono text-slate-900">{displayOrderNumber}</strong> as the payment description/reference.
+          </p>
+          <div className="bg-white p-4 rounded-xl border border-emerald-100 font-mono text-xs flex flex-col gap-1.5 text-slate-800">
+            <div><span className="text-slate-400 font-sans">Bank:</span> Commercial Bank of Ceylon</div>
+            <div><span className="text-slate-400 font-sans">Account Name:</span> KL Lanka Natural (Pvt) Ltd</div>
+            <div><span className="text-slate-400 font-sans">Account No:</span> 1000 4829 1948</div>
+            <div><span className="text-slate-400 font-sans">Branch:</span> Colombo Main Branch</div>
+          </div>
+        </div>
+      )}
 
       {/* Order Items Receipt */}
       <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm mb-8 flex flex-col gap-4">

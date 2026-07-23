@@ -12,6 +12,18 @@ import Footer from '@/components/Footer';
 import ProductIllustration from '@/components/ProductIllustration';
 import type { ProductCardData } from '@/types/product';
 
+const SRI_LANKAN_PROVINCES = [
+  'Western Province',
+  'Central Province',
+  'Southern Province',
+  'Northern Province',
+  'Eastern Province',
+  'North Western Province',
+  'North Central Province',
+  'Uva Province',
+  'Sabaragamuwa Province',
+];
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -366,14 +378,19 @@ export default function CheckoutPage() {
                 {/* Province */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Province *</label>
-                  <input
-                    type="text"
+                  <select
                     value={deliveryAddress.province}
                     onChange={(e) => setDeliveryAddress({ ...deliveryAddress, province: e.target.value })}
-                    placeholder="Western Province"
-                    className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
+                    className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium bg-white"
                     required
-                  />
+                  >
+                    <option value="">Select Province</option>
+                    {SRI_LANKAN_PROVINCES.map((prov) => (
+                      <option key={prov} value={prov}>
+                        {prov}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Postal Code */}
@@ -425,14 +442,14 @@ export default function CheckoutPage() {
                 <span>4. Delivery Method</span>
               </h2>
 
-              <label className={`p-4 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${deliveryMethod === 'COD' ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-200 hover:bg-slate-50'}`}>
+              <label className={`p-4 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${deliveryMethod === 'STANDARD_COURIER' || deliveryMethod === 'COD' ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-200 hover:bg-slate-50'}`}>
                 <div className="flex items-center gap-3">
                   <input
                     type="radio"
                     name="deliveryMethod"
-                    value="COD"
-                    checked={deliveryMethod === 'COD'}
-                    onChange={() => setDeliveryMethod('COD')}
+                    value="STANDARD_COURIER"
+                    checked={deliveryMethod === 'STANDARD_COURIER' || deliveryMethod === 'COD'}
+                    onChange={() => setDeliveryMethod('STANDARD_COURIER')}
                     className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-slate-300"
                   />
                   <div>
@@ -448,25 +465,65 @@ export default function CheckoutPage() {
             <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col gap-4">
               <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-3.5 flex items-center gap-2">
                 <Banknote className="w-4 h-4 text-emerald-600" />
-                <span>5. Payment Method</span>
+                <span>5. Payment Method *</span>
               </h2>
 
-              <label className={`p-4 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${paymentMethod === 'COD' ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-200 hover:bg-slate-50'}`}>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="COD"
-                    checked={paymentMethod === 'COD'}
-                    onChange={() => setPaymentMethod('COD')}
-                    className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-slate-300"
-                  />
-                  <div>
-                    <span className="text-xs font-bold text-slate-900 block">Cash on Delivery (COD)</span>
-                    <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">Pay cash to courier when order arrives. Safe and hassle-free.</span>
+              <div className="flex flex-col gap-3">
+                <label className={`p-4 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${paymentMethod === 'COD' ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-200 hover:bg-slate-50'}`}>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="COD"
+                      checked={paymentMethod === 'COD'}
+                      onChange={() => setPaymentMethod('COD')}
+                      className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                    />
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 block">Cash on Delivery (COD)</span>
+                      <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">Pay cash to courier when order arrives. Safe and hassle-free.</span>
+                    </div>
                   </div>
-                </div>
-              </label>
+                </label>
+
+                <label className={`p-4 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${paymentMethod === 'BANK_TRANSFER' ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-200 hover:bg-slate-50'}`}>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="BANK_TRANSFER"
+                      checked={paymentMethod === 'BANK_TRANSFER'}
+                      onChange={() => setPaymentMethod('BANK_TRANSFER')}
+                      className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                    />
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 block">Direct Bank Transfer</span>
+                      <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">Transfer directly into our bank account. Instructions provided below.</span>
+                    </div>
+                  </div>
+                </label>
+
+                {paymentMethod === 'BANK_TRANSFER' && (
+                  <div className="p-4 bg-emerald-50/60 border border-emerald-200/80 rounded-xl flex flex-col gap-2.5 text-xs text-slate-700">
+                    <div className="flex items-center gap-2 font-bold text-emerald-800">
+                      <Banknote className="w-4 h-4 text-emerald-600" />
+                      <span>Bank Transfer Details</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      Please deposit or transfer the order total to our bank account below. Use your <strong>Order Number</strong> as the transfer reference.
+                    </p>
+                    <div className="bg-white p-3 rounded-lg border border-emerald-100/80 font-mono text-[11px] flex flex-col gap-1 text-slate-800">
+                      <div><span className="text-slate-400">Bank:</span> Commercial Bank of Ceylon</div>
+                      <div><span className="text-slate-400">Account Name:</span> KL Lanka Natural (Pvt) Ltd</div>
+                      <div><span className="text-slate-400">Account No:</span> 1000 4829 1948</div>
+                      <div><span className="text-slate-400">Branch:</span> Colombo Main Branch</div>
+                    </div>
+                    <span className="text-[10px] text-slate-500 font-medium italic">
+                      Note: Your order status will remain PENDING until your bank payment is verified.
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
           </div>
@@ -487,6 +544,10 @@ export default function CheckoutPage() {
                   const visualSeed = product?.visualSeed ?? 'leaf';
                   const variant = product?.variants?.find((v) => v.id === item.selectedVariantId);
 
+                  const effectiveUnitPrice = typeof item.unitPrice === 'number' && !isNaN(item.unitPrice) && item.unitPrice > 0
+                    ? item.unitPrice
+                    : (variant?.price ?? product?.price ?? 0);
+
                   return (
                     <div key={`${item.productId}-${item.selectedVariantId || ''}`} className="flex gap-3 pt-4 first:pt-0">
                       <div className="relative w-12 h-12 rounded-lg bg-slate-50 border border-slate-150 overflow-hidden flex items-center justify-center shrink-0">
@@ -501,8 +562,8 @@ export default function CheckoutPage() {
                           </span>
                         )}
                         <div className="flex justify-between items-center mt-1">
-                          <span className="text-[10px] text-slate-500 font-medium">Qty: {item.quantity} x {formatPrice(item.unitPrice)}</span>
-                          <span className="text-xs font-bold text-slate-900">{formatPrice(item.unitPrice * item.quantity)}</span>
+                          <span className="text-[10px] text-slate-500 font-medium">Qty: {item.quantity} x {formatPrice(effectiveUnitPrice)}</span>
+                          <span className="text-xs font-bold text-slate-900">{formatPrice(effectiveUnitPrice * item.quantity)}</span>
                         </div>
                       </div>
                     </div>

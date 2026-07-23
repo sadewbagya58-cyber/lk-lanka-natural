@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { ensureOrderColumnsExist } from "@/lib/db-sync";
 
 export async function GET(request: Request) {
   try {
+    await ensureOrderColumnsExist();
+
     const { searchParams } = new URL(request.url);
     const orderIdParam = searchParams.get("orderId");
 

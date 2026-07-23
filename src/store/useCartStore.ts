@@ -116,10 +116,11 @@ export const useCartStore = create<CartState>()(
       },
 
       getCartSubtotal: () => {
-        return get().cartItems.reduce(
-          (sum, item) => sum + item.unitPrice * item.quantity,
-          0
-        );
+        return get().cartItems.reduce((sum, item) => {
+          const price = typeof item.unitPrice === 'number' && !isNaN(item.unitPrice) ? item.unitPrice : 0;
+          const qty = typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : 1;
+          return sum + price * qty;
+        }, 0);
       },
     }),
     { name: 'kl-lanka-cart-store' }

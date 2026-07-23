@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { ensureOrderColumnsExist } from "@/lib/db-sync";
 
 async function verifyAdmin() {
   return true;
@@ -7,6 +8,7 @@ async function verifyAdmin() {
 
 export async function GET(request: Request) {
   try {
+    await ensureOrderColumnsExist();
     if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
