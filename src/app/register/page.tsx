@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mail, Lock, User, Phone, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
 import { signIn } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
@@ -85,7 +86,10 @@ export default function RegisterPage() {
         <div className="w-full max-w-md bg-white rounded-3xl border border-slate-100 shadow-xl p-8 flex flex-col gap-6">
           
           {/* Header */}
-          <div className="text-center">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-2xl overflow-hidden bg-black p-0.5 border border-amber-500/30 shadow-md mb-3">
+              <Image src="/logo.png" alt="KL Lanka Natural" width={56} height={56} className="w-full h-full object-contain" />
+            </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Join KL Lanka</span>
             <h1 className="text-2xl font-black text-slate-900 mt-1">Create Your Account</h1>
             <p className="text-xs text-slate-400 font-light mt-1.5">Sign up today for faster checkout, order tracking, and exclusive discounts</p>

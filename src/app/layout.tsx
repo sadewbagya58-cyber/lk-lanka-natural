@@ -5,11 +5,23 @@ import { AuthProvider } from "@/components/AuthProvider";
 export const metadata: Metadata = {
   title: "KL Lanka Natural | Premium Online Marketplace Sri Lanka",
   description: "Shop premium natural products, groceries, cosmetics, health supplements, and exquisite perfumes at KL Lanka Natural (PVT) LTD. Fast island-wide delivery in Sri Lanka.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
   openGraph: {
     title: "KL Lanka Natural | Premium Online Marketplace Sri Lanka",
     description: "Shop premium natural products, groceries, cosmetics, health supplements, and exquisite perfumes at KL Lanka Natural (PVT) LTD. Fast island-wide delivery in Sri Lanka.",
-    url: "https://kllankanatural.lk",
+    url: "https://kllankanatural.com",
     siteName: "KL Lanka Natural",
+    images: [
+      {
+        url: "https://kllankanatural.com/logo.png",
+        width: 1000,
+        height: 1000,
+        alt: "KL Lanka Natural (PVT) LTD Logo",
+      },
+    ],
     locale: "en_LK",
     type: "website",
   },
@@ -17,6 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "KL Lanka Natural | Premium Online Marketplace Sri Lanka",
     description: "Shop premium natural products, groceries, cosmetics, health supplements, and exquisite perfumes at KL Lanka Natural (PVT) LTD. Fast delivery in Sri Lanka.",
+    images: ["https://kllankanatural.com/logo.png"],
   },
 };
 

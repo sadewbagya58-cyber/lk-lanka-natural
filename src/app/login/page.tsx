@@ -3,6 +3,7 @@
 import { useState, useTransition, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mail, Lock, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
 import { signIn } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
@@ -79,7 +80,10 @@ function LoginInner() {
         <div className="w-full max-w-md bg-white rounded-3xl border border-slate-100 shadow-xl p-8 flex flex-col gap-6">
           
           {/* Header */}
-          <div className="text-center">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-2xl overflow-hidden bg-black p-0.5 border border-amber-500/30 shadow-md mb-3">
+              <Image src="/logo.png" alt="KL Lanka Natural" width={56} height={56} className="w-full h-full object-contain" />
+            </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Registered Members</span>
             <h1 className="text-2xl font-black text-slate-900 mt-1">Sign In to Your Account</h1>
             <p className="text-xs text-slate-400 font-light mt-1.5">Manage your shipping details, order lists, and saved wishlist</p>

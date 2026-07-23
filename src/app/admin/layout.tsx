@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
@@ -35,14 +36,19 @@ export default function AdminLayout({
       <div className="flex-grow flex flex-col md:flex-row max-w-7xl w-full mx-auto px-4 py-8 gap-8">
         {/* Sidebar Navigation */}
         <aside className="w-full md:w-64 shrink-0 flex flex-col gap-2 bg-white rounded-3xl border border-slate-200/80 p-4 shadow-sm h-fit">
-          <div className="px-3 py-2 border-b border-slate-100 mb-2 flex items-center justify-between">
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Store Management</span>
-              <h2 className="text-base font-black text-slate-900">Admin Control</h2>
-            </div>
+          <div className="px-3 py-2 border-b border-slate-100 mb-2 flex items-center justify-between gap-3">
+            <Link href="/" className="flex items-center gap-2.5 min-w-0 group" title="KL Lanka Natural Admin">
+              <div className="h-9 w-9 rounded-xl overflow-hidden bg-black p-0.5 border border-amber-500/30 shadow-sm shrink-0 group-hover:border-amber-400 transition-colors">
+                <Image src="/logo.png" alt="KL Lanka Natural" width={36} height={36} className="w-full h-full object-contain" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 block truncate">Store Management</span>
+                <h2 className="text-sm font-black text-slate-900 truncate">Admin Control</h2>
+              </div>
+            </Link>
             <Link 
               href="/" 
-              className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors"
+              className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors shrink-0"
               title="Back to Public Site"
             >
               <ArrowLeft className="w-4 h-4" />

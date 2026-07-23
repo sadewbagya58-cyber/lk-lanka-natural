@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mail, Phone, MapPin, ShieldCheck, CreditCard } from 'lucide-react';
 import type { CategoryData } from '@/types/product';
 
@@ -22,10 +23,24 @@ export default function Footer() {
 
         {/* Company Identity */}
         <div className="flex flex-col gap-4">
-          <Link href="/" className="flex items-center gap-1.5 focus:outline-none">
-            <span className="text-xl font-black tracking-tight text-white">
-              KL LANKA <span className="text-emerald-500">NATURAL</span>
-            </span>
+          <Link href="/" className="flex items-center gap-3 focus:outline-none group">
+            <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-black p-0.5 border border-amber-500/30 shadow-md group-hover:border-amber-400 transition-all shrink-0">
+              <Image
+                src="/logo.png"
+                alt="KL Lanka Natural (PVT) LTD Logo"
+                width={48}
+                height={48}
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="flex flex-col justify-center">
+              <span className="text-lg font-black tracking-tight text-white leading-tight">
+                KL LANKA <span className="text-emerald-500">NATURAL</span>
+              </span>
+              <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest leading-none mt-0.5">
+                (PVT) LTD
+              </span>
+            </div>
           </Link>
           <p className="text-sm leading-relaxed text-slate-400 font-light pr-2">
             KL Lanka Natural (PVT) LTD is Sri Lanka&apos;s leading premium marketplace for health products, exquisite perfumes, and handcrafted jewellery. Sourced ethically, delivered safely.

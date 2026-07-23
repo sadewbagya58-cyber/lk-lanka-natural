@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Heart, ShoppingBag, User, MapPin, Phone, RefreshCw, ChevronDown, Menu, X, Globe, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import CartDrawer from './CartDrawer';
@@ -72,10 +73,25 @@ export default function Navbar() {
         {/* Main header */}
         <div className="w-full py-3.5 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-            <Link href="/" className="flex items-center gap-1.5 shrink-0 focus:outline-none">
-              <span className="text-xl md:text-2xl font-black tracking-tight text-slate-900 flex items-center gap-1">
-                KL LANKA <span className="text-emerald-600">NATURAL</span>
-              </span>
+            <Link href="/" className="flex items-center gap-3 shrink-0 focus:outline-none group">
+              <div className="relative h-11 w-11 md:h-12 md:w-12 rounded-xl overflow-hidden bg-black p-0.5 border border-amber-500/30 shadow-md group-hover:border-amber-400/60 transition-all shrink-0">
+                <Image
+                  src="/logo.png"
+                  alt="KL Lanka Natural Logo"
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-contain"
+                  priority
+                />
+              </div>
+              <div className="flex flex-col justify-center">
+                <span className="text-base md:text-lg font-black tracking-tight text-slate-900 leading-tight">
+                  KL LANKA <span className="text-emerald-600">NATURAL</span>
+                </span>
+                <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest leading-none mt-0.5">
+                  (PVT) LTD
+                </span>
+              </div>
             </Link>
 
             {/* Desktop search */}
@@ -211,9 +227,25 @@ export default function Navbar() {
             >
               <div className="flex flex-col gap-6">
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                  <span className="text-lg font-black tracking-tight text-slate-900">
-                    KL LANKA <span className="text-emerald-600">NATURAL</span>
-                  </span>
+                  <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-2.5 focus:outline-none">
+                    <div className="relative h-10 w-10 rounded-xl overflow-hidden bg-black p-0.5 border border-amber-500/30 shadow-sm shrink-0">
+                      <Image
+                        src="/logo.png"
+                        alt="KL Lanka Natural Logo"
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="flex flex-col justify-center">
+                      <span className="text-base font-black tracking-tight text-slate-900 leading-tight">
+                        KL LANKA <span className="text-emerald-600">NATURAL</span>
+                      </span>
+                      <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest leading-none mt-0.5">
+                        (PVT) LTD
+                      </span>
+                    </div>
+                  </Link>
                   <button onClick={() => setIsOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg focus:outline-none" aria-label="Close menu">
                     <X className="w-5 h-5" />
                   </button>
