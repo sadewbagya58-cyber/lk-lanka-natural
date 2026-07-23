@@ -155,6 +155,17 @@ export default function EditProductPage() {
       return;
     }
 
+    const numPrice = parseFloat(price);
+    if (isNaN(numPrice) || numPrice <= 0) {
+      setError('Price must be a valid positive number.');
+      return;
+    }
+
+    if (originalPrice && (isNaN(parseFloat(originalPrice)) || parseFloat(originalPrice) < 0)) {
+      setError('Original price must be a valid non-negative number.');
+      return;
+    }
+
     if (hasVariants) {
       if (variants.length === 0) {
         setError('At least one variant is required when variants are enabled.');
@@ -165,7 +176,8 @@ export default function EditProductPage() {
           setError(`Variant #${idx + 1} name is required.`);
           return;
         }
-        if (!v.price || parseFloat(v.price) <= 0) {
+        const vPrice = parseFloat(v.price);
+        if (isNaN(vPrice) || vPrice <= 0) {
           setError(`Variant #${idx + 1} price must be a positive number.`);
           return;
         }
@@ -191,19 +203,19 @@ export default function EditProductPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id,
-          name,
-          slug,
+          name: name.trim(),
+          slug: slug.trim().toLowerCase(),
           description,
           shortDescription,
-          price: parseFloat(price),
-          originalPrice: originalPrice ? parseFloat(originalPrice) : null,
+          price: numPrice,
+          originalPrice: originalPrice && !isNaN(parseFloat(originalPrice)) ? parseFloat(originalPrice) : null,
           badge,
           stockQuantity: hasVariants ? 0 : (parseInt(stockQuantity) || 0),
           lowStockThreshold: hasVariants ? 5 : (parseInt(lowStockThreshold) || 5),
           totalStock: hasVariants ? 0 : (parseInt(stockQuantity) || 0),
           inStock: hasVariants ? false : (parseInt(stockQuantity) > 0),
-          categoryId,
-          brandId: brandId || null,
+          categoryId: categoryId.trim(),
+          brandId: brandId && brandId.trim() !== '' ? brandId.trim() : null,
           images: images.map((img, index) => ({
             id: img.id,
             url: img.url,
@@ -215,7 +227,7 @@ export default function EditProductPage() {
             name: v.name.trim(),
             sku: v.sku.trim() || undefined,
             price: parseFloat(v.price),
-            originalPrice: v.originalPrice ? parseFloat(v.originalPrice) : null,
+            originalPrice: v.originalPrice && !isNaN(parseFloat(v.originalPrice)) ? parseFloat(v.originalPrice) : null,
             stockQuantity: parseInt(v.stockQuantity) || 0,
             lowStockThreshold: parseInt(v.lowStockThreshold) || 5,
             imageUrl: v.imageUrl || null,

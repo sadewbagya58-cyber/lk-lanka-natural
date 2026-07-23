@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+import { ensureOrderColumnsExist } from "@/lib/db-sync";
+
 async function verifyAdmin() {
   return true;
 }
 
 export async function GET(request: Request) {
   try {
+    await ensureOrderColumnsExist();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -49,6 +52,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    await ensureOrderColumnsExist();
+
     if (!(await verifyAdmin())) {
       return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 });
     }
@@ -81,13 +86,20 @@ export async function POST(request: Request) {
 
     if (!name || !slug || !price || !categoryId) {
       return NextResponse.json(
-        { error: "Name, slug, price, and categoryId are required" },
+        { error: "Name, slug, price, and category are required" },
         { status: 400 }
       );
     }
 
     const parsedPrice = parseFloat(price);
-    const parsedOriginalPrice = originalPrice ? parseFloat(originalPrice) : null;
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      return NextResponse.json(
+        { error: "Price must be a valid positive number" },
+        { status: 400 }
+      );
+    }
+
+    const parsedOriginalPrice = originalPrice && !isNaN(parseFloat(originalPrice)) ? parseFloat(originalPrice) : null;
     const parsedStock = Math.max(0, parseInt(stockQuantity) || 0);
     const parsedLowStock = Math.max(0, parseInt(lowStockThreshold) || 5);
 
@@ -96,6 +108,9 @@ export async function POST(request: Request) {
       ? (variants as Array<{ stockQuantity: number }>).reduce((sum, v) => sum + Math.max(0, parseInt(v.stockQuantity as unknown as string) || 0), 0)
       : parsedStock;
     const finalInStock = finalStock > 0;
+
+    const finalBrandId = brandId && typeof brandId === 'string' && brandId.trim() !== '' ? brandId.trim() : null;
+    const finalSubCategoryId = subCategoryId && typeof subCategoryId === 'string' && subCategoryId.trim() !== '' ? subCategoryId.trim() : null;
 
     const product = await prisma.$transaction(async (tx) => {
       const created = await tx.product.create({
@@ -115,9 +130,9 @@ export async function POST(request: Request) {
           stockQuantity: finalStock,
           lowStockThreshold: parsedLowStock,
           totalStock: finalStock,
-          categoryId,
-          subCategoryId: subCategoryId || null,
-          brandId: brandId || null,
+          categoryId: categoryId.trim(),
+          subCategoryId: finalSubCategoryId,
+          brandId: finalBrandId,
           isFeatured: Boolean(isFeatured),
           isBestSeller: Boolean(isBestSeller),
           isNewArrival: Boolean(isNewArrival),
@@ -218,7 +233,13 @@ export async function PUT(request: Request) {
     }
 
     const parsedPrice = parseFloat(price);
-    const parsedOriginalPrice = originalPrice ? parseFloat(originalPrice) : null;
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      return NextResponse.json(
+        { error: "Price must be a valid positive number" },
+        { status: 400 }
+      );
+    }
+    const parsedOriginalPrice = originalPrice && !isNaN(parseFloat(originalPrice)) ? parseFloat(originalPrice) : null;
     const parsedStock = stockQuantity !== undefined ? Math.max(0, parseInt(stockQuantity) || 0) : 0;
     const parsedLowStock = lowStockThreshold !== undefined ? Math.max(0, parseInt(lowStockThreshold) || 5) : 5;
 
@@ -264,7 +285,7 @@ export async function PUT(request: Request) {
           const finalSortOrder = v.sortOrder !== undefined ? v.sortOrder : idx;
           const finalLowStockThreshold = v.lowStockThreshold !== undefined ? Math.max(0, parseInt(v.lowStockThreshold as unknown as string) || 0) : 5;
           const finalPrice = parseFloat(v.price as unknown as string);
-          const finalOriginalPrice = v.originalPrice ? parseFloat(v.originalPrice as unknown as string) : null;
+          const finalOriginalPrice = v.originalPrice && !isNaN(parseFloat(v.originalPrice as unknown as string)) ? parseFloat(v.originalPrice as unknown as string) : null;
           const finalStockQty = Math.max(0, parseInt(v.stockQuantity as unknown as string) || 0);
 
           if (v.id) {
@@ -273,7 +294,7 @@ export async function PUT(request: Request) {
               data: {
                 name: v.name,
                 sku: v.sku || `sku-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-                price: finalPrice,
+                price: isNaN(finalPrice) ? 0 : finalPrice,
                 originalPrice: finalOriginalPrice,
                 stockQuantity: finalStockQty,
                 lowStockThreshold: finalLowStockThreshold,
@@ -288,7 +309,7 @@ export async function PUT(request: Request) {
                 productId: id,
                 name: v.name,
                 sku: v.sku || `sku-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-                price: finalPrice,
+                price: isNaN(finalPrice) ? 0 : finalPrice,
                 originalPrice: finalOriginalPrice,
                 stockQuantity: finalStockQty,
                 lowStockThreshold: finalLowStockThreshold,
@@ -367,9 +388,9 @@ export async function PUT(request: Request) {
           stockQuantity: finalStock,
           lowStockThreshold: parsedLowStock,
           totalStock: finalStock,
-          categoryId: categoryId || undefined,
-          subCategoryId: subCategoryId || null,
-          brandId: brandId !== undefined ? (brandId || null) : undefined,
+          categoryId: categoryId ? categoryId.trim() : undefined,
+          subCategoryId: subCategoryId !== undefined ? (subCategoryId && typeof subCategoryId === 'string' && subCategoryId.trim() !== '' ? subCategoryId.trim() : null) : undefined,
+          brandId: brandId !== undefined ? (brandId && typeof brandId === 'string' && brandId.trim() !== '' ? brandId.trim() : null) : undefined,
           isFeatured: isFeatured !== undefined ? Boolean(isFeatured) : undefined,
           isBestSeller: isBestSeller !== undefined ? Boolean(isBestSeller) : undefined,
           isNewArrival: isNewArrival !== undefined ? Boolean(isNewArrival) : undefined,

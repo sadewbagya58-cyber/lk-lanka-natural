@@ -65,6 +65,20 @@ export async function ensureOrderColumnsExist(): Promise<void> {
       }
     }
 
+    // 3. Product table nullable column modifications (brandId and subCategoryId optional)
+    const productModifyQueries = [
+      "ALTER TABLE `Product` MODIFY COLUMN `brandId` VARCHAR(191) NULL",
+      "ALTER TABLE `Product` MODIFY COLUMN `subCategoryId` VARCHAR(191) NULL",
+    ];
+
+    for (const query of productModifyQueries) {
+      try {
+        await prisma.$executeRawUnsafe(query);
+      } catch (err) {
+        console.warn('DB Sync product column notice:', query, (err as Error).message);
+      }
+    }
+
     // 3. Backfill orderNumber for legacy orders that have NULL orderNumber
     try {
       const unnumberedOrders = await prisma.$queryRawUnsafe<{ id: string }[]>(
