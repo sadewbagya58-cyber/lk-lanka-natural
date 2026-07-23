@@ -184,6 +184,7 @@ model ProductVariant {
   lowStockThreshold Int      @default(5)
   imageUrl          String?
   sortOrder         Int      @default(0)
+  orderItems        OrderItem[]
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
@@ -220,29 +221,57 @@ model Review {
 }
 
 model Order {
-  id            String      @id @default(uuid())
-  userId        String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  addressId     String
-  address       Address     @relation(fields: [addressId], references: [id])
-  totalAmount   Float
-  status        String      @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
-  paymentMethod String
-  paymentStatus String      @default("PENDING")
-  items         OrderItem[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id             String      @id @default(uuid())
+  orderNumber    String?     @unique
+  userId         String?
+  user           User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  addressId      String?
+  address        Address?    @relation(fields: [addressId], references: [id], onDelete: SetNull)
+  
+  // Customer Details Snapshot
+  customerName   String?
+  customerEmail  String?
+  customerPhone  String?
+  altPhone       String?
+
+  // Delivery Address Snapshot
+  street         String?
+  city           String?
+  district       String?
+  province       String?
+  postalCode     String?
+  country        String      @default("Sri Lanka")
+  deliveryNote   String?     @db.Text
+
+  // Financial Breakdown
+  subtotal       Float       @default(0)
+  discountAmount Float       @default(0)
+  deliveryFee    Float       @default(0)
+  totalAmount    Float
+
+  // Method & Statuses
+  deliveryMethod String      @default("COD")
+  paymentMethod  String      @default("COD")
+  status         String      @default("PENDING") // PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  paymentStatus  String      @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+
+  items          OrderItem[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }
 
 model OrderItem {
-  id        String  @id @default(uuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  variantId String?
-  quantity  Int
-  price     Float
+  id          String          @id @default(uuid())
+  orderId     String
+  order       Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product         @relation(fields: [productId], references: [id])
+  variantId   String?
+  variant     ProductVariant? @relation(fields: [variantId], references: [id])
+  productName String?
+  variantName String?
+  quantity    Int
+  price       Float
 }
 
 model CartItem {

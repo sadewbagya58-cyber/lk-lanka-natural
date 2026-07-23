@@ -8,102 +8,169 @@ interface CheckoutItemInput {
   quantity: number;
 }
 
-interface ShippingAddressInput {
-  name: string;
+interface CustomerInfoInput {
+  fullName: string;
+  email: string;
   phone: string;
+  altPhone?: string;
+}
+
+interface DeliveryAddressInput {
   street: string;
   city: string;
+  district: string;
+  province: string;
+  postalCode: string;
+  country: string;
+  deliveryNote?: string;
+}
+
+// Generate unique human-readable Order Number (e.g. KLN-2026-000001)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function generateOrderNumber(tx: any): Promise<string> {
+  const year = new Date().getFullYear();
+  const count = await tx.order.count();
+  const seq = String(count + 1).padStart(6, '0');
+  const baseNumber = `KLN-${year}-${seq}`;
+
+  const existing = await tx.order.findUnique({ where: { orderNumber: baseNumber } });
+  if (!existing) return baseNumber;
+
+  const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `KLN-${year}-${seq}-${randomSuffix}`;
 }
 
 export async function POST(request: Request) {
   try {
     const userSession = await getSessionUser();
-    if (!userSession) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const userId = userSession?.id || null;
 
-    const userId = userSession.id;
-    const { shippingAddress, paymentMethod, items } = await request.json() as {
-      shippingAddress: ShippingAddressInput;
-      paymentMethod: string;
+    const body = await request.json() as {
+      customerInfo: CustomerInfoInput;
+      deliveryAddress: DeliveryAddressInput;
+      deliveryMethod?: string;
+      paymentMethod?: string;
       items: CheckoutItemInput[];
     };
 
-    if (!shippingAddress || !paymentMethod || !items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: "Invalid checkout request data" }, { status: 400 });
+    const { customerInfo, deliveryAddress, deliveryMethod = "COD", paymentMethod = "COD", items } = body;
+
+    // 1. Server-side validation of required input fields
+    if (!customerInfo?.fullName?.trim()) {
+      return NextResponse.json({ error: "Full Name is required." }, { status: 400 });
+    }
+    if (!customerInfo?.email?.trim()) {
+      return NextResponse.json({ error: "Email Address is required." }, { status: 400 });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerInfo.email.trim())) {
+      return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
+    }
+    if (!customerInfo?.phone?.trim()) {
+      return NextResponse.json({ error: "Phone Number is required." }, { status: 400 });
+    }
+    const phoneRegex = /^[\d\s+\-()]{7,20}$/;
+    if (!phoneRegex.test(customerInfo.phone.trim())) {
+      return NextResponse.json({ error: "Please enter a valid phone number." }, { status: 400 });
     }
 
-    // 1. Transactionally place the order and update inventory
-    const order = await prisma.$transaction(async (tx) => {
-      // 1.1 Create or Update the shipping Address
-      // Find default address or create one
-      const defaultAddress = await tx.address.findFirst({
-        where: { userId, isDefault: true }
-      });
+    if (!deliveryAddress?.street?.trim()) {
+      return NextResponse.json({ error: "Street Address / Village is required." }, { status: 400 });
+    }
+    if (!deliveryAddress?.city?.trim()) {
+      return NextResponse.json({ error: "City / Town is required." }, { status: 400 });
+    }
+    if (!deliveryAddress?.district?.trim()) {
+      return NextResponse.json({ error: "District is required." }, { status: 400 });
+    }
+    if (!deliveryAddress?.province?.trim()) {
+      return NextResponse.json({ error: "Province is required." }, { status: 400 });
+    }
+    if (!deliveryAddress?.postalCode?.trim()) {
+      return NextResponse.json({ error: "Postal / ZIP Code is required." }, { status: 400 });
+    }
 
-      let addressId = "";
-      if (defaultAddress) {
-        // Update the default address to match checkout shipping address details
-        const updatedAddress = await tx.address.update({
-          where: { id: defaultAddress.id },
-          data: {
-            phone: shippingAddress.phone || "",
-            street: shippingAddress.street || "",
-            city: shippingAddress.city || "",
-          }
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: "Your shopping cart is empty." }, { status: 400 });
+    }
+
+    // 2. Transactionally verify stock, recalculate totals, deduct stock, and create order
+    const order = await prisma.$transaction(async (tx) => {
+      // 2.1 Handle address entity for logged-in user if available
+      let addressId: string | null = null;
+      if (userId) {
+        const existingDefault = await tx.address.findFirst({
+          where: { userId, isDefault: true }
         });
-        addressId = updatedAddress.id;
-      } else {
-        // Create new default address
-        const newAddress = await tx.address.create({
-          data: {
-            userId,
-            name: "Default Address",
-            phone: shippingAddress.phone || "",
-            street: shippingAddress.street || "",
-            city: shippingAddress.city || "",
-            country: "LK",
-            isDefault: true,
-          }
-        });
-        addressId = newAddress.id;
+
+        if (existingDefault) {
+          const updated = await tx.address.update({
+            where: { id: existingDefault.id },
+            data: {
+              phone: customerInfo.phone.trim(),
+              street: deliveryAddress.street.trim(),
+              city: deliveryAddress.city.trim(),
+              state: deliveryAddress.province.trim(),
+              postalCode: deliveryAddress.postalCode.trim(),
+              country: deliveryAddress.country?.trim() || "Sri Lanka",
+            }
+          });
+          addressId = updated.id;
+        } else {
+          const created = await tx.address.create({
+            data: {
+              userId,
+              name: "Default Shipping Address",
+              phone: customerInfo.phone.trim(),
+              street: deliveryAddress.street.trim(),
+              city: deliveryAddress.city.trim(),
+              state: deliveryAddress.province.trim(),
+              postalCode: deliveryAddress.postalCode.trim(),
+              country: deliveryAddress.country?.trim() || "Sri Lanka",
+              isDefault: true,
+            }
+          });
+          addressId = created.id;
+        }
       }
 
-      // 1.2 Validate items stock and calculate pricing
-      let totalAmount = 0;
+      // 2.2 Verify stock & calculate server-side subtotal
+      let subtotal = 0;
       const orderItemsToCreate = [];
 
       for (const item of items) {
-        if (item.quantity <= 0) {
-          throw new Error("Quantity must be a positive integer");
+        if (!item.quantity || item.quantity <= 0) {
+          throw new Error("Quantity must be greater than 0");
         }
 
         if (item.selectedVariantId) {
-          // Validate variant stock
+          // Variant stock validation
           const variant = await tx.productVariant.findUnique({
             where: { id: item.selectedVariantId },
             include: { product: true }
           });
 
           if (!variant || variant.productId !== item.productId) {
-            throw new Error(`Product variant not found: ${item.selectedVariantId}`);
+            throw new Error(`Selected option for product is no longer available.`);
           }
 
           if (variant.stockQuantity < item.quantity) {
-            throw new Error(`Insufficient stock for option '${variant.name}' of product '${variant.product.name}'. Available: ${variant.stockQuantity}, requested: ${item.quantity}`);
+            throw new Error(`Insufficient stock for '${variant.product.name} (${variant.name})'. Available: ${variant.stockQuantity}, Requested: ${item.quantity}`);
           }
 
           const unitPrice = variant.price;
-          totalAmount += unitPrice * item.quantity;
+          subtotal += unitPrice * item.quantity;
 
           orderItemsToCreate.push({
             productId: item.productId,
             variantId: item.selectedVariantId,
+            productName: variant.product.name,
+            variantName: variant.name,
             quantity: item.quantity,
             price: unitPrice
           });
 
-          // Decrement variant stock
+          // Decrement variant inventory atomically
           await tx.productVariant.update({
             where: { id: item.selectedVariantId },
             data: {
@@ -112,11 +179,11 @@ export async function POST(request: Request) {
             }
           });
 
-          // Sync product level stock
-          const productVariants = await tx.productVariant.findMany({
+          // Sync parent product overall stock quantity
+          const allVariants = await tx.productVariant.findMany({
             where: { productId: item.productId }
           });
-          const newTotalStock = productVariants.reduce((sum, v) => sum + v.stockQuantity, 0);
+          const newTotalStock = allVariants.reduce((sum, v) => sum + v.stockQuantity, 0);
 
           await tx.product.update({
             where: { id: item.productId },
@@ -128,30 +195,32 @@ export async function POST(request: Request) {
           });
 
         } else {
-          // Validate base product stock
+          // Base product stock validation
           const product = await tx.product.findUnique({
             where: { id: item.productId }
           });
 
           if (!product) {
-            throw new Error(`Product not found: ${item.productId}`);
+            throw new Error(`Product not found.`);
           }
 
           if (product.stockQuantity < item.quantity) {
-            throw new Error(`Insufficient stock for product '${product.name}'. Available: ${product.stockQuantity}, requested: ${item.quantity}`);
+            throw new Error(`Insufficient stock for '${product.name}'. Available: ${product.stockQuantity}, Requested: ${item.quantity}`);
           }
 
           const unitPrice = product.price;
-          totalAmount += unitPrice * item.quantity;
+          subtotal += unitPrice * item.quantity;
 
           orderItemsToCreate.push({
             productId: item.productId,
             variantId: null,
+            productName: product.name,
+            variantName: null,
             quantity: item.quantity,
             price: unitPrice
           });
 
-          // Decrement base product stock
+          // Decrement base product inventory atomically
           await tx.product.update({
             where: { id: item.productId },
             data: {
@@ -163,39 +232,67 @@ export async function POST(request: Request) {
         }
       }
 
-      // Add shipping cost if subtotal is below $50
-      const shippingCost = totalAmount >= 50.0 ? 0 : 4.99;
-      const finalTotalAmount = totalAmount + shippingCost;
+      // Calculate server-side delivery fee ($4.99 or FREE for $50+)
+      const deliveryFee = subtotal >= 50.0 ? 0 : 4.99;
+      const finalTotalAmount = subtotal + deliveryFee;
 
-      // 1.3 Create Order
-      const newOrder = await tx.order.create({
+      const orderNumber = await generateOrderNumber(tx);
+
+      // 2.3 Save complete Order record
+      const createdOrder = await tx.order.create({
         data: {
+          orderNumber,
           userId,
           addressId,
+          customerName: customerInfo.fullName.trim(),
+          customerEmail: customerInfo.email.trim().toLowerCase(),
+          customerPhone: customerInfo.phone.trim(),
+          altPhone: customerInfo.altPhone?.trim() || null,
+
+          street: deliveryAddress.street.trim(),
+          city: deliveryAddress.city.trim(),
+          district: deliveryAddress.district.trim(),
+          province: deliveryAddress.province.trim(),
+          postalCode: deliveryAddress.postalCode.trim(),
+          country: deliveryAddress.country?.trim() || "Sri Lanka",
+          deliveryNote: deliveryAddress.deliveryNote?.trim() || null,
+
+          subtotal,
+          discountAmount: 0,
+          deliveryFee,
           totalAmount: finalTotalAmount,
-          status: "PENDING",
+
+          deliveryMethod,
           paymentMethod,
+          status: "PENDING",
           paymentStatus: "PENDING",
+
           items: {
             create: orderItemsToCreate
           }
         }
       });
 
-      // 1.4 Clear User's Database Cart
-      await tx.cartItem.deleteMany({
-        where: { userId }
-      });
+      // 2.4 Clear database cart if logged in
+      if (userId) {
+        await tx.cartItem.deleteMany({
+          where: { userId }
+        });
+      }
 
-      return newOrder;
+      return createdOrder;
     });
 
-    return NextResponse.json({ success: true, orderId: order.id });
+    return NextResponse.json({
+      success: true,
+      orderId: order.id,
+      orderNumber: order.orderNumber
+    });
   } catch (error: unknown) {
-    console.error("Checkout API error:", error);
+    console.error("Checkout submission API error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to place order" },
-      { status: 500 }
+      { error: error instanceof Error ? error.message : "Failed to place order. Please try again." },
+      { status: 400 }
     );
   }
 }

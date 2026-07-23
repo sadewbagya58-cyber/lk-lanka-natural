@@ -25,6 +25,10 @@ export async function GET(request: Request) {
     if (query) {
       whereClause.OR = [
         { id: { contains: query } },
+        { orderNumber: { contains: query } },
+        { customerName: { contains: query } },
+        { customerEmail: { contains: query } },
+        { customerPhone: { contains: query } },
         { user: { name: { contains: query } } },
         { user: { email: { contains: query } } },
         { address: { phone: { contains: query } } }

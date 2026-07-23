@@ -16,18 +16,22 @@ interface OrderItem {
 
 interface Order {
   id: string;
+  orderNumber?: string | null;
   createdAt: string;
   totalAmount: number;
   status: string;
   paymentMethod: string;
   paymentStatus: string;
-  user: {
+  customerName?: string | null;
+  customerEmail?: string | null;
+  customerPhone?: string | null;
+  user?: {
     name: string;
     email: string;
-  };
-  address: {
+  } | null;
+  address?: {
     phone: string;
-  };
+  } | null;
   items: OrderItem[];
 }
 
@@ -192,15 +196,21 @@ export default function AdminOrdersPage() {
             {orders.map((order) => (
               <div key={order.id} className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10px] font-bold text-slate-500">#{order.id.substring(0, 8)}</span>
+                  <span className="font-mono text-[10px] font-bold text-slate-700">
+                    {order.orderNumber || `#${order.id.substring(0, 8)}`}
+                  </span>
                   <span className={`px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${getStatusBadgeClass(order.status)}`}>
                     {order.status}
                   </span>
                 </div>
 
                 <div className="flex flex-col">
-                  <span className="font-bold text-slate-900 text-sm">{order.user?.name || 'Customer'}</span>
-                  <span className="text-xs text-slate-400">{order.user?.email}</span>
+                  <span className="font-bold text-slate-900 text-sm">
+                    {order.customerName || order.user?.name || 'Customer'}
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    {order.customerEmail || order.user?.email}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
@@ -222,7 +232,7 @@ export default function AdminOrdersPage() {
             <table className="w-full text-left border-collapse min-w-[750px]">
               <thead>
                 <tr className="bg-slate-50/70 border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                  <th className="py-4.5 px-6">Order ID</th>
+                  <th className="py-4.5 px-6">Order Number</th>
                   <th className="py-4.5 px-6">Customer</th>
                   <th className="py-4.5 px-6">Date</th>
                   <th className="py-4.5 px-6">Amount</th>
@@ -234,12 +244,16 @@ export default function AdminOrdersPage() {
               <tbody className="divide-y divide-slate-100 text-xs">
                 {orders.map((order) => (
                   <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-4 px-6 font-mono text-[10px] font-bold text-slate-900">
-                      {order.id.substring(0, 8)}...
+                    <td className="py-4 px-6 font-mono text-[11px] font-bold text-slate-900">
+                      {order.orderNumber || `${order.id.substring(0, 8)}...`}
                     </td>
                     <td className="py-4 px-6">
-                      <span className="font-bold text-slate-800 block">{order.user?.name || 'Customer'}</span>
-                      <span className="text-[10px] text-slate-400 block">{order.user?.email}</span>
+                      <span className="font-bold text-slate-800 block">
+                        {order.customerName || order.user?.name || 'Customer'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 block">
+                        {order.customerEmail || order.user?.email}
+                      </span>
                     </td>
                     <td className="py-4 px-6 text-slate-500 font-medium">
                       {new Date(order.createdAt).toLocaleDateString()}

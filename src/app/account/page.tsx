@@ -37,16 +37,25 @@ interface OrderItem {
 
 interface Order {
   id: string;
+  orderNumber?: string | null;
   createdAt: string;
   totalAmount: number;
   status: string;
   paymentMethod: string;
   paymentStatus: string;
-  address: {
+  street?: string | null;
+  city?: string | null;
+  district?: string | null;
+  province?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
+  customerPhone?: string | null;
+  deliveryNote?: string | null;
+  address?: {
     street: string;
     city: string;
     phone: string;
-  };
+  } | null;
   items: OrderItem[];
 }
 
@@ -419,8 +428,10 @@ export default function AccountPage() {
                           >
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-550 font-medium">
                               <div>
-                                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wide">Order ID</span>
-                                <span className="font-bold text-slate-900 font-mono text-[10px]">{order.id}</span>
+                                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wide">Order Number</span>
+                                <span className="font-bold text-slate-900 font-mono text-[11px]">
+                                  {order.orderNumber || `KLN-${order.id.substring(0, 8).toUpperCase()}`}
+                                </span>
                               </div>
                               <div>
                                 <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wide">Placed On</span>
@@ -430,7 +441,7 @@ export default function AccountPage() {
                                 </span>
                               </div>
                               <div>
-                                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wide">Total amount</span>
+                                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wide">Total Amount</span>
                                 <span className="font-bold text-slate-900">{formatPrice(order.totalAmount)}</span>
                               </div>
                             </div>
@@ -456,11 +467,11 @@ export default function AccountPage() {
                                 {order.items.map((item) => (
                                   <div key={item.id} className="flex gap-3 pt-3 first:pt-0">
                                     <div className="relative w-10 h-10 rounded-lg bg-slate-50 border border-slate-150 overflow-hidden flex items-center justify-center shrink-0">
-                                      <div className={`absolute inset-0 bg-gradient-to-tr ${item.product.gradient} opacity-10`} />
-                                      <ProductIllustration type={item.product.visualSeed} className="w-5 h-5 text-slate-700/60" />
+                                      <div className={`absolute inset-0 bg-gradient-to-tr ${item.product?.gradient || 'from-slate-100 to-slate-200'} opacity-10`} />
+                                      <ProductIllustration type={item.product?.visualSeed || 'leaf'} className="w-5 h-5 text-slate-700/60" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <h4 className="font-bold text-slate-900 truncate leading-snug">{item.product.name}</h4>
+                                      <h4 className="font-bold text-slate-900 truncate leading-snug">{item.product?.name || 'Product'}</h4>
                                       {item.variant && (
                                         <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50 mt-1 inline-block">
                                           Option: {item.variant.name}
@@ -479,17 +490,23 @@ export default function AccountPage() {
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
                                 <div>
                                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 block">Delivery Address</span>
-                                  <p className="font-bold text-slate-800 leading-relaxed">{order.address.street}</p>
-                                  <p className="font-medium text-slate-600 mt-0.5">{order.address.city}</p>
-                                  <p className="text-[10px] text-slate-450 mt-1 font-semibold">Phone: {order.address.phone}</p>
+                                  <p className="font-bold text-slate-800 leading-relaxed">
+                                    {order.street || order.address?.street || 'Address'}
+                                  </p>
+                                  <p className="font-medium text-slate-600 mt-0.5">
+                                    {[order.city || order.address?.city, order.district, order.province, order.postalCode].filter(Boolean).join(', ')}
+                                  </p>
+                                  {(order.customerPhone || order.address?.phone) && (
+                                    <p className="text-[10px] text-slate-450 mt-1 font-semibold">Phone: {order.customerPhone || order.address?.phone}</p>
+                                  )}
                                 </div>
                                 <div>
-                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 block">Payment Info</span>
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 block">Payment &amp; Method</span>
                                   <div className="flex flex-col gap-1.5">
-                                    <p className="font-bold text-slate-800">Method: <span className="uppercase text-slate-900">{order.paymentMethod.replace('_', ' ')}</span></p>
+                                    <p className="font-bold text-slate-800">Method: <span className="uppercase text-slate-900">{order.paymentMethod.replace('_', ' ')} (COD)</span></p>
                                     <p className="font-bold text-slate-800">
-                                      Status:{' '}
-                                      <span className={`px-2 py-0.5 rounded text-[9px] uppercase font-black border ${order.paymentStatus === 'PAID' ? 'text-emerald-750 bg-emerald-50 border-emerald-100' : 'text-slate-600 bg-slate-50 border-slate-150'}`}>
+                                      Payment Status:{' '}
+                                      <span className={`px-2 py-0.5 rounded text-[9px] uppercase font-black border ${order.paymentStatus === 'PAID' ? 'text-emerald-700 bg-emerald-50 border-emerald-100' : 'text-slate-600 bg-slate-50 border-slate-150'}`}>
                                         {order.paymentStatus}
                                       </span>
                                     </p>
