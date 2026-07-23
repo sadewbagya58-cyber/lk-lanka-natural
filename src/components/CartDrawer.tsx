@@ -215,13 +215,14 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               >
                 View Full Cart
               </Link>
-              <button
-                className="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-750 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all focus:outline-none shadow-sm hover:shadow"
-                onClick={() => alert('Proceeding to checkout…')}
+              <Link
+                href="/checkout"
+                onClick={onClose}
+                className="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all focus:outline-none shadow-sm hover:shadow"
               >
                 <CreditCard className="w-4 h-4" />
                 Checkout
-              </button>
+              </Link>
             </div>
             <button
               onClick={() => clearCart()}

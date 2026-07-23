@@ -162,13 +162,13 @@ export default function CartPage() {
                   <span>Order Total</span>
                   <span className="text-xl font-black text-slate-950">{formatPrice(total)}</span>
                 </div>
-                <button
+                <Link
+                  href="/checkout"
                   className="h-12 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all mt-4 focus:outline-none shadow-md hover:shadow-lg shadow-emerald-600/10"
-                  onClick={() => alert('Proceeding to checkout…')}
                 >
                   <CreditCard className="w-5 h-5" />
                   Proceed to Checkout
-                </button>
+                </Link>
               </div>
 
               {/* Guarantee */}
