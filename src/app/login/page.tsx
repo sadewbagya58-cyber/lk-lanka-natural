@@ -16,9 +16,17 @@ function LoginInner() {
   const rawRedirect = searchParams.get('redirect');
   const redirectPath = (rawRedirect && !rawRedirect.startsWith('/login')) ? rawRedirect : '/account';
 
+  const oauthErrorParam = searchParams.get('error');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    oauthErrorParam === 'google_auth_failed'
+      ? 'Google authentication failed. Please try again or log in with your email and password.'
+      : oauthErrorParam === 'google_auth_config_missing'
+      ? 'Google authentication service is currently unavailable.'
+      : null
+  );
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -57,9 +65,7 @@ function LoginInner() {
   const handleGoogleOAuth = () => {
     setError(null);
     try {
-      signIn('google', {
-        callbackUrl: redirectPath,
-      });
+      window.location.href = '/api/auth/google';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred during Google Sign In.');
     }

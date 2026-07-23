@@ -35,7 +35,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
 
-  const refetch = async (data?: unknown) => {
+  const refetch = async () => {
     try {
       const res = await fetch('/api/auth/session');
       if (res.ok) {
@@ -65,8 +65,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    globalRefetchSession = async (data?: unknown) => {
-      await refetch(data);
+    globalRefetchSession = async () => {
+      await refetch();
     };
   }, []);
 
@@ -111,6 +111,11 @@ export async function signIn(
     callbackUrl?: string;
   }
 ) {
+  if (provider === 'google') {
+    window.location.href = '/api/auth/google';
+    return { ok: true, error: null, status: 200 };
+  }
+
   if (provider === 'credentials') {
     const { email, password } = options || {};
     try {
