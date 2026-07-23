@@ -81,7 +81,7 @@ function LoginInner() {
           
           {/* Header */}
           <div className="flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-2xl overflow-hidden bg-black p-0.5 border border-amber-500/30 shadow-md mb-3">
+            <div className="w-14 h-14 rounded-2xl overflow-hidden bg-white p-0.5 border border-slate-200 shadow-md mb-3">
               <Image src="/logo.png" alt="KL Lanka Natural" width={56} height={56} className="w-full h-full object-contain" />
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Registered Members</span>

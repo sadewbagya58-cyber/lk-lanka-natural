@@ -38,7 +38,7 @@ export default function AdminLayout({
         <aside className="w-full md:w-64 shrink-0 flex flex-col gap-2 bg-white rounded-3xl border border-slate-200/80 p-4 shadow-sm h-fit">
           <div className="px-3 py-2 border-b border-slate-100 mb-2 flex items-center justify-between gap-3">
             <Link href="/" className="flex items-center gap-2.5 min-w-0 group" title="KL Lanka Natural Admin">
-              <div className="h-9 w-9 rounded-xl overflow-hidden bg-black p-0.5 border border-amber-500/30 shadow-sm shrink-0 group-hover:border-amber-400 transition-colors">
+              <div className="h-9 w-9 rounded-xl overflow-hidden bg-white p-0.5 border border-slate-200 shadow-sm shrink-0 group-hover:border-emerald-500 transition-colors">
                 <Image src="/logo.png" alt="KL Lanka Natural" width={36} height={36} className="w-full h-full object-contain" />
               </div>
               <div className="min-w-0">

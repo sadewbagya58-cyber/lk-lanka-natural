@@ -24,7 +24,7 @@ export default function Footer() {
         {/* Company Identity */}
         <div className="flex flex-col gap-4">
           <Link href="/" className="flex items-center gap-3 focus:outline-none group">
-            <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-black p-0.5 border border-amber-500/30 shadow-md group-hover:border-amber-400 transition-all shrink-0">
+            <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-white p-0.5 border border-slate-700 shadow-md group-hover:border-emerald-500 transition-all shrink-0">
               <Image
                 src="/logo.png"
                 alt="KL Lanka Natural (PVT) LTD Logo"

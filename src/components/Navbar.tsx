@@ -74,7 +74,7 @@ export default function Navbar() {
         <div className="w-full py-3.5 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-3 shrink-0 focus:outline-none group">
-              <div className="relative h-11 w-11 md:h-12 md:w-12 rounded-xl overflow-hidden bg-black p-0.5 border border-amber-500/30 shadow-md group-hover:border-amber-400/60 transition-all shrink-0">
+              <div className="relative h-11 w-11 md:h-12 md:w-12 rounded-xl overflow-hidden bg-white p-0.5 border border-slate-200/80 shadow-sm group-hover:border-emerald-500/40 transition-all shrink-0">
                 <Image
                   src="/logo.png"
                   alt="KL Lanka Natural Logo"
@@ -228,7 +228,7 @@ export default function Navbar() {
               <div className="flex flex-col gap-6">
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                   <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-2.5 focus:outline-none">
-                    <div className="relative h-10 w-10 rounded-xl overflow-hidden bg-black p-0.5 border border-amber-500/30 shadow-sm shrink-0">
+                    <div className="relative h-10 w-10 rounded-xl overflow-hidden bg-white p-0.5 border border-slate-200/80 shadow-sm shrink-0">
                       <Image
                         src="/logo.png"
                         alt="KL Lanka Natural Logo"

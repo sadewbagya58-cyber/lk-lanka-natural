@@ -6,8 +6,12 @@ export const metadata: Metadata = {
   title: "KL Lanka Natural | Premium Online Marketplace Sri Lanka",
   description: "Shop premium natural products, groceries, cosmetics, health supplements, and exquisite perfumes at KL Lanka Natural (PVT) LTD. Fast island-wide delivery in Sri Lanka.",
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/logo.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.png",
+    apple: "/apple-icon.png",
   },
   openGraph: {
     title: "KL Lanka Natural | Premium Online Marketplace Sri Lanka",
