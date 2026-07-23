@@ -242,57 +242,101 @@ export default function AdminCategories() {
           <p className="text-xs text-slate-400 font-light">Create your first category to start organizing products.</p>
         </div>
       ) : (
-        <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
-              <tr>
-                <th className="px-4 py-3">Image</th>
-                <th className="px-4 py-3">Category Name</th>
-                <th className="px-4 py-3">Slug</th>
-                <th className="px-4 py-3">Products</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {categories.map((cat) => (
-                <tr key={cat.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-4 py-3">
-                    {cat.image ? (
-                      <div className="w-10 h-10 rounded-lg overflow-hidden relative border border-slate-200 bg-slate-50">
-                        <Image src={cat.image} alt={cat.name} fill className="object-cover" unoptimized />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold">
-                        {cat.name.charAt(0)}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 font-bold text-slate-900">{cat.name}</td>
-                  <td className="px-4 py-3 font-mono text-slate-500">{cat.slug}</td>
-                  <td className="px-4 py-3 text-slate-600 font-semibold">{cat._count?.products || 0} products</td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => openEditModal(cat)}
-                        className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors"
-                        title="Edit category"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCategory(cat.id, cat.name)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                        title="Delete category"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+        <>
+          {/* Mobile Card View */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {categories.map((cat) => (
+              <div key={cat.id} className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  {cat.image ? (
+                    <div className="w-12 h-12 rounded-xl overflow-hidden relative border border-slate-200 bg-slate-50 shrink-0">
+                      <Image src={cat.image} alt={cat.name} fill className="object-cover" unoptimized />
                     </div>
-                  </td>
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 font-bold shrink-0">
+                      {cat.name.charAt(0)}
+                    </div>
+                  )}
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="font-bold text-slate-900 text-sm truncate">{cat.name}</span>
+                    <span className="text-xs font-mono text-slate-400 truncate">{cat.slug}</span>
+                    <span className="text-xs text-emerald-600 font-semibold">{cat._count?.products || 0} products</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-slate-100">
+                  <button
+                    onClick={() => openEditModal(cat)}
+                    className="px-3 py-1.5 bg-emerald-50 text-emerald-700 font-bold rounded-xl text-xs flex items-center gap-1.5 hover:bg-emerald-100 transition-colors"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                    className="px-3 py-1.5 bg-rose-50 text-rose-700 font-bold rounded-xl text-xs flex items-center gap-1.5 hover:bg-rose-100 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
+            <table className="w-full text-left text-xs min-w-[600px]">
+              <thead className="bg-slate-50 text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
+                <tr>
+                  <th className="px-4 py-3">Image</th>
+                  <th className="px-4 py-3">Category Name</th>
+                  <th className="px-4 py-3">Slug</th>
+                  <th className="px-4 py-3">Products</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {categories.map((cat) => (
+                  <tr key={cat.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-4 py-3">
+                      {cat.image ? (
+                        <div className="w-10 h-10 rounded-lg overflow-hidden relative border border-slate-200 bg-slate-50">
+                          <Image src={cat.image} alt={cat.name} fill className="object-cover" unoptimized />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold">
+                          {cat.name.charAt(0)}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-bold text-slate-900">{cat.name}</td>
+                    <td className="px-4 py-3 font-mono text-slate-500">{cat.slug}</td>
+                    <td className="px-4 py-3 text-slate-600 font-semibold">{cat._count?.products || 0} products</td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => openEditModal(cat)}
+                          className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors"
+                          title="Edit category"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                          title="Delete category"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

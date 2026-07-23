@@ -123,119 +123,169 @@ export default function AdminProducts() {
           </Link>
         </div>
       ) : (
-        <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
-              <tr>
-                <th className="px-4 py-3">Image</th>
-                <th className="px-4 py-3">Product Name</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Brand</th>
-                <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">Stock Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {products.map((p) => {
-                const thumbnail = p.images?.[0]?.url;
-                const hasVariants = p.variants && p.variants.length > 0;
-                
-                const qty = hasVariants
-                  ? p.variants!.reduce((sum, v) => sum + v.stockQuantity, 0)
-                  : (p.stockQuantity ?? 0);
-                
-                const threshold = p.lowStockThreshold ?? 5;
+        <>
+          {/* Mobile Card View */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {products.map((p) => {
+              const thumbnail = p.images?.[0]?.url;
+              return (
+                <div key={p.id} className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    {thumbnail ? (
+                      <div className="w-12 h-12 rounded-xl overflow-hidden relative border border-slate-200 bg-slate-50 shrink-0">
+                        <Image src={thumbnail} alt={p.name} fill className="object-contain p-1" unoptimized />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 font-bold shrink-0">
+                        {p.name.charAt(0)}
+                      </div>
+                    )}
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="font-bold text-slate-900 text-sm truncate">{p.name}</span>
+                      <span className="text-xs text-slate-500 font-medium">{p.category?.name || 'Uncategorized'}</span>
+                      <span className="text-xs font-black text-emerald-700">${p.price.toFixed(2)}</span>
+                    </div>
+                  </div>
 
-                let stockBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-                let stockLabel = 'IN STOCK';
+                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 text-xs">
+                    <span className="text-slate-500 font-medium">Stock: <strong className="text-slate-800">{p.stockQuantity} units</strong></span>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/admin/products/${p.id}/edit`}
+                        className="px-3 py-1.5 bg-emerald-50 text-emerald-700 font-bold rounded-xl text-xs flex items-center gap-1.5 hover:bg-emerald-100 transition-colors"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span>Edit</span>
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteProduct(p.id, p.name)}
+                        className="px-3 py-1.5 bg-rose-50 text-rose-700 font-bold rounded-xl text-xs flex items-center gap-1.5 hover:bg-rose-100 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-                if (hasVariants) {
-                  const allOut = p.variants!.every(v => v.stockQuantity === 0);
-                  const anyLow = p.variants!.some(v => v.stockQuantity > 0 && v.stockQuantity <= (v.lowStockThreshold ?? 5));
-                  if (allOut) {
-                    stockBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
-                    stockLabel = 'OUT OF STOCK';
-                  } else if (anyLow) {
-                    stockBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
-                    stockLabel = 'LOW STOCK';
+          {/* Desktop Table View */}
+          <div className="hidden md:block border border-slate-100 rounded-2xl overflow-x-auto shadow-sm">
+            <table className="w-full text-left text-xs min-w-[700px]">
+              <thead className="bg-slate-50 text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
+                <tr>
+                  <th className="px-4 py-3">Image</th>
+                  <th className="px-4 py-3">Product Name</th>
+                  <th className="px-4 py-3">Category</th>
+                  <th className="px-4 py-3">Brand</th>
+                  <th className="px-4 py-3">Price</th>
+                  <th className="px-4 py-3">Stock Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {products.map((p) => {
+                  const thumbnail = p.images?.[0]?.url;
+                  const hasVariants = p.variants && p.variants.length > 0;
+                  
+                  const qty = hasVariants
+                    ? p.variants!.reduce((sum, v) => sum + v.stockQuantity, 0)
+                    : (p.stockQuantity ?? 0);
+                  
+                  const threshold = p.lowStockThreshold ?? 5;
+
+                  let stockBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                  let stockLabel = 'IN STOCK';
+
+                  if (hasVariants) {
+                    const allOut = p.variants!.every(v => v.stockQuantity === 0);
+                    const anyLow = p.variants!.some(v => v.stockQuantity > 0 && v.stockQuantity <= (v.lowStockThreshold ?? 5));
+                    if (allOut) {
+                      stockBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+                      stockLabel = 'OUT OF STOCK';
+                    } else if (anyLow) {
+                      stockBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                      stockLabel = 'LOW STOCK';
+                    }
+                  } else {
+                    if (qty === 0) {
+                      stockBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+                      stockLabel = 'OUT OF STOCK';
+                    } else if (qty <= threshold) {
+                      stockBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                      stockLabel = 'LOW STOCK';
+                    }
                   }
-                } else {
-                  if (qty === 0) {
-                    stockBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
-                    stockLabel = 'OUT OF STOCK';
-                  } else if (qty <= threshold) {
-                    stockBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
-                    stockLabel = 'LOW STOCK';
-                  }
-                }
 
-                return (
-                  <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-3">
-                      {thumbnail ? (
-                        <div className="w-10 h-10 rounded-lg overflow-hidden relative border border-slate-200 bg-slate-50">
-                          <Image src={thumbnail} alt={p.name} fill className="object-contain p-1" unoptimized />
-                        </div>
-                      ) : (
-                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold">
-                          {p.name.charAt(0)}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 font-bold text-slate-900">
-                      <div className="flex flex-col">
-                        <span>{p.name}</span>
-                        {hasVariants ? (
-                          <span className="text-[10px] text-emerald-600 font-bold mt-0.5">
-                            {p.variants!.length} options: {p.variants!.map(v => `${v.name} (${v.stockQuantity})`).join(', ')}
-                          </span>
+                  return (
+                    <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-4 py-3">
+                        {thumbnail ? (
+                          <div className="w-10 h-10 rounded-lg overflow-hidden relative border border-slate-200 bg-slate-50">
+                            <Image src={thumbnail} alt={p.name} fill className="object-contain p-1" unoptimized />
+                          </div>
                         ) : (
-                          <span className="text-[10px] font-mono text-slate-400 font-normal">{p.slug}</span>
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold">
+                            {p.name.charAt(0)}
+                          </div>
                         )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-600 font-medium">{p.category?.name || 'Uncategorized'}</td>
-                    <td className="px-4 py-3 text-slate-600 font-medium">
-                      {p.brand?.name ? (
-                        <span>{p.brand.name}</span>
-                      ) : (
-                        <span className="text-slate-400 italic">No Brand</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 font-black text-slate-900">${p.price.toFixed(2)}</td>
-                    <td className="px-4 py-3 font-semibold">
-                      <div className="flex flex-col gap-1">
-                        <span className={`px-2 py-0.5 rounded-lg text-[9px] font-extrabold border ${stockBadgeClass} w-max`}>
-                          {stockLabel}
-                        </span>
-                        <span className="text-[10px] text-slate-500 font-medium">{qty} total units</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link
-                          href={`/admin/products/${p.id}/edit`}
-                          className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors"
-                          title="Edit product"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleDeleteProduct(p.id, p.name)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                          title="Delete product"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                      </td>
+                      <td className="px-4 py-3 font-bold text-slate-900">
+                        <div className="flex flex-col">
+                          <span>{p.name}</span>
+                          {hasVariants ? (
+                            <span className="text-[10px] text-emerald-600 font-bold mt-0.5">
+                              {p.variants!.length} options: {p.variants!.map(v => `${v.name} (${v.stockQuantity})`).join(', ')}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-mono text-slate-400 font-normal">{p.slug}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 font-medium">{p.category?.name || 'Uncategorized'}</td>
+                      <td className="px-4 py-3 text-slate-600 font-medium">
+                        {p.brand?.name ? (
+                          <span>{p.brand.name}</span>
+                        ) : (
+                          <span className="text-slate-400 italic">No Brand</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 font-black text-slate-900">${p.price.toFixed(2)}</td>
+                      <td className="px-4 py-3 font-semibold">
+                        <div className="flex flex-col gap-1">
+                          <span className={`px-2 py-0.5 rounded-lg text-[9px] font-extrabold border ${stockBadgeClass} w-max`}>
+                            {stockLabel}
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-medium">{qty} total units</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Link
+                            href={`/admin/products/${p.id}/edit`}
+                            className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors"
+                            title="Edit product"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Link>
+                          <button
+                            onClick={() => handleDeleteProduct(p.id, p.name)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                            title="Delete product"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

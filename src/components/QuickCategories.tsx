@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { CategoryData } from '@/types/product';
 
 export default function QuickCategories() {
@@ -40,10 +41,20 @@ export default function QuickCategories() {
             <Link
               key={cat.id}
               href={`/category/${cat.slug}`}
-              className={`snap-start shrink-0 flex flex-col items-center justify-center gap-2.5 p-5 min-w-[120px] rounded-2xl border transition-all duration-300 hover:shadow-md hover:scale-[1.03] active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 ${cat.colorClasses ?? 'bg-slate-50 border-slate-100'}`}
+              className={`snap-start shrink-0 flex flex-col items-center justify-center gap-2.5 p-4 sm:p-5 min-w-[110px] sm:min-w-[120px] rounded-2xl border transition-all duration-300 hover:shadow-md hover:scale-[1.03] active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 ${cat.colorClasses ?? 'bg-slate-50 border-slate-100'}`}
             >
-              <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-100/80">
-                <span className="text-base">{cat.name.charAt(0)}</span>
+              <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100/80 overflow-hidden flex items-center justify-center relative p-1">
+                {cat.image ? (
+                  <Image
+                    src={cat.image}
+                    alt={cat.name}
+                    fill
+                    className="object-cover rounded-lg p-0.5"
+                    unoptimized
+                  />
+                ) : (
+                  <span className="text-base font-black text-emerald-700">{cat.name.charAt(0)}</span>
+                )}
               </div>
               <span className="text-xs font-bold text-slate-800 whitespace-nowrap text-center">
                 {cat.name}

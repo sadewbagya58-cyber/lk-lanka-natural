@@ -324,7 +324,7 @@ export default function ProductCatalog() {
 
           {/* Product Grid */}
           {items.length > 0 && (
-            <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
               <AnimatePresence mode="popLayout">
                 {items.map((product) => (
                   <motion.div

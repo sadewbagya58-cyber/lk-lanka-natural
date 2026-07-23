@@ -86,7 +86,7 @@ export default function FlashDeals() {
         </div>
 
         {/* Product Cards */}
-        <div className="flex gap-6 overflow-x-auto hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-4 snap-x snap-mandatory pb-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 pb-3">
           {flashProducts.map((prod) => {
             const stockLeft = prod.stockQuantity ?? 0;
             const totalStock = prod.totalStock ?? 100;

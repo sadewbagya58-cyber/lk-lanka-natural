@@ -202,12 +202,12 @@ function LoginInner() {
 
           {/* Registration Redirect */}
           <p className="text-xs text-slate-500 text-center font-semibold mt-2">
-            Don&apos;t have an account?{' '}
+            New to KL Lanka Natural?{' '}
             <Link
               href="/register"
               className="text-emerald-600 hover:text-emerald-700 hover:underline font-bold"
             >
-              Sign Up Free
+              Create an Account
             </Link>
           </p>
 

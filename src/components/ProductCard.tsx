@@ -63,30 +63,30 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div
-      className="group bg-white rounded-2xl border border-slate-100 p-4 flex flex-col justify-between shadow-sm hover:shadow-lg hover:border-slate-200/80 transition-all duration-300 relative h-full focus-within:ring-2 focus-within:ring-emerald-500/20"
+      className="group bg-white rounded-2xl border border-slate-100 p-2.5 sm:p-4 flex flex-col justify-between shadow-sm hover:shadow-lg hover:border-slate-200/80 transition-all duration-300 relative h-full focus-within:ring-2 focus-within:ring-emerald-500/20"
       role="group"
       aria-label={`Product card for ${product.name}`}
     >
       <div className="flex flex-col flex-1">
         {/* Badges Overlay */}
-        <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5 pointer-events-none">
+        <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-10 flex flex-col gap-1 pointer-events-none max-w-[70%]">
           {product.badge && (
-            <span className="text-[9px] font-black tracking-wider uppercase bg-emerald-600 text-white px-2 py-1 rounded shadow-sm">
+            <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-emerald-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm truncate">
               {product.badge}
             </span>
           )}
           {discountPercent && discountPercent > 0 && (
-            <span className="text-[9px] font-black tracking-wider uppercase bg-rose-600 text-white px-2 py-1 rounded shadow-sm">
-              -{discountPercent}% OFF
+            <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-rose-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm w-fit">
+              -{discountPercent}%
             </span>
           )}
           {isOut ? (
-            <span className="text-[9px] font-black tracking-wider uppercase bg-slate-900 text-white px-2 py-1 rounded shadow-sm">
+            <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-slate-900 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm w-fit">
               Out of Stock
             </span>
           ) : isLow ? (
-            <span className="text-[9px] font-black tracking-wider uppercase bg-amber-500 text-white px-2 py-1 rounded shadow-sm">
-              Low Stock ({stock} left)
+            <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-amber-500 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm w-fit truncate">
+              Low Stock ({stock})
             </span>
           ) : null}
         </div>
@@ -97,19 +97,19 @@ export default function ProductCard({ product }: ProductCardProps) {
             e.preventDefault();
             toggleWishlist(product.id);
           }}
-          className="absolute top-4 right-4 z-10 p-2 rounded-xl bg-white/90 backdrop-blur-sm border border-slate-100 text-slate-400 hover:text-rose-500 hover:bg-slate-50 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+          className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 z-10 p-1.5 sm:p-2 rounded-xl bg-white/90 backdrop-blur-sm border border-slate-100 text-slate-400 hover:text-rose-500 hover:bg-slate-50 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-500/40"
           aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
         >
           <motion.div
             animate={{ scale: isWishlisted ? [1, 1.25, 1] : 1 }}
             transition={{ duration: 0.2 }}
           >
-            <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-rose-500 text-rose-500' : ''}`} />
+            <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isWishlisted ? 'fill-rose-500 text-rose-500' : ''}`} />
           </motion.div>
         </button>
 
         {/* Product Image Link */}
-        <Link href={`/products/${product.slug}`} className="block relative mb-4 select-none focus:outline-none">
+        <Link href={`/products/${product.slug}`} className="block relative mb-2.5 sm:mb-4 select-none focus:outline-none">
           <div className="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
             {product.image ? (
               <Image
@@ -132,20 +132,20 @@ export default function ProductCard({ product }: ProductCardProps) {
         </Link>
 
         {/* Category & Rating */}
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">
+        <div className="flex items-center justify-between mb-1 sm:mb-1.5 gap-1">
+          <span className="text-[8px] sm:text-[9px] text-slate-400 font-extrabold uppercase tracking-wider truncate">
             {product.category}
           </span>
-          <div className="flex items-center gap-1 bg-amber-50 border border-amber-100/50 px-1.5 py-0.5 rounded-lg text-amber-700 font-bold text-[10px]">
-            <Star className="w-3 h-3 fill-amber-500 text-amber-500" strokeWidth={1} />
+          <div className="flex items-center gap-0.5 sm:gap-1 bg-amber-50 border border-amber-100/50 px-1 sm:px-1.5 py-0.5 rounded-lg text-amber-700 font-bold text-[9px] sm:text-[10px] shrink-0">
+            <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-500 text-amber-500" strokeWidth={1} />
             <span>{product.rating.toFixed(1)}</span>
-            <span className="text-slate-400 font-medium">({product.reviewsCount})</span>
+            <span className="text-slate-400 font-medium hidden sm:inline">({product.reviewsCount})</span>
           </div>
         </div>
 
         {/* Product Title */}
-        <Link href={`/products/${product.slug}`} className="focus:outline-none focus:underline mb-2">
-          <h3 className="text-sm font-bold text-slate-800 line-clamp-2 leading-snug hover:text-emerald-600 focus:text-emerald-600 transition-colors duration-200 min-h-[40px]">
+        <Link href={`/products/${product.slug}`} className="focus:outline-none focus:underline mb-1.5 sm:mb-2">
+          <h3 className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 leading-tight sm:leading-snug hover:text-emerald-600 focus:text-emerald-600 transition-colors duration-200 min-h-[32px] sm:min-h-[40px]">
             {product.name}
           </h3>
         </Link>

@@ -83,7 +83,7 @@ export default function ProductGrid() {
 
         {/* Loading Skeleton */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {[1, 2, 3, 4].map((n) => (
               <div key={n} className="bg-white rounded-2xl border border-slate-100 p-4 h-80 animate-pulse flex flex-col justify-between">
                 <div className="w-full aspect-square bg-slate-100 rounded-xl mb-4" />
@@ -113,7 +113,7 @@ export default function ProductGrid() {
           /* Product Card Grid */
           <motion.div
             layout
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6"
           >
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((prod) => (

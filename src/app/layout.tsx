@@ -44,7 +44,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
+      <body className="min-h-full w-full overflow-x-hidden flex flex-col bg-slate-50 text-slate-900">
         {/* AuthProvider bootstraps the NextAuth session and syncs cart/wishlist to Hostinger MySQL */}
         <AuthProvider>
           {children}

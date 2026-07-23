@@ -186,8 +186,40 @@ export default function AdminOrdersPage() {
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <>
+            {/* Mobile Card View */}
+          <div className="flex flex-col gap-3 md:hidden p-4">
+            {orders.map((order) => (
+              <div key={order.id} className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] font-bold text-slate-500">#{order.id.substring(0, 8)}</span>
+                  <span className={`px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${getStatusBadgeClass(order.status)}`}>
+                    {order.status}
+                  </span>
+                </div>
+
+                <div className="flex flex-col">
+                  <span className="font-bold text-slate-900 text-sm">{order.user?.name || 'Customer'}</span>
+                  <span className="text-xs text-slate-400">{order.user?.email}</span>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                  <span className="font-black text-slate-900 text-sm">{formatPrice(order.totalAmount)}</span>
+                  <Link
+                    href={`/admin/orders/${order.id}`}
+                    className="h-8 px-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-colors"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Manage Order</span>
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[750px]">
               <thead>
                 <tr className="bg-slate-50/70 border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
                   <th className="py-4.5 px-6">Order ID</th>
@@ -243,6 +275,7 @@ export default function AdminOrdersPage() {
               </tbody>
             </table>
           </div>
+        </>
         )}
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChevronRight, ArrowDownUp, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ProductCardData, SubCategoryData, SortOption } from '@/types/product';
@@ -61,8 +62,18 @@ export default function CategoryView({ category, products, iconNode }: CategoryV
       <div className={`w-full py-16 px-6 lg:px-12 bg-gradient-to-br ${category.colorClasses} relative overflow-hidden`}>
         <div className="absolute inset-0 bg-black/10 mix-blend-overlay"></div>
         <div className="max-w-7xl mx-auto relative z-10 flex flex-col items-center text-center">
-          <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 shadow-xl border border-white/30 text-white">
-            {iconNode}
+          <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 shadow-xl border border-white/30 text-white overflow-hidden relative p-1">
+            {category.image ? (
+              <Image
+                src={category.image}
+                alt={category.name}
+                fill
+                className="object-cover rounded-xl"
+                unoptimized
+              />
+            ) : (
+              iconNode
+            )}
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-4 drop-shadow-sm">
             {category.name}
@@ -119,7 +130,7 @@ export default function CategoryView({ category, products, iconNode }: CategoryV
 
         {/* Product Grid */}
         {filteredProducts.length > 0 ? (
-          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product) => (
                 <motion.div

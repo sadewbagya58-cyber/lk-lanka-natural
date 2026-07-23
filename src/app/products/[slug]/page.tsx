@@ -208,7 +208,7 @@ export default async function ProductPage({ params }: PageProps) {
           {relatedProducts.length > 0 && (
             <div className="flex flex-col gap-6">
               <h3 className="text-lg font-black text-slate-900">Related Products</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4">
                 {relatedProducts.map((rel) => (
                   <ProductCard key={rel.id} product={rel} />
                 ))}
