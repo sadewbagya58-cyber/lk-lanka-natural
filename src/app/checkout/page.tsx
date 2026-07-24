@@ -94,7 +94,7 @@ function CheckoutContent() {
 
     if (!switchingToSL) {
       setDeliveryMethod('INTERNATIONAL_SHIPPING');
-      setPaymentMethod('BANK_TRANSFER');
+      setPaymentMethod('CARD');
     } else {
       setDeliveryMethod('STANDARD_COURIER');
       setPaymentMethod('COD');
@@ -258,7 +258,16 @@ function CheckoutContent() {
     }
 
     if (!isSriLanka && paymentMethod === 'COD') {
-      setError('Cash on Delivery (COD) is only available for Sri Lanka. Please select Direct Bank Transfer.');
+      setError('Cash on Delivery (COD) is only available for Sri Lanka orders.');
+      return;
+    }
+
+    if (paymentMethod === 'CARD') {
+      setError(
+        isSriLanka
+          ? 'Online card payments are currently unavailable. Please select Cash on Delivery.'
+          : 'Online card payment is currently unavailable for international orders. Please check back soon.'
+      );
       return;
     }
 
@@ -271,7 +280,7 @@ function CheckoutContent() {
             customerInfo,
             deliveryAddress,
             deliveryMethod: isSriLanka ? deliveryMethod : 'INTERNATIONAL_SHIPPING',
-            paymentMethod: isSriLanka ? paymentMethod : 'BANK_TRANSFER',
+            paymentMethod: isSriLanka ? paymentMethod : 'CARD',
             isBuyNow,
             items: currentItems.map((item) => ({
               productId: item.productId,
@@ -696,43 +705,40 @@ function CheckoutContent() {
                   </label>
                 )}
 
-                {/* Direct Bank Transfer */}
-                <label className={`p-4 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${paymentMethod === 'BANK_TRANSFER' ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-200 hover:bg-slate-50'}`}>
+                {/* Pay Online by Card */}
+                <label className={`p-4 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${paymentMethod === 'CARD' ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-200 hover:bg-slate-50'}`}>
                   <div className="flex items-center gap-3">
                     <input
                       type="radio"
                       name="paymentMethod"
-                      value="BANK_TRANSFER"
-                      checked={paymentMethod === 'BANK_TRANSFER'}
-                      onChange={() => setPaymentMethod('BANK_TRANSFER')}
+                      value="CARD"
+                      checked={paymentMethod === 'CARD'}
+                      onChange={() => setPaymentMethod('CARD')}
                       className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-slate-300"
                     />
                     <div>
-                      <span className="text-xs font-bold text-slate-900 block">Direct Bank Transfer</span>
-                      <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">Transfer directly into our bank account. Deposit details below.</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900 block">Pay Online by Card</span>
+                        <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                          Online card payment — Coming Soon
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">
+                        Securely pay using Visa, Mastercard, or other cards supported by our payment gateway.
+                      </span>
                     </div>
                   </div>
                 </label>
 
-                {paymentMethod === 'BANK_TRANSFER' && (
-                  <div className="p-4 bg-emerald-50/60 border border-emerald-200/80 rounded-xl flex flex-col gap-2.5 text-xs text-slate-700">
-                    <div className="flex items-center gap-2 font-bold text-emerald-800">
-                      <Banknote className="w-4 h-4 text-emerald-600" />
-                      <span>Bank Transfer Details</span>
-                    </div>
-                    <p className="text-[11px] text-slate-600 leading-relaxed">
-                      Please deposit or wire transfer your order total to our bank account below. Use your <strong>Order Number</strong> as the reference.
-                    </p>
-                    <div className="bg-white p-3 rounded-lg border border-emerald-100/80 font-mono text-[11px] flex flex-col gap-1 text-slate-800">
-                      <div><span className="text-slate-400">Bank:</span> Commercial Bank of Ceylon</div>
-                      <div><span className="text-slate-400">Account Name:</span> KL Lanka Natural (Pvt) Ltd</div>
-                      <div><span className="text-slate-400">Account No:</span> 1000 4829 1948</div>
-                      <div><span className="text-slate-400">SWIFT / BIC:</span> CCBKLKLX</div>
-                      <div><span className="text-slate-400">Branch:</span> Colombo Main Branch</div>
-                    </div>
-                    <span className="text-[10px] text-slate-500 font-medium italic">
-                      Note: Your order status will remain PENDING until your transfer is verified by our team.
+                {!isSriLanka && (
+                  <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-900 flex flex-col gap-1">
+                    <span className="font-bold flex items-center gap-1.5 text-amber-800">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                      Notice for International Customers
                     </span>
+                    <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
+                      Online card payment is currently unavailable for international orders. Please check back soon.
+                    </p>
                   </div>
                 )}
               </div>

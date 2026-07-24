@@ -44,7 +44,9 @@ async function generateOrderNumber(tx: any): Promise<string> {
   return `KLN-${year}-${seq}-${randomSuffix}`;
 }
 
-const VALID_PAYMENT_METHODS = ["COD", "BANK_TRANSFER"];
+import { paymentProvider } from "@/lib/payment/provider";
+
+const VALID_PAYMENT_METHODS = ["COD", "CARD"];
 const VALID_DELIVERY_METHODS = ["STANDARD_COURIER", "INTERNATIONAL_SHIPPING", "COD"];
 
 export async function POST(request: Request) {
@@ -129,7 +131,15 @@ export async function POST(request: Request) {
 
     if (!isSriLanka && paymentMethod === "COD") {
       return NextResponse.json({
-        error: "Cash on Delivery (COD) is only available for orders within Sri Lanka. Please select Direct Bank Transfer."
+        error: "Cash on Delivery (COD) is only available for orders within Sri Lanka."
+      }, { status: 400 });
+    }
+
+    if (paymentMethod === "CARD" && !paymentProvider.isConfigured()) {
+      return NextResponse.json({
+        error: isSriLanka
+          ? "Online card payments are currently unavailable. Please select Cash on Delivery."
+          : "Online card payment is currently unavailable for international orders. Please check back soon."
       }, { status: 400 });
     }
 

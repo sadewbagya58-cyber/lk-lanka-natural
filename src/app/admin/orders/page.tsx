@@ -268,8 +268,8 @@ export default function AdminOrdersPage() {
                       {formatPrice(order.totalAmount)}
                     </td>
                     <td className="py-4 px-6">
-                      <span className="text-[10px] font-bold uppercase block text-slate-700">
-                        {order.paymentMethod}
+                      <span className="text-[10px] font-bold block text-slate-700">
+                        {order.paymentMethod === 'COD' ? 'COD' : order.paymentMethod === 'CARD' ? 'Card' : 'Bank (Legacy)'}
                       </span>
                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${order.paymentStatus === 'PAID' ? 'text-emerald-700 bg-emerald-50 border-emerald-100' : 'text-slate-500 bg-slate-50 border-slate-150'}`}>
                         {order.paymentStatus}

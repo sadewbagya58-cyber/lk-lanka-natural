@@ -424,7 +424,7 @@ export default function AdminOrderDetailPage({
             <div className="border-t border-slate-100 pt-4 text-[10px] text-slate-400 flex flex-col gap-2">
               <div className="flex gap-2">
                 <CreditCard className="w-4 h-4 shrink-0 text-slate-350" />
-                <p>Payment Mode: <span className="font-bold text-slate-800 uppercase">{order.paymentMethod === 'BANK_TRANSFER' ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)'}</span></p>
+                <p>Payment Mode: <span className="font-bold text-slate-800">{order.paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : order.paymentMethod === 'CARD' ? 'Pay Online by Card' : 'Direct Bank Transfer (Legacy)'}</span></p>
               </div>
               <div className="flex gap-2">
                 <Truck className="w-4 h-4 shrink-0 text-slate-350" />

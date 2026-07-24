@@ -503,7 +503,7 @@ export default function AccountPage() {
                                 <div>
                                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 block">Payment &amp; Method</span>
                                   <div className="flex flex-col gap-1.5">
-                                    <p className="font-bold text-slate-800">Method: <span className="uppercase text-slate-900">{order.paymentMethod === 'BANK_TRANSFER' ? 'Direct Bank Transfer' : 'Cash on Delivery (COD)'}</span></p>
+                                     <p className="font-bold text-slate-800">Method: <span className="text-slate-900">{order.paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : order.paymentMethod === 'CARD' ? 'Pay Online by Card' : 'Direct Bank Transfer (Legacy)'}</span></p>
                                     <p className="font-bold text-slate-800">
                                       Payment Status:{' '}
                                       <span className={`px-2 py-0.5 rounded text-[9px] uppercase font-black border ${order.paymentStatus === 'PAID' ? 'text-emerald-700 bg-emerald-50 border-emerald-100' : 'text-slate-600 bg-slate-50 border-slate-150'}`}>
