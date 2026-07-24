@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { ensureOrderColumnsExist } from '@/lib/db-sync';
 import type { ProductCardData } from '@/types/product';
 
 export async function GET() {
   try {
-    await ensureOrderColumnsExist();
     const products = await prisma.product.findMany({
       include: {
         category: true,

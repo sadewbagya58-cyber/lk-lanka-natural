@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ShoppingBag, Percent, Truck, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { fetchWithRetry } from '@/lib/fetcher';
 import type { CategoryData, ProductCardData } from '@/types/product';
 
 const BG_GRADIENTS = [
@@ -19,14 +20,20 @@ export default function HeroBanner() {
   const [products, setProducts] = useState<ProductCardData[]>([]);
 
   useEffect(() => {
-    fetch('/api/categories')
-      .then((r) => r.json())
-      .then((data) => setCategories(data.categories ?? []))
+    fetchWithRetry<{ categories: CategoryData[] }>('/api/categories')
+      .then((data) => {
+        if (data && Array.isArray(data.categories) && data.categories.length > 0) {
+          setCategories(data.categories);
+        }
+      })
       .catch(console.error);
 
-    fetch('/api/products')
-      .then((r) => r.json())
-      .then((data) => setProducts(data.products ?? []))
+    fetchWithRetry<{ products: ProductCardData[] }>('/api/products')
+      .then((data) => {
+        if (data && Array.isArray(data.products) && data.products.length > 0) {
+          setProducts(data.products);
+        }
+      })
       .catch(console.error);
   }, []);
 

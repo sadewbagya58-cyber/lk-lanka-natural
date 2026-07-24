@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import type { ProductCardData } from '@/types/product';
+import { fetchWithRetry } from '@/lib/fetcher';
 import ProductIllustration from './ProductIllustration';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
@@ -21,15 +22,17 @@ export default function FlashDeals() {
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist);
   const isInWishlist = useWishlistStore((state) => state.isInWishlist);
   const [addedIds, setAddedIds] = useState<string[]>([]);
-
   useEffect(() => {
-    fetch('/api/products')
-      .then((r) => r.json())
-      .then((data: { products: ProductCardData[] }) => {
-        const deals = data.products
-          .filter((p) => p.isFlashDeal)
-          .slice(0, 4);
-        setFlashProducts(deals);
+    fetchWithRetry<{ products: ProductCardData[] }>('/api/products')
+      .then((data) => {
+        if (data && Array.isArray(data.products) && data.products.length > 0) {
+          const deals = data.products
+            .filter((p) => p.isFlashDeal)
+            .slice(0, 4);
+          if (deals.length > 0) {
+            setFlashProducts(deals);
+          }
+        }
       })
       .catch(console.error);
   }, []);

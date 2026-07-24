@@ -10,6 +10,7 @@ import { useWishlistStore } from '@/store/useWishlistStore';
 import CartDrawer from './CartDrawer';
 import { formatPrice } from '@/lib/currency';
 import { useAuth } from './AuthProvider';
+import { fetchWithRetry } from '@/lib/fetcher';
 import type { CategoryData } from '@/types/product';
 
 export default function Navbar() {
@@ -29,9 +30,12 @@ export default function Navbar() {
   const wishlistCount = wishlistIds.length;
 
   useEffect(() => {
-    fetch('/api/categories')
-      .then((r) => r.json())
-      .then((data) => setCategories(data.categories ?? []))
+    fetchWithRetry<{ categories: CategoryData[] }>('/api/categories')
+      .then((data) => {
+        if (data && Array.isArray(data.categories) && data.categories.length > 0) {
+          setCategories(data.categories);
+        }
+      })
       .catch(console.error);
   }, []);
 
@@ -132,7 +136,15 @@ export default function Navbar() {
             <div className="flex items-center gap-1.5 sm:gap-3.5 shrink-0">
               
               {/* Account / Login Action */}
-              {!authLoading && user ? (
+              {authLoading ? (
+                <div className="p-2 sm:p-2.5 bg-slate-50 rounded-xl border border-slate-100 animate-pulse flex items-center gap-2" aria-label="Loading account session">
+                  <User className="w-4 h-4 text-slate-300" />
+                  <div className="hidden lg:flex flex-col text-left">
+                    <div className="w-10 h-2 bg-slate-200 rounded mb-1" />
+                    <div className="w-12 h-2.5 bg-slate-200 rounded" />
+                  </div>
+                </div>
+              ) : user ? (
                 <Link href="/account" className="flex items-center gap-1.5 p-1.5 sm:p-2 text-slate-750 hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20 rounded-xl" aria-label="My Account">
                   <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black text-xs sm:text-sm shrink-0 shadow-sm">
                     {(user.name || user.email || 'U').charAt(0).toUpperCase()}

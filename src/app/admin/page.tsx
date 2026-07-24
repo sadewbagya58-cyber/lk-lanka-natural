@@ -24,17 +24,17 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const [prodRes, catRes, brandRes, ordersRes] = await Promise.all([
+        const [prodRes, catRes, brandRes, ordersRes] = await Promise.allSettled([
           fetch('/api/admin/products'),
           fetch('/api/admin/categories'),
           fetch('/api/admin/brands'),
           fetch('/api/admin/orders'),
         ]);
 
-        const prodData = await prodRes.json();
-        const catData = await catRes.json();
-        const brandData = await brandRes.json();
-        const ordersData = await ordersRes.json();
+        const prodData = prodRes.status === 'fulfilled' && prodRes.value.ok ? await prodRes.value.json() : {};
+        const catData = catRes.status === 'fulfilled' && catRes.value.ok ? await catRes.value.json() : {};
+        const brandData = brandRes.status === 'fulfilled' && brandRes.value.ok ? await brandRes.value.json() : {};
+        const ordersData = ordersRes.status === 'fulfilled' && ordersRes.value.ok ? await ordersRes.value.json() : {};
 
         const ordersList: Order[] = ordersData.orders || [];
         const activeOrders = ordersList.filter((o) => o.status !== 'CANCELLED');

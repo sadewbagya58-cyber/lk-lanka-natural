@@ -4,15 +4,19 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Mail, Phone, MapPin, ShieldCheck, CreditCard } from 'lucide-react';
+import { fetchWithRetry } from '@/lib/fetcher';
 import type { CategoryData } from '@/types/product';
 
 export default function Footer() {
   const [categories, setCategories] = useState<CategoryData[]>([]);
 
   useEffect(() => {
-    fetch('/api/categories')
-      .then((r) => r.json())
-      .then((data) => setCategories(data.categories ?? []))
+    fetchWithRetry<{ categories: CategoryData[] }>('/api/categories')
+      .then((data) => {
+        if (data && Array.isArray(data.categories) && data.categories.length > 0) {
+          setCategories(data.categories);
+        }
+      })
       .catch(console.error);
   }, []);
 

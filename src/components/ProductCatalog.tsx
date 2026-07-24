@@ -48,6 +48,8 @@ function applyFilters(
   return filtered;
 }
 
+import { fetchWithRetry } from '@/lib/fetcher';
+
 export default function ProductCatalog() {
   const [allProducts, setAllProducts] = useState<ProductCardData[]>([]);
   const [categories, setCategories] = useState<CategoryData[]>([]);
@@ -63,15 +65,21 @@ export default function ProductCatalog() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/products').then((r) => r.json()),
-      fetch('/api/categories').then((r) => r.json()),
-      fetch('/api/brands').then((r) => r.json()),
+    Promise.allSettled([
+      fetchWithRetry<{ products: ProductCardData[] }>('/api/products'),
+      fetchWithRetry<{ categories: CategoryData[] }>('/api/categories'),
+      fetchWithRetry<{ brands: BrandData[] }>('/api/brands'),
     ])
-      .then(([prodData, catData, brandData]) => {
-        setAllProducts(prodData.products ?? []);
-        setCategories(catData.categories ?? []);
-        setBrands(brandData.brands ?? []);
+      .then(([prodRes, catRes, brandRes]) => {
+        if (prodRes.status === 'fulfilled' && prodRes.value?.products?.length) {
+          setAllProducts(prodRes.value.products);
+        }
+        if (catRes.status === 'fulfilled' && catRes.value?.categories?.length) {
+          setCategories(catRes.value.categories);
+        }
+        if (brandRes.status === 'fulfilled' && brandRes.value?.brands?.length) {
+          setBrands(brandRes.value.brands);
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));

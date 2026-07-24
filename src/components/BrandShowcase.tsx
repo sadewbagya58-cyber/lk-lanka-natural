@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { Award } from 'lucide-react';
+import { fetchWithRetry } from '@/lib/fetcher';
 import type { BrandData } from '@/types/product';
 
 export default function BrandShowcase() {
   const [brands, setBrands] = useState<BrandData[]>([]);
 
   useEffect(() => {
-    fetch('/api/brands')
-      .then((r) => r.json())
+    fetchWithRetry<{ brands: BrandData[] }>('/api/brands')
       .then((data) => {
-        const allBrands: BrandData[] = data.brands ?? [];
-        const featured = allBrands.filter((b) => b.featured);
-        setBrands(featured.length > 0 ? featured : allBrands);
+        if (data && Array.isArray(data.brands) && data.brands.length > 0) {
+          const allBrands: BrandData[] = data.brands;
+          const featured = allBrands.filter((b) => b.featured);
+          setBrands(featured.length > 0 ? featured : allBrands);
+        }
       })
       .catch(console.error);
   }, []);

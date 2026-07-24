@@ -3,17 +3,17 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { fetchWithRetry } from '@/lib/fetcher';
 import type { CategoryData } from '@/types/product';
 
 export default function PromotionalBanner() {
   const [featuredCategory, setFeaturedCategory] = useState<CategoryData | null>(null);
 
   useEffect(() => {
-    fetch('/api/categories')
-      .then((r) => r.json())
+    fetchWithRetry<{ categories: CategoryData[] }>('/api/categories')
       .then((data) => {
-        const cats: CategoryData[] = data.categories ?? [];
-        if (cats.length > 0) {
+        if (data && Array.isArray(data.categories) && data.categories.length > 0) {
+          const cats: CategoryData[] = data.categories;
           const featured = cats.find((c) => c.featured) ?? cats[0];
           setFeaturedCategory(featured);
         }

@@ -24,6 +24,7 @@ import {
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ItemImage from '@/components/ItemImage';
+import { fetchWithRetry } from '@/lib/fetcher';
 import type { ProductCardData } from '@/types/product';
 import {
   COUNTRIES,
@@ -154,13 +155,13 @@ function CheckoutContent() {
 
     async function loadCheckoutData() {
       try {
-        const [profileRes, productsRes] = await Promise.all([
+        const [profileRes, productsRes] = await Promise.allSettled([
           fetch('/api/profile'),
-          fetch('/api/products'),
+          fetchWithRetry<{ products: ProductCardData[] }>('/api/products'),
         ]);
 
-        if (profileRes.ok) {
-          const profileData = await profileRes.json();
+        if (profileRes.status === 'fulfilled' && profileRes.value.ok) {
+          const profileData = await profileRes.value.json();
           setCustomerInfo((prev) => ({
             ...prev,
             fullName: profileData.name || session?.user?.name || '',
@@ -173,25 +174,19 @@ function CheckoutContent() {
             street: profileData.address_street || prev.street,
             city: profileData.address_city || prev.city,
             country: profileData.address_country || prev.country,
-          }));
-        } else if (session?.user) {
-          setCustomerInfo((prev) => ({
-            ...prev,
-            fullName: session.user?.name || '',
-            email: session.user?.email || '',
+            postalCode: profileData.address_postalCode || prev.postalCode,
           }));
         }
 
-        if (productsRes.ok) {
-          const productsData = await productsRes.json();
+        if (productsRes.status === 'fulfilled' && productsRes.value?.products?.length) {
           const map: Record<string, ProductCardData> = {};
-          (productsData.products || []).forEach((p: ProductCardData) => {
+          productsRes.value.products.forEach((p: ProductCardData) => {
             map[p.id] = p;
           });
           setProductMap(map);
         }
       } catch (err) {
-        console.error('Failed to load checkout details:', err);
+        console.error('Checkout data load warning:', err);
       } finally {
         setLoading(false);
       }

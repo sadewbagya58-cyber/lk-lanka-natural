@@ -6,6 +6,8 @@ import ProductCard from './ProductCard';
 import { Sparkles, Flame, CheckCircle2, LayoutGrid, Package } from 'lucide-react';
 import type { ProductCardData } from '@/types/product';
 
+import { fetchWithRetry } from '@/lib/fetcher';
+
 export default function ProductGrid() {
   const [activeTab, setActiveTab] = useState<'all' | 'featured' | 'bestseller' | 'new'>('all');
   const [allProducts, setAllProducts] = useState<ProductCardData[]>([]);
@@ -20,10 +22,9 @@ export default function ProductGrid() {
 
   // Fetch products from API on mount
   useEffect(() => {
-    fetch('/api/products')
-      .then((res) => res.json())
+    fetchWithRetry<{ products: ProductCardData[] }>('/api/products')
       .then((data) => {
-        if (data.products) {
+        if (data && Array.isArray(data.products) && data.products.length > 0) {
           setAllProducts(data.products);
         }
       })

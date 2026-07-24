@@ -6,6 +6,7 @@ import { X, ShoppingBag, Trash2, Minus, Plus, Truck, CreditCard } from 'lucide-r
 import Link from 'next/link';
 import { useCartStore } from '@/store/useCartStore';
 import { formatPrice } from '@/lib/currency';
+import { fetchWithRetry } from '@/lib/fetcher';
 import ItemImage from './ItemImage';
 import type { ProductCardData } from '@/types/product';
 
@@ -22,19 +23,18 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const shippingThreshold = 50.0;
   const isFreeShipping = subtotal >= shippingThreshold;
   const shippingProgress = Math.min((subtotal / shippingThreshold) * 100, 100);
-
   // Fetch product details for all items in the cart
   useEffect(() => {
     if (!isOpen || cartItems.length === 0) return;
-    fetch('/api/products')
-      .then((r) => r.json())
-      .then((data: { products: ProductCardData[] }) => {
-        const map: Record<string, ProductCardData> = {};
-        data.products.forEach((p) => { map[p.id] = p; });
-        setProductMap(map);
+    fetchWithRetry<{ products: ProductCardData[] }>('/api/products')
+      .then((data) => {
+        if (data && Array.isArray(data.products) && data.products.length > 0) {
+          const map: Record<string, ProductCardData> = {};
+          data.products.forEach((p) => { map[p.id] = p; });
+          setProductMap(map);
+        }
       })
       .catch(console.error);
-   
   }, [isOpen, cartItems.length]);
 
   if (!isOpen) return null;

@@ -6,18 +6,21 @@ import Link from 'next/link';
 import { Heart, ChevronRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import Navbar from '@/components/Navbar';
+import { fetchWithRetry } from '@/lib/fetcher';
 import Footer from '@/components/Footer';
 import type { ProductCardData } from '@/types/product';
 
 export default function WishlistPage() {
   const { wishlistIds, clearWishlist } = useWishlistStore();
   const [allProducts, setAllProducts] = useState<ProductCardData[]>([]);
-
   useEffect(() => {
     if (wishlistIds.length === 0) return;
-    fetch('/api/products')
-      .then((r) => r.json())
-      .then((data: { products: ProductCardData[] }) => setAllProducts(data.products ?? []))
+    fetchWithRetry<{ products: ProductCardData[] }>('/api/products')
+      .then((data) => {
+        if (data && Array.isArray(data.products) && data.products.length > 0) {
+          setAllProducts(data.products);
+        }
+      })
       .catch(console.error);
   }, [wishlistIds.length]);
 

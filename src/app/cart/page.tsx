@@ -6,6 +6,7 @@ import { formatPrice } from '@/lib/currency';
 import Link from 'next/link';
 import { Trash2, Minus, Plus, ShoppingBag, CreditCard, ChevronRight, ShieldCheck, RefreshCw } from 'lucide-react';
 import ItemImage from '@/components/ItemImage';
+import { fetchWithRetry } from '@/lib/fetcher';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import type { ProductCardData } from '@/types/product';
@@ -17,16 +18,16 @@ export default function CartPage() {
   const subtotal = getCartSubtotal();
   const shippingCost = subtotal >= 50.0 ? 0 : 4.99;
   const total = subtotal + shippingCost;
-
   // Fetch product display data for cart items
   useEffect(() => {
     if (cartItems.length === 0) return;
-    fetch('/api/products')
-      .then((r) => r.json())
-      .then((data: { products: ProductCardData[] }) => {
-        const map: Record<string, ProductCardData> = {};
-        data.products.forEach((p) => { map[p.id] = p; });
-        setProductMap(map);
+    fetchWithRetry<{ products: ProductCardData[] }>('/api/products')
+      .then((data) => {
+        if (data && Array.isArray(data.products) && data.products.length > 0) {
+          const map: Record<string, ProductCardData> = {};
+          data.products.forEach((p) => { map[p.id] = p; });
+          setProductMap(map);
+        }
       })
       .catch(console.error);
   }, [cartItems.length]);

@@ -2,6 +2,7 @@ import { prisma } from './prisma';
 import bcrypt from 'bcrypt';
 
 let isSynced = false;
+let syncPromise: Promise<void> | null = null;
 
 /**
  * Safely ensures that all required columns in Order and OrderItem tables exist
@@ -9,8 +10,10 @@ let isSynced = false;
  */
 export async function ensureOrderColumnsExist(): Promise<void> {
   if (isSynced) return;
+  if (syncPromise) return syncPromise;
 
-  try {
+  syncPromise = (async () => {
+    try {
     // 1. Order table column additions
     const orderColumnQueries = [
       "ALTER TABLE `Order` ADD COLUMN IF NOT EXISTS `orderNumber` VARCHAR(191) NULL",
@@ -146,5 +149,10 @@ export async function ensureOrderColumnsExist(): Promise<void> {
     isSynced = true;
   } catch (error) {
     console.error('Failed to sync MariaDB schema:', error);
+  } finally {
+    syncPromise = null;
   }
+  })();
+
+  return syncPromise;
 }

@@ -47,13 +47,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           setSession(null);
           setStatus('unauthenticated');
         }
-      } else {
+      } else if (res.status === 401) {
         setSession(null);
         setStatus('unauthenticated');
+      } else {
+        // If server returns non-401 error (e.g. 500), retain current session state if logged in
+        setStatus((prevStatus) => (prevStatus === 'loading' ? 'unauthenticated' : prevStatus));
       }
-    } catch {
-      setSession(null);
-      setStatus('unauthenticated');
+    } catch (err) {
+      console.warn('Session check network warning:', err);
+      // Retain current session on network failure unless on initial page load
+      setStatus((prevStatus) => (prevStatus === 'loading' ? 'unauthenticated' : prevStatus));
     }
   };
 
