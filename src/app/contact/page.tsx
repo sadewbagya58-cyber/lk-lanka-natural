@@ -1,264 +1,243 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
-import Link from 'next/link';
-import { ChevronRight, Mail, Send, AlertCircle, MessageSquare, ShieldCheck } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import Link from 'next/link';
+import { MessageSquare, Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
+
+interface CmsSection {
+  id: string;
+  heading: string | null;
+  content: string;
+  sectionType: string;
+  isVisible: boolean;
+}
+
+interface CmsPageData {
+  title: string;
+  subtitle: string | null;
+  sections: CmsSection[];
+}
 
 export default function ContactPage() {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
+  const [cmsPage, setCmsPage] = useState<CmsPageData | null>(null);
 
-  const [formError, setFormError] = useState<string | null>(null);
-  const [formSuccess, setFormSuccess] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  // Contact form state
+  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  // Fetch CMS content
+  useEffect(() => {
+    fetch('/api/cms/contact')
+      .then(r => r.json())
+      .then(data => { if (data.success) setCmsPage(data.page); })
+      .catch(() => {});
+  }, []);
+
+  const title = cmsPage?.title || 'Help Center';
+  const subtitle = cmsPage?.subtitle || "We're here to help. Reach out to our support team for assistance.";
+  const sections = cmsPage?.sections ?? [];
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError(null);
-    setFormSuccess(null);
-
-    // Client-side validation
-    if (!fullName.trim()) {
-      setFormError('Please enter your Full Name.');
+    if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
+      setErrorMsg('Please fill in all required fields.');
+      setSubmitStatus('error');
       return;
     }
-    if (!email.trim()) {
-      setFormError('Please enter your Email Address.');
+    if (formData.message.length > 2000) {
+      setErrorMsg('Message must be 2000 characters or fewer.');
+      setSubmitStatus('error');
       return;
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      setFormError('Please enter a valid Email Address.');
-      return;
-    }
-    if (!subject.trim()) {
-      setFormError('Please enter a Subject.');
-      return;
-    }
-    if (!message.trim()) {
-      setFormError('Please enter your Message.');
-      return;
-    }
-    if (message.trim().length < 10) {
-      setFormError('Your message must be at least 10 characters long.');
-      return;
-    }
-    if (message.trim().length > 2000) {
-      setFormError('Your message must not exceed 2000 characters.');
-      return;
-    }
-
-    startTransition(async () => {
-      try {
-        const res = await fetch('/api/contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fullName, email, subject, message }),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          setFormError(data.error || 'Failed to submit form. Please check input parameters.');
-          return;
-        }
-
-        setFormSuccess(data.message || 'Your inquiry has been successfully received!');
-        // Reset form
-        setFullName('');
-        setEmail('');
-        setSubject('');
-        setMessage('');
-      } catch {
-        setFormError('A network error occurred. Please try again later.');
+    setSubmitStatus('submitting');
+    setErrorMsg('');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (res.ok) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setErrorMsg('Failed to send message. Please try again.');
+        setSubmitStatus('error');
       }
-    });
+    } catch {
+      setErrorMsg('Network error. Please check your connection.');
+      setSubmitStatus('error');
+    }
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50">
       <Navbar />
-
-      <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 md:py-16">
-        {/* Breadcrumb */}
-        <nav className="flex items-center text-xs font-black text-slate-450 uppercase tracking-widest mb-8">
-          <Link href="/" className="hover:text-emerald-600 transition-colors">Home</Link>
-          <ChevronRight className="w-3.5 h-3.5 mx-2 text-slate-300" />
-          <span className="text-slate-800">Contact Us</span>
-        </nav>
-
-        {/* Hero Section */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-800 to-teal-950 text-white p-8 sm:p-12 mb-12 shadow-sm">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent)] pointer-events-none" />
-          <div className="max-w-xl relative z-10 flex flex-col gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 bg-emerald-900/50 px-3 py-1 rounded-full w-fit border border-emerald-500/30">
-              Help Center
-            </span>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mt-1">
-              Contact Support
-            </h1>
-            <p className="text-xs sm:text-sm text-emerald-100 font-light leading-relaxed mt-2">
-              Have questions about your order, payments, delivery, or custom artwork? 
-              Reach out to our customer care team and we will respond as soon as possible.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-          {/* Contact Details Column */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
-            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col gap-5 h-full">
-              <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-3">
-                Official Support Channel
-              </h3>
-              
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                To guarantee secure and trackable communication, we manage all customer service inquiries exclusively through our confirmed email address.
-              </p>
-
-              <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-150/80 mt-2">
-                <Mail className="w-5 h-5 text-emerald-600 shrink-0" />
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider leading-none">Support Email</span>
-                  <a href="mailto:kllankanatural@gmail.com" className="text-xs sm:text-sm font-bold text-slate-900 hover:text-emerald-600 hover:underline break-all">
-                    kllankanatural@gmail.com
-                  </a>
-                </div>
+      <main>
+        {/* Hero */}
+        <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-cyan-900 py-20 px-4 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #fff 1px, transparent 1px), radial-gradient(circle at 80% 20%, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+          <div className="max-w-5xl mx-auto relative z-10">
+            <div className="flex items-center gap-2 text-sm text-blue-300 mb-4">
+              <Link href="/" className="hover:text-white transition-colors">Home</Link>
+              <span>›</span>
+              <span className="text-white">{title}</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20">
+                <MessageSquare className="text-blue-300" size={28} />
               </div>
-
-              <div className="mt-auto border-t border-slate-100 pt-5 flex flex-col gap-3">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                  Important Notice
-                </h4>
-                <p className="text-[10px] text-slate-500 leading-relaxed italic">
-                  We do not offer support over phone, WhatsApp, or third-party messengers. Please submit the contact form or send a direct email.
-                </p>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-black text-white mb-2">{title}</h1>
+                <p className="text-blue-200 text-base max-w-2xl">{subtitle}</p>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Contact Form Column */}
-          <div className="lg:col-span-8">
-            <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col gap-5">
-              <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-3.5 flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-emerald-600" />
-                <span>Send a Message</span>
-              </h3>
-
-              {formError && (
-                <div className="flex items-start gap-2.5 p-3.5 bg-rose-50 border border-rose-100 rounded-xl text-rose-800 text-xs font-bold">
-                  <AlertCircle className="w-4.5 h-4.5 shrink-0 mt-0.5" />
-                  <span>{formError}</span>
-                </div>
-              )}
-
-              {formSuccess && (
-                <div className="flex items-start gap-2.5 p-3.5 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-800 text-xs font-bold">
-                  <ShieldCheck className="w-4.5 h-4.5 shrink-0 mt-0.5" />
-                  <span>{formSuccess}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleContactSubmit} className="flex flex-col gap-5 mt-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Full Name */}
-                  <div className="flex flex-col gap-1.5">
-                    <label htmlFor="fullName" className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                      Full Name *
-                    </label>
-                    <input
-                      id="fullName"
-                      type="text"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="e.g. Kasun Perera"
-                      required
-                      disabled={isPending}
-                      maxLength={100}
-                      className="w-full px-4 py-2.5 text-xs sm:text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium bg-white disabled:bg-slate-50 disabled:text-slate-400"
-                    />
+        {/* Content */}
+        <div className="max-w-5xl mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Left: CMS sections + Support info */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Official Support Channel */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Mail className="text-blue-600" size={20} />
                   </div>
+                  <h2 className="font-bold text-slate-900">Official Support</h2>
+                </div>
+                <p className="text-sm text-slate-500 mb-3">Our verified customer support email:</p>
+                <a
+                  href="mailto:kllankanatural@gmail.com"
+                  className="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors break-all"
+                >
+                  <Mail size={14} />
+                  kllankanatural@gmail.com
+                </a>
+              </div>
 
-                  {/* Email */}
-                  <div className="flex flex-col gap-1.5">
-                    <label htmlFor="email" className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                      Email Address *
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. kasun@example.com"
-                      required
-                      disabled={isPending}
-                      maxLength={100}
-                      className="w-full px-4 py-2.5 text-xs sm:text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium bg-white disabled:bg-slate-50 disabled:text-slate-400"
-                    />
+              {/* CMS-managed sections */}
+              {sections.map(section => (
+                <div key={section.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                  {section.heading && (
+                    <h2 className="font-bold text-slate-900 mb-3">{section.heading}</h2>
+                  )}
+                  <div className="space-y-2">
+                    {section.content.split('\n\n').map((para, i) => (
+                      <p key={i} className="text-sm text-slate-600 leading-relaxed">{para}</p>
+                    ))}
                   </div>
                 </div>
+              ))}
+            </div>
 
-                {/* Subject */}
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="subject" className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                    Subject *
-                    </label>
-                  <input
-                    id="subject"
-                    type="text"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="e.g. Question about order status"
-                    required
-                    disabled={isPending}
-                    maxLength={150}
-                    className="w-full px-4 py-2.5 text-xs sm:text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium bg-white disabled:bg-slate-50 disabled:text-slate-400"
-                  />
-                </div>
+            {/* Right: Contact Form */}
+            <div className="lg:col-span-3">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+                <h2 className="text-xl font-bold text-slate-900 mb-6">Send Us a Message</h2>
 
-                {/* Message */}
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center">
-                    <label htmlFor="message" className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                      Message *
-                    </label>
-                    <span className="text-[9px] text-slate-400 font-bold uppercase">
-                      {message.length} / 2000 Char
-                    </span>
+                {submitStatus === 'success' ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                      <CheckCircle className="text-emerald-600" size={32} />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">Message Sent!</h3>
+                    <p className="text-slate-500 text-sm mb-6">Thank you for reaching out. We&apos;ll respond as soon as possible.</p>
+                    <button
+                      onClick={() => setSubmitStatus('idle')}
+                      className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-colors"
+                    >
+                      Send Another Message
+                    </button>
                   </div>
-                  <textarea
-                    id="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Describe your question or request in detail..."
-                    required
-                    disabled={isPending}
-                    maxLength={2000}
-                    rows={6}
-                    className="w-full px-4 py-3 text-xs sm:text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium bg-white disabled:bg-slate-50 disabled:text-slate-400 h-36"
-                  />
-                </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    {submitStatus === 'error' && errorMsg && (
+                      <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+                        <AlertCircle size={16} />
+                        {errorMsg}
+                      </div>
+                    )}
 
-                <div className="flex justify-end pt-2">
-                  <button
-                    type="submit"
-                    disabled={isPending}
-                    className="px-6 h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-emerald-600/10 text-xs uppercase tracking-wider disabled:bg-slate-100 disabled:text-slate-400 shrink-0"
-                  >
-                    <span>{isPending ? 'Sending Message...' : 'Send Message'}</span>
-                    <Send className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </form>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name *</label>
+                        <input
+                          type="text"
+                          value={formData.name}
+                          onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
+                          required
+                          className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          placeholder="Your full name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Email Address *</label>
+                        <input
+                          type="email"
+                          value={formData.email}
+                          onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
+                          required
+                          className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          placeholder="your@email.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Subject *</label>
+                      <input
+                        type="text"
+                        value={formData.subject}
+                        onChange={e => setFormData(p => ({ ...p, subject: e.target.value }))}
+                        required
+                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Brief subject of your inquiry"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Message *</label>
+                      <textarea
+                        value={formData.message}
+                        onChange={e => setFormData(p => ({ ...p, message: e.target.value }))}
+                        required
+                        rows={6}
+                        maxLength={2000}
+                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                        placeholder="Describe your inquiry in detail..."
+                      />
+                      <p className="text-xs text-slate-400 mt-1">{formData.message.length}/2000 characters</p>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={submitStatus === 'submitting'}
+                      className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-colors"
+                    >
+                      {submitStatus === 'submitting' ? (
+                        <span className="flex items-center gap-2">
+                          <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                          Sending...
+                        </span>
+                      ) : (
+                        <>
+                          <Send size={16} /> Send Message
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </main>
-
       <Footer />
     </div>
   );
