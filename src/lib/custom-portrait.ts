@@ -5,12 +5,18 @@
 export const CUSTOM_PORTRAIT_SLUG = 'custom-portrait-art';
 export const CUSTOM_PORTRAIT_NAME = 'Custom Portrait Art';
 
-export function isCustomPortraitArt(product?: Record<string, unknown> | null): boolean {
+export function isCustomPortraitArt(product?: {
+  slug?: string | null;
+  name?: string | null;
+  category?: string | { name?: string | null; slug?: string | null } | null;
+  categorySlug?: string | null;
+  categoryName?: string | null;
+} | null): boolean {
   if (!product) return false;
 
-  const categoryObj = typeof product.category === 'object' && product.category ? product.category : null;
-  const slug = categoryObj?.slug || product.categorySlug || (typeof product.category === 'string' ? product.category : '');
-  const name = categoryObj?.name || product.categoryName || (typeof product.category === 'string' ? product.category : '');
+  const categoryObj = product.category && typeof product.category === 'object' ? product.category as { name?: string | null; slug?: string | null } : null;
+  const slug = product.slug || categoryObj?.slug || product.categorySlug || (typeof product.category === 'string' ? product.category : '');
+  const name = product.name || categoryObj?.name || product.categoryName || (typeof product.category === 'string' ? product.category : '');
 
   const cleanSlug = (slug || '').toLowerCase().trim();
   const cleanName = (name || '').toLowerCase().trim();

@@ -121,7 +121,7 @@ export default function Footer() {
             </li>
             <li className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-emerald-500 shrink-0" />
-              <a href="mailto:support@kllankanatural.lk" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">support@kllankanatural.lk</a>
+              <a href="mailto:kllankanatural@gmail.com" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">kllankanatural@gmail.com</a>
             </li>
           </ul>
         </div>
