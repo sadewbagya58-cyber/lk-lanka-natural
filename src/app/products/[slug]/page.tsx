@@ -145,7 +145,7 @@ export default async function ProductPage({ params }: PageProps) {
           <ChevronRight className="w-3.5 h-3.5" />
           {p.category && (
             <>
-              <Link href={`/category/${p.category.slug}`} className="hover:text-slate-700 transition-colors">
+              <Link href={`/category/${encodeURIComponent(p.category.slug)}`} className="hover:text-slate-700 transition-colors">
                 {p.category.name}
               </Link>
               <ChevronRight className="w-3.5 h-3.5" />

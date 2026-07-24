@@ -3,28 +3,33 @@
 import React, { useState, useEffect, useTransition, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCartStore } from '@/store/useCartStore';
 import { useBuyNowStore } from '@/store/useBuyNowStore';
 import { formatPrice } from '@/lib/currency';
 import { useSession } from '@/components/AuthProvider';
 import {
+  MapPin,
+  Truck,
+  CheckCircle2,
   ShieldCheck,
   ChevronRight,
-  AlertCircle,
-  MapPin,
-  Phone,
   User,
+  Phone,
   Mail,
-  Truck,
-  Banknote,
   FileText,
+  RefreshCw,
   Globe,
+  AlertCircle,
+  Upload,
   Zap,
+  Banknote,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ItemImage from '@/components/ItemImage';
 import { fetchWithRetry } from '@/lib/fetcher';
+import { isCustomPortraitArt } from '@/lib/custom-portrait';
 import type { ProductCardData } from '@/types/product';
 import {
   COUNTRIES,
@@ -73,6 +78,12 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // Custom Portrait Art reference photo upload state
+  const [referencePhotoUrl, setReferencePhotoUrl] = useState<string | null>(null);
+  const [referencePhotoUploading, setReferencePhotoUploading] = useState(false);
+  const [referencePhotoFile, setReferencePhotoFile] = useState<File | null>(null);
+  const [referencePhotoError, setReferencePhotoError] = useState<string | null>(null);
 
   const isSriLanka = deliveryAddress.country === 'Sri Lanka';
 
@@ -129,6 +140,54 @@ function CheckoutContent() {
     }
     return cartItems;
   }, [isBuyNow, buyNowItem, cartItems]);
+
+  const hasCustomPortraitArt = useMemo(() => {
+    return currentItems.some((item) => {
+      const prod = productMap[item.productId];
+      return isCustomPortraitArt(prod);
+    });
+  }, [currentItems, productMap]);
+
+  const handlePhotoSelect = async (file: File) => {
+    setReferencePhotoError(null);
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      setReferencePhotoError('Invalid image format. Allowed formats: JPG, JPEG, PNG, WEBP.');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setReferencePhotoError('File size exceeds maximum limit of 10MB.');
+      return;
+    }
+
+    setReferencePhotoFile(file);
+    setReferencePhotoUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload/reference', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setReferencePhotoUrl(data.url);
+      } else {
+        const data = await res.json();
+        setReferencePhotoError(data.error || 'Failed to upload reference photo.');
+      }
+    } catch (err) {
+      console.error('Photo upload error:', err);
+      setReferencePhotoError('Network error uploading photo. Please try again.');
+    } finally {
+      setReferencePhotoUploading(false);
+    }
+  };
 
   const subtotal = useMemo(() => {
     if (isBuyNow && buyNowItem) {
@@ -266,6 +325,13 @@ function CheckoutContent() {
       return;
     }
 
+    if (hasCustomPortraitArt && !referencePhotoUrl) {
+      setError('Please upload your reference photo for the Custom Portrait Art before placing your order.');
+      const el = document.getElementById('reference-photo-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
     startTransition(async () => {
       try {
         const res = await fetch('/api/checkout', {
@@ -277,11 +343,17 @@ function CheckoutContent() {
             deliveryMethod: isSriLanka ? deliveryMethod : 'INTERNATIONAL_SHIPPING',
             paymentMethod: isSriLanka ? paymentMethod : 'CARD',
             isBuyNow,
-            items: currentItems.map((item) => ({
-              productId: item.productId,
-              selectedVariantId: item.selectedVariantId,
-              quantity: item.quantity,
-            })),
+            items: currentItems.map((item) => {
+              const prod = productMap[item.productId];
+              const isCustom = isCustomPortraitArt(prod);
+              return {
+                productId: item.productId,
+                selectedVariantId: item.selectedVariantId || null,
+                quantity: item.quantity,
+                image: (item as { image?: string | null }).image || prod?.image || null,
+                customUploadImage: isCustom ? referencePhotoUrl : null,
+              };
+            }),
           }),
         });
 
@@ -614,6 +686,93 @@ function CheckoutContent() {
                 </div>
               </div>
             </div>
+
+            {/* Custom Portrait Art Reference Photo Card */}
+            {hasCustomPortraitArt && (
+              <div id="reference-photo-section" className="bg-purple-50/50 border-2 border-purple-200 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-purple-200/80 pb-3.5">
+                  <h2 className="text-xs font-black text-purple-900 uppercase tracking-widest flex items-center gap-2">
+                    <Upload className="w-4 h-4 text-purple-600" />
+                    <span>Customer Reference Photo (Required) *</span>
+                  </h2>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">
+                    Custom Artwork Order
+                  </span>
+                </div>
+
+                <p className="text-xs text-purple-900 font-medium">
+                  Please upload the reference photo you would like our artist to use to create your Custom Portrait Art.
+                </p>
+
+                {referencePhotoError && (
+                  <div className="bg-rose-100 border border-rose-200 text-rose-800 px-4 py-2.5 rounded-xl text-xs font-bold">
+                    {referencePhotoError}
+                  </div>
+                )}
+
+                {referencePhotoUrl ? (
+                  <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-xl border border-purple-200">
+                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-slate-50">
+                      <Image
+                        src={referencePhotoUrl}
+                        alt="Uploaded Reference Photo"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1 text-center sm:text-left flex-1">
+                      <span className="text-xs font-bold text-slate-800">
+                        {referencePhotoFile?.name || 'Uploaded Reference Photo'}
+                      </span>
+                      <span className="text-[10px] text-emerald-600 font-black uppercase tracking-wider flex items-center gap-1 justify-center sm:justify-start">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Reference Photo Uploaded Successfully
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReferencePhotoUrl(null);
+                        setReferencePhotoFile(null);
+                      }}
+                      className="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline px-3 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-50 transition-colors"
+                    >
+                      Change Photo
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-6 sm:p-8 border-2 border-dashed border-purple-300 rounded-xl bg-white hover:bg-purple-50/50 transition-colors cursor-pointer text-center relative">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handlePhotoSelect(file);
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                      aria-label="Upload reference photo"
+                    />
+                    {referencePhotoUploading ? (
+                      <div className="flex items-center gap-2 text-purple-700 font-bold text-xs py-4">
+                        <RefreshCw className="w-5 h-5 animate-spin text-purple-600" />
+                        <span>Uploading reference photo...</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <Upload className="w-8 h-8 text-purple-500" />
+                        <span className="text-xs font-bold text-slate-800">
+                          Click or drag & drop to upload reference photo *
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          Allowed formats: JPG, JPEG, PNG, WEBP (Max size: 10MB)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* 4. Delivery Note Card */}
             <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col gap-4">

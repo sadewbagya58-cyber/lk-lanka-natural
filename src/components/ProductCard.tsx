@@ -11,6 +11,7 @@ import ProductIllustration from './ProductIllustration';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useBuyNowStore } from '@/store/useBuyNowStore';
+import { isCustomPortraitArt } from '@/lib/custom-portrait';
 
 interface ProductCardProps {
   product: ProductCardData;
@@ -25,20 +26,27 @@ export default function ProductCard({ product }: ProductCardProps) {
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist);
   const isWishlisted = useWishlistStore((state) => state.isInWishlist(product.id));
 
-  const hasVariants = product.variants && product.variants.length > 0;
+  const isCustomPortrait = isCustomPortraitArt(product);
+  const hasVariants = !isCustomPortrait && product.variants && product.variants.length > 0;
   
   // Calculate availability and stock
-  const stock = hasVariants
+  const stock = isCustomPortrait
+    ? 999
+    : hasVariants
     ? product.variants!.reduce((sum, v) => sum + v.stockQuantity, 0)
     : (product.stockQuantity ?? 0);
   
   const threshold = product.lowStockThreshold ?? 5;
-  const isOut = hasVariants
+  const isOut = isCustomPortrait
+    ? false
+    : hasVariants
     ? (product.variants!.length > 0 && product.variants!.every((v) => v.stockQuantity <= 0))
     : (stock <= 0);
 
-  const isLow = hasVariants
-    ? false // Variant low stock is handled per option inside details page
+  const isLow = isCustomPortrait
+    ? false
+    : hasVariants
+    ? false
     : (!isOut && stock <= threshold);
 
   // Discount percentage based on min variant price or single price
@@ -55,6 +63,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (isCustomPortrait) return;
     if (hasVariants) {
       router.push(`/products/${product.slug}`);
       return;
@@ -71,7 +80,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       router.push(`/products/${product.slug}?buyNow=true`);
       return;
     }
-    if (isOut) return;
+    if (isOut && !isCustomPortrait) return;
     setBuyNowItem({
       productId: product.id,
       variantId: null,
@@ -91,25 +100,33 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="flex flex-col flex-1">
         {/* Badges Overlay */}
         <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-10 flex flex-col gap-1 pointer-events-none max-w-[70%]">
-          {product.badge && (
-            <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-emerald-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm truncate">
-              {product.badge}
+          {isCustomPortrait ? (
+            <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-purple-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm w-fit">
+              Custom Service
             </span>
+          ) : (
+            <>
+              {product.badge && (
+                <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-emerald-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm truncate">
+                  {product.badge}
+                </span>
+              )}
+              {discountPercent && discountPercent > 0 && (
+                <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-rose-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm w-fit">
+                  -{discountPercent}%
+                </span>
+              )}
+              {isOut ? (
+                <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-slate-900 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm w-fit">
+                  Out of Stock
+                </span>
+              ) : isLow ? (
+                <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-amber-500 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm w-fit truncate">
+                  Low Stock ({stock})
+                </span>
+              ) : null}
+            </>
           )}
-          {discountPercent && discountPercent > 0 && (
-            <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-rose-600 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm w-fit">
-              -{discountPercent}%
-            </span>
-          )}
-          {isOut ? (
-            <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-slate-900 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm w-fit">
-              Out of Stock
-            </span>
-          ) : isLow ? (
-            <span className="text-[8px] sm:text-[9px] font-black tracking-wider uppercase bg-amber-500 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded shadow-sm w-fit truncate">
-              Low Stock ({stock})
-            </span>
-          ) : null}
         </div>
 
         {/* Wishlist toggle */}
@@ -142,7 +159,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               />
             ) : (
               <>
-                <div className={`absolute inset-0 bg-gradient-to-tr ${product.gradient} opacity-20 group-hover:scale-105 transition-transform duration-500`} />
+                <div className={`absolute inset-0 bg-gradient-to-tr ${product.gradient || 'from-emerald-500/10 to-teal-500/20'} opacity-20 group-hover:scale-105 transition-transform duration-500`} />
                 <div className="w-1/2 h-1/2 transform group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
                   <ProductIllustration type={product.visualSeed} className="w-full h-full text-slate-700/70" />
                 </div>
@@ -159,8 +176,8 @@ export default function ProductCard({ product }: ProductCardProps) {
           </span>
           <div className="flex items-center gap-0.5 sm:gap-1 bg-amber-50 border border-amber-100/50 px-1 sm:px-1.5 py-0.5 rounded-lg text-amber-700 font-bold text-[9px] sm:text-[10px] shrink-0">
             <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-500 text-amber-500" strokeWidth={1} />
-            <span>{product.rating.toFixed(1)}</span>
-            <span className="text-slate-400 font-medium hidden sm:inline">({product.reviewsCount})</span>
+            <span>{product.rating ? product.rating.toFixed(1) : '4.8'}</span>
+            <span className="text-slate-400 font-medium hidden sm:inline">({product.reviewsCount ?? 12})</span>
           </div>
         </div>
 
@@ -177,80 +194,57 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Pricing */}
         <div className="flex items-baseline gap-2">
           {hasVariants ? (
-            <span className="text-lg font-black text-slate-900">From ${activePrice.toFixed(2)}</span>
+            <span className="text-sm sm:text-base font-black text-slate-900">From ${activePrice.toFixed(2)}</span>
           ) : (
-            <span className="text-lg font-black text-slate-900">${product.price.toFixed(2)}</span>
+            <span className="text-sm sm:text-base font-black text-slate-900">${product.price.toFixed(2)}</span>
           )}
           {!hasVariants && product.originalPrice && (
-            <span className="text-xs text-slate-400 line-through font-semibold">
+            <span className="text-[10px] sm:text-xs text-slate-400 line-through font-medium">
               ${product.originalPrice.toFixed(2)}
             </span>
           )}
         </div>
 
-        {/* Stock Status Indicator */}
-        <div className="flex items-center gap-1.5">
-          {isOut ? (
-            <>
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-              <span className="text-[10px] text-rose-600 font-bold tracking-wide uppercase">
-                Out of Stock
-              </span>
-            </>
-          ) : hasVariants ? (
-            <>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-              <span className="text-[10px] text-emerald-600 font-bold tracking-wide uppercase">
-                Options Available
-              </span>
-            </>
-          ) : isLow ? (
-            <>
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              <span className="text-[10px] text-amber-700 font-bold tracking-wide uppercase">
-                Low Stock — Only {stock} left
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-              <span className="text-[10px] text-slate-400 font-bold tracking-wide uppercase">
-                In Stock ({stock})
-              </span>
-            </>
-          )}
-        </div>
-
         {/* Action Grid */}
-        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-1">
-          <button
-            onClick={handleAddToCart}
-            disabled={isOut}
-            className={`h-9 sm:h-10 px-2 sm:px-3 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 sm:gap-1.5 transition-all select-none focus:outline-none focus:ring-2 focus:ring-slate-400/40 ${
-              isOut
-                ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-                : isAdded
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-95'
-            }`}
-          >
-            <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">{isOut ? 'Out of Stock' : hasVariants ? 'Options' : isAdded ? 'Added' : 'Add to Cart'}</span>
-          </button>
-
+        {isCustomPortrait ? (
           <button
             onClick={handleBuyNow}
-            disabled={isOut}
-            className={`h-9 sm:h-10 px-2 sm:px-3 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 sm:gap-1.5 transition-all select-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
-              isOut
-                ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 shadow-sm hover:shadow'
-            }`}
+            className="w-full h-8 sm:h-9 px-2.5 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 shadow-sm hover:shadow transition-all"
           >
             <Zap className="w-3.5 h-3.5 shrink-0 fill-current" />
-            <span className="truncate">Buy Now</span>
+            <span>Buy Now</span>
           </button>
-        </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+            <button
+              onClick={handleAddToCart}
+              disabled={isOut}
+              className={`h-8 sm:h-9 px-2 rounded-xl font-bold text-[10px] sm:text-xs flex items-center justify-center gap-1 transition-all select-none focus:outline-none focus:ring-2 focus:ring-slate-400/40 ${
+                isOut
+                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                  : isAdded
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-95'
+              }`}
+            >
+              <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+              <span className="truncate">{isOut ? 'Out' : hasVariants ? 'Options' : isAdded ? 'Added' : 'Add to Cart'}</span>
+            </button>
+
+            <button
+              onClick={handleBuyNow}
+              disabled={isOut}
+              className={`h-8 sm:h-9 px-2 rounded-xl font-bold text-[10px] sm:text-xs flex items-center justify-center gap-1 transition-all select-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
+                isOut
+                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 shadow-sm hover:shadow'
+              }`}
+            >
+              <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 fill-current" />
+              <span className="truncate">Buy Now</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

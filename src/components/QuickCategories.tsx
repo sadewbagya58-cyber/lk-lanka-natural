@@ -44,7 +44,7 @@ export default function QuickCategories() {
           {categories.map((cat) => (
             <Link
               key={cat.id}
-              href={`/category/${cat.slug}`}
+              href={`/category/${encodeURIComponent(cat.slug)}`}
               className="group flex flex-col items-center justify-center gap-1.5 p-2 sm:p-3 rounded-2xl border border-slate-100/80 bg-slate-50/60 hover:bg-white hover:border-emerald-500/30 hover:shadow-md transition-all duration-300 active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
             >
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex items-center justify-center relative p-1 group-hover:scale-105 transition-transform">

@@ -46,7 +46,7 @@ export default function PromotionalBanner() {
 
           <div className="shrink-0 z-10">
             <Link
-              href={`/category/${featuredCategory.slug}`}
+              href={`/category/${encodeURIComponent(featuredCategory.slug)}`}
               className="inline-flex items-center gap-2 bg-white text-slate-900 font-bold px-6 py-3.5 rounded-xl hover:bg-slate-50 active:scale-95 transition-all text-xs md:text-sm shadow-md"
             >
               <span>Explore {featuredCategory.name}</span>

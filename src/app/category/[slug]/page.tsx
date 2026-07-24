@@ -11,9 +11,26 @@ interface CategoryPageProps {
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
+  const cleanSlug = decodedSlug.replace(/&/g, 'and').replace(/[^a-z0-9-]/gi, '-').replace(/-+/g, '-').toLowerCase();
+  const rawSlugNoAmp = decodedSlug.replace(/&/g, '').replace(/\s+/g, '-').toLowerCase();
+  const dashesSlug = decodedSlug.replace(/\s+/g, '-').toLowerCase();
 
-  const category = await prisma.category.findUnique({
-    where: { slug },
+  const category = await prisma.category.findFirst({
+    where: {
+      OR: [
+        { slug: slug },
+        { slug: decodedSlug },
+        { slug: cleanSlug },
+        { slug: rawSlugNoAmp },
+        { slug: dashesSlug },
+        { name: decodedSlug },
+        { name: decodedSlug.replace(/-/g, ' ') },
+        { name: decodedSlug.replace(/-/g, ' & ') },
+        ...(decodedSlug.toLowerCase().includes('ayurvedic') ? [{ name: 'Ayurvedic & Herbal Products' }] : []),
+        ...(decodedSlug.toLowerCase().includes('portrait') ? [{ name: 'Custom Portrait Art' }] : []),
+      ]
+    },
     include: {
       subCategories: true,
       products: {

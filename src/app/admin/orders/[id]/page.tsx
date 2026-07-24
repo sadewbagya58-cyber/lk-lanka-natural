@@ -3,6 +3,7 @@
 import { useState, useEffect, useTransition, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, User, Phone, MapPin, Calendar, CreditCard, ShoppingBag, ShieldCheck, AlertCircle, Mail, FileText, Truck } from 'lucide-react';
 import { formatPrice } from '@/lib/currency';
 import ItemImage from '@/components/ItemImage';
@@ -14,6 +15,7 @@ interface OrderItem {
   productName?: string | null;
   variantName?: string | null;
   productImage?: string | null;
+  customUploadImage?: string | null;
   quantity: number;
   price: number;
   product?: {
@@ -275,29 +277,67 @@ export default function AdminOrderDetailPage({
                 const variantName = item.variantName || item.variant?.name;
                 const displayImage = item.productImage || item.variant?.imageUrl || item.product?.images?.[0]?.url;
                 return (
-                  <div key={item.id} className="flex justify-between items-center py-4 first:pt-0 last:pb-0">
-                    <div className="flex gap-3">
-                      <ItemImage
-                        src={displayImage}
-                        alt={name}
-                        gradient={item.product?.gradient}
-                        visualSeed={item.product?.visualSeed}
-                        className="w-11 h-11"
-                        iconClassName="w-5.5 h-5.5"
-                      />
-                      <div className="min-w-0">
-                        <span className="font-bold text-slate-900 block truncate">{name}</span>
-                        {variantName && (
-                          <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50 mt-1 inline-block">
-                            Option: {variantName}
-                          </span>
-                        )}
+                  <div key={item.id} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
+                    <div className="flex justify-between items-center">
+                      <div className="flex gap-3">
+                        <ItemImage
+                          src={displayImage}
+                          alt={name}
+                          gradient={item.product?.gradient}
+                          visualSeed={item.product?.visualSeed}
+                          className="w-11 h-11"
+                          iconClassName="w-5.5 h-5.5"
+                        />
+                        <div className="min-w-0">
+                          <span className="font-bold text-slate-900 block truncate">{name}</span>
+                          {variantName && (
+                            <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50 mt-1 inline-block">
+                              Option: {variantName}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6 shrink-0 text-slate-550 font-medium">
+                        <span>{item.quantity} x {formatPrice(item.price)}</span>
+                        <span className="font-bold text-slate-900 min-w-[60px] text-right">{formatPrice(item.price * item.quantity)}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-6 shrink-0 text-slate-550 font-medium">
-                      <span>{item.quantity} x {formatPrice(item.price)}</span>
-                      <span className="font-bold text-slate-900 min-w-[60px] text-right">{formatPrice(item.price * item.quantity)}</span>
-                    </div>
+
+                    {/* Customer Reference Photo Section */}
+                    {item.customUploadImage && (
+                      <div className="p-3.5 bg-purple-50/70 border border-purple-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-purple-300 bg-white shrink-0 shadow-sm">
+                            <Image
+                              src={item.customUploadImage}
+                              alt="Customer Reference Photo"
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-black uppercase tracking-wider text-purple-800 bg-purple-100 px-2 py-0.5 rounded-full inline-block mb-1">
+                              Customer Reference Photo
+                            </span>
+                            <p className="text-xs text-purple-900 font-bold">
+                              Artist reference photo uploaded by customer for Custom Portrait Art
+                            </p>
+                            <span className="text-[10px] text-slate-500 font-medium">
+                              (Separate from sample artwork image)
+                            </span>
+                          </div>
+                        </div>
+                        <a
+                          href={item.customUploadImage}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold bg-purple-700 hover:bg-purple-800 text-white px-3 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1 shrink-0"
+                        >
+                          <span>View Full Photo ↗</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
                 );
               })}

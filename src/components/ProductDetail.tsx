@@ -49,6 +49,8 @@ interface ProductDetailProps {
   setSelectedVariant?: (variant: ProductVariant | null) => void;
 }
 
+import { isCustomPortraitArt } from '@/lib/custom-portrait';
+
 export default function ProductDetail({
   product,
   selectedVariant: propSelectedVariant,
@@ -66,7 +68,8 @@ export default function ProductDetail({
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist);
   const isWishlisted = useWishlistStore((state) => state.isInWishlist(product.id));
 
-  const hasVariants = product.variants && product.variants.length > 0;
+  const isCustomPortrait = isCustomPortraitArt(product);
+  const hasVariants = !isCustomPortrait && product.variants && product.variants.length > 0;
   
   // Calculate price ranges
   const prices = hasVariants ? product.variants!.map(v => v.price) : [product.price];
@@ -86,25 +89,26 @@ export default function ProductDetail({
     ? Math.round(((activeOriginal - activePrice) / activeOriginal) * 100)
     : null;
 
-  const currentStock = selectedVariant ? selectedVariant.stockQuantity : (hasVariants ? 0 : product.stockQuantity);
+  const currentStock = isCustomPortrait ? 999 : (selectedVariant ? selectedVariant.stockQuantity : (hasVariants ? 0 : product.stockQuantity));
   const threshold = selectedVariant ? (selectedVariant.lowStockThreshold ?? 5) : (product.lowStockThreshold ?? 5);
   
-  // If variant product:
-  // - If variant is selected, isOut/isLow based on variant
-  // - If no variant is selected, it's not out of stock yet (unless all variants are 0 stock)
-  const isOut = selectedVariant
+  const isOut = isCustomPortrait
+    ? false
+    : selectedVariant
     ? (selectedVariant.stockQuantity <= 0)
     : (hasVariants 
         ? product.variants!.every((v) => v.stockQuantity <= 0) 
         : (product.stockQuantity <= 0));
 
-  const isLow = selectedVariant
+  const isLow = isCustomPortrait
+    ? false
+    : selectedVariant
     ? (!isOut && currentStock <= threshold)
     : (hasVariants 
         ? false 
         : (!isOut && product.stockQuantity <= threshold));
 
-  const canAdd = !isOut && (!hasVariants || selectedVariant !== null);
+  const canAdd = isCustomPortrait ? true : (!isOut && (!hasVariants || selectedVariant !== null));
 
   const setBuyNowItem = useBuyNowStore((state) => state.setBuyNowItem);
   const router = useRouter();
@@ -310,47 +314,59 @@ export default function ProductDetail({
         </div>
 
         <div className="flex flex-1 gap-2.5">
-          <button
-            onClick={handleAddToCart}
-            disabled={!canAdd}
-            className={`flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all select-none focus:outline-none focus:ring-2 focus:ring-slate-400/40 ${
-              !canAdd
-                ? 'bg-slate-100 text-slate-450 border border-slate-200 cursor-not-allowed'
-                : isAdded
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-95 shadow-md hover:shadow-lg'
-            }`}
-          >
-            <ShoppingBag className="w-5 h-5 shrink-0" />
-            <span className="truncate">
-              {hasVariants && !selectedVariant
-                ? 'Select Option'
-                : isOut
-                ? 'Out of Stock'
-                : isAdded
-                ? 'Added'
-                : 'Add to Cart'}
-            </span>
-          </button>
+          {isCustomPortrait ? (
+            <button
+              onClick={handleBuyNow}
+              className="flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 shadow-md shadow-emerald-600/20 hover:shadow-lg transition-all"
+            >
+              <Zap className="w-5 h-5 shrink-0 fill-current" />
+              <span>Buy Now (Order Custom Portrait)</span>
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleAddToCart}
+                disabled={!canAdd}
+                className={`flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all select-none focus:outline-none focus:ring-2 focus:ring-slate-400/40 ${
+                  !canAdd
+                    ? 'bg-slate-100 text-slate-450 border border-slate-200 cursor-not-allowed'
+                    : isAdded
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                    : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-95 shadow-md hover:shadow-lg'
+                }`}
+              >
+                <ShoppingBag className="w-5 h-5 shrink-0" />
+                <span className="truncate">
+                  {hasVariants && !selectedVariant
+                    ? 'Select Option'
+                    : isOut
+                    ? 'Out of Stock'
+                    : isAdded
+                    ? 'Added'
+                    : 'Add to Cart'}
+                </span>
+              </button>
 
-          <button
-            onClick={handleBuyNow}
-            disabled={!canAdd}
-            className={`flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all select-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
-              !canAdd
-                ? 'bg-slate-100 text-slate-450 border border-slate-200 cursor-not-allowed'
-                : 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 shadow-md shadow-emerald-600/20 hover:shadow-lg'
-            }`}
-          >
-            <Zap className="w-5 h-5 shrink-0 fill-current" />
-            <span className="truncate">
-              {hasVariants && !selectedVariant
-                ? 'Select Option'
-                : isOut
-                ? 'Out of Stock'
-                : 'Buy Now'}
-            </span>
-          </button>
+              <button
+                onClick={handleBuyNow}
+                disabled={!canAdd}
+                className={`flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all select-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
+                  !canAdd
+                    ? 'bg-slate-100 text-slate-450 border border-slate-200 cursor-not-allowed'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 shadow-md shadow-emerald-600/20 hover:shadow-lg'
+                }`}
+              >
+                <Zap className="w-5 h-5 shrink-0 fill-current" />
+                <span className="truncate">
+                  {hasVariants && !selectedVariant
+                    ? 'Select Option'
+                    : isOut
+                    ? 'Out of Stock'
+                    : 'Buy Now'}
+                </span>
+              </button>
+            </>
+          )}
 
           <button
             onClick={() => toggleWishlist(product.id)}

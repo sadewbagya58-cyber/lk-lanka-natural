@@ -3,12 +3,14 @@ import { getSessionUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { ensureOrderColumnsExist } from "@/lib/db-sync";
 import { SRI_LANKA_PROVINCES } from "@/lib/countries";
+import { isCustomPortraitArt } from "@/lib/custom-portrait";
 
 interface CheckoutItemInput {
   productId: string;
   selectedVariantId?: string | null;
   quantity: number;
   image?: string | null;
+  customUploadImage?: string | null;
 }
 
 interface CustomerInfoInput {
@@ -235,6 +237,7 @@ export async function POST(request: Request) {
             productName: variant.product.name,
             variantName: variant.name,
             productImage,
+            customUploadImage: item.customUploadImage || null,
             quantity: item.quantity,
             price: unitPrice
           });
@@ -267,14 +270,16 @@ export async function POST(request: Request) {
           // Base product stock validation
           const product = await tx.product.findUnique({
             where: { id: item.productId },
-            include: { images: { orderBy: { sortOrder: 'asc' } } }
+            include: { category: true, images: { orderBy: { sortOrder: 'asc' } } }
           });
 
           if (!product) {
             throw new Error(`Product not found.`);
           }
 
-          if (product.stockQuantity < item.quantity) {
+          const isCustomPortrait = isCustomPortraitArt(product);
+
+          if (!isCustomPortrait && product.stockQuantity < item.quantity) {
             throw new Error(`Insufficient stock for '${product.name}'. Available: ${product.stockQuantity}, Requested: ${item.quantity}`);
           }
 
@@ -288,19 +293,22 @@ export async function POST(request: Request) {
             productName: product.name,
             variantName: null,
             productImage,
+            customUploadImage: item.customUploadImage || null,
             quantity: item.quantity,
             price: unitPrice
           });
 
-          // Decrement base product inventory atomically
-          await tx.product.update({
-            where: { id: item.productId },
-            data: {
-              stockQuantity: { decrement: item.quantity },
-              totalStock: { decrement: item.quantity },
-              inStock: (product.stockQuantity - item.quantity) > 0
-            }
-          });
+          // Decrement base product inventory atomically ONLY for physical products (not Custom Portrait Art)
+          if (!isCustomPortrait) {
+            await tx.product.update({
+              where: { id: item.productId },
+              data: {
+                stockQuantity: { decrement: item.quantity },
+                totalStock: { decrement: item.quantity },
+                inStock: (product.stockQuantity - item.quantity) > 0
+              }
+            });
+          }
         }
       }
 

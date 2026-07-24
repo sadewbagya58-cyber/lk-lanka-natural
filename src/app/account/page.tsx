@@ -3,6 +3,7 @@
 import { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { User, Phone, MapPin, ShieldCheck, AlertCircle, LogOut, ArrowRight, UserCheck, Key, ShoppingBag, Calendar, Receipt, ChevronDown, ChevronUp } from 'lucide-react';
 import { useSession, signOut } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
@@ -24,6 +25,7 @@ interface OrderItem {
   productName?: string | null;
   variantName?: string | null;
   productImage?: string | null;
+  customUploadImage?: string | null;
   quantity: number;
   price: number;
   product?: {
@@ -472,28 +474,63 @@ export default function AccountPage() {
                                    const name = item.productName || item.product?.name || 'Product';
                                    const displayImage = item.productImage || item.variant?.imageUrl || item.product?.images?.[0]?.url;
                                    return (
-                                     <div key={item.id} className="flex gap-3 pt-3 first:pt-0">
-                                       <ItemImage
-                                         src={displayImage}
-                                         alt={name}
-                                         gradient={item.product?.gradient}
-                                         visualSeed={item.product?.visualSeed}
-                                         className="w-10 h-10"
-                                         iconClassName="w-5 h-5"
-                                       />
-                                       <div className="flex-1 min-w-0">
-                                         <h4 className="font-bold text-slate-900 truncate leading-snug">{name}</h4>
-                                         {item.variant && (
-                                           <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50 mt-1 inline-block">
-                                             Option: {item.variant.name}
-                                           </span>
-                                         )}
-                                         <div className="flex justify-between mt-1 text-[10px] text-slate-500 font-medium">
-                                           <span>Qty: {item.quantity} x {formatPrice(item.price)}</span>
-                                           <span className="font-bold text-slate-800">{formatPrice(item.price * item.quantity)}</span>
-                                         </div>
-                                       </div>
-                                     </div>
+                                      <div key={item.id} className="flex flex-col gap-2.5 pt-3 first:pt-0">
+                                        <div className="flex gap-3">
+                                          <ItemImage
+                                            src={displayImage}
+                                            alt={name}
+                                            gradient={item.product?.gradient}
+                                            visualSeed={item.product?.visualSeed}
+                                            className="w-10 h-10"
+                                            iconClassName="w-5 h-5"
+                                          />
+                                          <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-slate-900 truncate leading-snug">{name}</h4>
+                                            {item.variant && (
+                                              <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50 mt-1 inline-block">
+                                                Option: {item.variant.name}
+                                              </span>
+                                            )}
+                                            <div className="flex justify-between mt-1 text-[10px] text-slate-500 font-medium">
+                                              <span>Qty: {item.quantity} x {formatPrice(item.price)}</span>
+                                              <span className="font-bold text-slate-800">{formatPrice(item.price * item.quantity)}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Customer Reference Photo */}
+                                        {item.customUploadImage && (
+                                          <div className="p-2.5 bg-purple-50/70 border border-purple-200 rounded-xl flex items-center justify-between gap-3">
+                                            <div className="flex items-center gap-2.5">
+                                              <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-purple-300 bg-white shrink-0 shadow-sm">
+                                                <Image
+                                                  src={item.customUploadImage}
+                                                  alt="Your Reference Photo"
+                                                  fill
+                                                  className="object-cover"
+                                                  unoptimized
+                                                />
+                                              </div>
+                                              <div>
+                                                <span className="text-[9px] font-black uppercase tracking-wider text-purple-800 bg-purple-100 px-1.5 py-0.5 rounded-full inline-block mb-0.5">
+                                                  Your Reference Photo
+                                                </span>
+                                                <p className="text-[10px] text-purple-900 font-bold">
+                                                  Uploaded Reference Photo
+                                                </p>
+                                              </div>
+                                            </div>
+                                            <a
+                                              href={item.customUploadImage}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-[10px] font-bold text-purple-700 hover:text-purple-800 hover:underline shrink-0"
+                                            >
+                                              View Photo ↗
+                                            </a>
+                                          </div>
+                                        )}
+                                      </div>
                                    );
                                  })}
                               </div>

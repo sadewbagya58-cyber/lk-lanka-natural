@@ -272,7 +272,7 @@ export default function Navbar() {
                 <div className="flex flex-col gap-1">
                   <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Shop Categories</h3>
                   {categories.map((cat) => (
-                    <Link key={cat.id} href={`/category/${cat.slug}`} onClick={() => setIsOpen(false)}
+                    <Link key={cat.id} href={`/category/${encodeURIComponent(cat.slug)}`} onClick={() => setIsOpen(false)}
                       className="py-3 px-1.5 text-sm font-semibold text-slate-700 hover:text-emerald-600 border-b border-slate-50 flex items-center justify-between focus:outline-none focus:text-emerald-600"
                     >
                       <span>{cat.name}</span>

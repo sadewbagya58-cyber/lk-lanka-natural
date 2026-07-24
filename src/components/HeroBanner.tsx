@@ -46,7 +46,7 @@ export default function HeroBanner() {
     bgClass: BG_GRADIENTS[idx % BG_GRADIENTS.length],
     tag: cat.featured ? 'Featured' : 'Collection',
     ctaText: `Shop ${cat.name}`,
-    href: `/category/${cat.slug}`,
+    href: `/category/${encodeURIComponent(cat.slug)}`,
   }));
 
   if (promoSlides.length === 0 && products.length > 0) {
@@ -74,7 +74,7 @@ export default function HeroBanner() {
       : 'bg-gradient-to-br from-emerald-50 to-teal-100/70 border-emerald-200/50',
     textColor: idx === 0 ? 'text-amber-800' : 'text-emerald-800',
     tagBg: idx === 0 ? 'bg-amber-600 text-white' : 'bg-emerald-600 text-white',
-    href: `/category/${cat.slug}`,
+    href: `/category/${encodeURIComponent(cat.slug)}`,
   }));
 
   if (sideOffers.length < 2) {
@@ -120,7 +120,7 @@ export default function HeroBanner() {
             {categories.map((cat) => (
               <Link
                 key={cat.id}
-                href={`/category/${cat.slug}`}
+                href={`/category/${encodeURIComponent(cat.slug)}`}
                 className="text-xs font-semibold text-slate-600 hover:text-emerald-600 hover:bg-slate-50 py-2.5 px-3 rounded-lg transition-all flex items-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
               >
                 <span>{cat.name}</span>

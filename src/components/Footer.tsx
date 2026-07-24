@@ -82,7 +82,7 @@ export default function Footer() {
           <ul className="flex flex-col gap-2.5 text-sm">
             {categories.map((cat) => (
               <li key={cat.id}>
-                <Link href={`/category/${cat.slug}`} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">
+                <Link href={`/category/${encodeURIComponent(cat.slug)}`} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">
                   {cat.name}
                 </Link>
               </li>
