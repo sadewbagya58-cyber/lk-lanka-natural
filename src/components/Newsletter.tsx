@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShieldCheck, Truck, Lock, ArrowRight, Mail } from 'lucide-react';
+import { fetchWithRetry } from '@/lib/fetcher';
 
 const TRUST_BADGES = [
   {
@@ -24,6 +25,23 @@ const TRUST_BADGES = [
 export default function Newsletter() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [settings, setSettings] = useState({
+    newsletterTitle: 'Subscribe to the KL Lanka Natural Newsletter',
+    newsletterDescription: 'Get notified of new natural arrivals, exclusive flash sales, and botanical collection launches in Sri Lanka.',
+  });
+
+  useEffect(() => {
+    fetchWithRetry<{ success: boolean; settings: Record<string, string> }>('/api/settings')
+      .then((data) => {
+        if (data && data.success && data.settings) {
+          setSettings({
+            newsletterTitle: data.settings.newsletterTitle || 'Subscribe to the KL Lanka Natural Newsletter',
+            newsletterDescription: data.settings.newsletterDescription || 'Get notified of new natural arrivals, exclusive flash sales, and botanical collection launches in Sri Lanka.',
+          });
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,10 +88,10 @@ export default function Newsletter() {
               <span className="text-[10px] font-bold uppercase tracking-widest">Exclusive Updates</span>
             </div>
             <h2 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
-              Subscribe to the KL Lanka Natural Newsletter
+              {settings.newsletterTitle}
             </h2>
             <p className="text-xs md:text-sm text-slate-500 font-light leading-relaxed">
-              Get notified of new natural arrivals, exclusive flash sales, and botanical collection launches in Sri Lanka.
+              {settings.newsletterDescription}
             </p>
           </div>
 

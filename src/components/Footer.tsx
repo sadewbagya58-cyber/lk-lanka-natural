@@ -9,12 +9,40 @@ import type { CategoryData } from '@/types/product';
 
 export default function Footer() {
   const [categories, setCategories] = useState<CategoryData[]>([]);
+  const [settings, setSettings] = useState({
+    companyAddress: 'No. 124, Galle Road, Colombo 03, Sri Lanka',
+    phoneNumber: '+94 11 234 5678',
+    supportEmail: 'kllankanatural@gmail.com',
+    facebookUrl: 'https://facebook.com',
+    instagramUrl: 'https://instagram.com',
+    linkedinUrl: 'https://linkedin.com',
+    newsletterTitle: 'Subscribe to our Newsletter',
+    newsletterDescription: 'Get the latest updates on natural wellness, organic foods, and exclusive offers.',
+    helpLink_trackOrder: '/track-order',
+    helpLink_shippingPolicy: '/shipping-policy',
+    helpLink_returnsRefunds: '/returns-refunds',
+    helpLink_faq: '/faq',
+    helpLink_helpCenter: '/contact',
+  });
 
   useEffect(() => {
+    // 1. Fetch categories
     fetchWithRetry<{ categories: CategoryData[] }>('/api/categories')
       .then((data) => {
         if (data && Array.isArray(data.categories) && data.categories.length > 0) {
           setCategories(data.categories);
+        }
+      })
+      .catch(console.error);
+
+    // 2. Fetch website settings
+    fetchWithRetry<{ success: boolean; settings: Record<string, string> }>('/api/settings')
+      .then((data) => {
+        if (data && data.success && data.settings) {
+          setSettings((prev) => ({
+            ...prev,
+            ...data.settings,
+          }));
         }
       })
       .catch(console.error);
@@ -50,14 +78,14 @@ export default function Footer() {
             KL Lanka Natural (PVT) LTD is Sri Lanka&apos;s leading premium marketplace for health products, exquisite perfumes, and handcrafted jewellery. Sourced ethically, delivered safely.
           </p>
           <div className="flex items-center gap-3 mt-3">
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer"
+            <a href={settings.facebookUrl || "https://facebook.com"} target="_blank" rel="noopener noreferrer"
               className="p-2.5 bg-slate-800 hover:bg-emerald-600 hover:text-white border border-slate-700 rounded-xl text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
               aria-label="Follow KL Lanka Natural on Facebook">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
               </svg>
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"
+            <a href={settings.instagramUrl || "https://instagram.com"} target="_blank" rel="noopener noreferrer"
               className="p-2.5 bg-slate-800 hover:bg-emerald-600 hover:text-white border border-slate-700 rounded-xl text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
               aria-label="Follow KL Lanka Natural on Instagram">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
@@ -66,7 +94,7 @@ export default function Footer() {
                 <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
               </svg>
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer"
+            <a href={settings.linkedinUrl || "https://linkedin.com"} target="_blank" rel="noopener noreferrer"
               className="p-2.5 bg-slate-800 hover:bg-emerald-600 hover:text-white border border-slate-700 rounded-xl text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
               aria-label="Follow KL Lanka Natural on LinkedIn">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -99,11 +127,11 @@ export default function Footer() {
         <div className="flex flex-col gap-4">
           <h4 className="text-sm font-bold text-white uppercase tracking-widest">Customer Help</h4>
           <ul className="flex flex-col gap-2.5 text-sm">
-            <li><Link href="/track-order" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Track Your Order</Link></li>
-            <li><Link href="/shipping-policy" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Shipping &amp; Delivery</Link></li>
-            <li><Link href="/returns-refunds" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Returns &amp; Refunds</Link></li>
-            <li><Link href="/faq" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Frequently Asked FAQs</Link></li>
-            <li><Link href="/contact" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Help Center</Link></li>
+            <li><Link href={settings.helpLink_trackOrder || "/track-order"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Track Your Order</Link></li>
+            <li><Link href={settings.helpLink_shippingPolicy || "/shipping-policy"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Shipping &amp; Delivery</Link></li>
+            <li><Link href={settings.helpLink_returnsRefunds || "/returns-refunds"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Returns &amp; Refunds</Link></li>
+            <li><Link href={settings.helpLink_faq || "/faq"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Frequently Asked FAQs</Link></li>
+            <li><Link href={settings.helpLink_helpCenter || "/contact"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Help Center</Link></li>
           </ul>
         </div>
 
@@ -113,15 +141,15 @@ export default function Footer() {
           <ul className="flex flex-col gap-3 text-sm">
             <li className="flex items-start gap-3">
               <MapPin className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-              <span className="leading-relaxed">No. 124, Galle Road, Colombo 03, Sri Lanka</span>
+              <span className="leading-relaxed">{settings.companyAddress || "No. 124, Galle Road, Colombo 03, Sri Lanka"}</span>
             </li>
             <li className="flex items-center gap-3">
               <Phone className="w-5 h-5 text-emerald-500 shrink-0" />
-              <a href="tel:+94112345678" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">+94 11 234 5678</a>
+              <a href={settings.phoneNumber ? `tel:${settings.phoneNumber.replace(/[^+\d]/g, '')}` : "tel:+94112345678"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">{settings.phoneNumber || "+94 11 234 5678"}</a>
             </li>
             <li className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-emerald-500 shrink-0" />
-              <a href="mailto:kllankanatural@gmail.com" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">kllankanatural@gmail.com</a>
+              <a href={`mailto:${settings.supportEmail || "kllankanatural@gmail.com"}`} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">{settings.supportEmail || "kllankanatural@gmail.com"}</a>
             </li>
           </ul>
         </div>

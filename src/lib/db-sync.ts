@@ -147,6 +147,58 @@ export async function ensureOrderColumnsExist(): Promise<void> {
       console.warn('Admin user seed notice:', (adminErr as Error).message);
     }
 
+    // 5. Ensure WebsiteSetting table exists and seed defaults
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS \`WebsiteSetting\` (
+          \`id\` VARCHAR(191) NOT NULL,
+          \`key\` VARCHAR(191) NOT NULL,
+          \`value\` TEXT NOT NULL,
+          \`createdAt\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+          \`updatedAt\` DATETIME(3) NOT NULL,
+          PRIMARY KEY (\`id\`),
+          UNIQUE INDEX \`WebsiteSetting_key_key\` (\`key\`)
+        ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+      `);
+    } catch (err) {
+      console.warn('DB Sync WebsiteSetting table notice:', (err as Error).message);
+    }
+
+    try {
+      const defaultSettings = [
+        { key: 'companyAddress', value: 'No. 124, Galle Road, Colombo 03, Sri Lanka' },
+        { key: 'phoneNumber', value: '+94 11 234 5678' },
+        { key: 'supportEmail', value: 'kllankanatural@gmail.com' },
+        { key: 'facebookUrl', value: 'https://facebook.com' },
+        { key: 'instagramUrl', value: 'https://instagram.com' },
+        { key: 'linkedinUrl', value: 'https://linkedin.com' },
+        { key: 'newsletterTitle', value: 'Subscribe to our Newsletter' },
+        { key: 'newsletterDescription', value: 'Get the latest updates on natural wellness, organic foods, and exclusive offers.' },
+        { key: 'helpLink_trackOrder', value: '/track-order' },
+        { key: 'helpLink_shippingPolicy', value: '/shipping-policy' },
+        { key: 'helpLink_returnsRefunds', value: '/returns-refunds' },
+        { key: 'helpLink_faq', value: '/faq' },
+        { key: 'helpLink_helpCenter', value: '/contact' },
+      ];
+
+      for (const setting of defaultSettings) {
+        const existing = await prisma.websiteSetting.findUnique({
+          where: { key: setting.key }
+        });
+        if (!existing) {
+          await prisma.websiteSetting.create({
+            data: {
+              key: setting.key,
+              value: setting.value,
+              updatedAt: new Date()
+            }
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('WebsiteSetting seed notice:', (err as Error).message);
+    }
+
     isSynced = true;
   } catch (error) {
     console.error('Failed to sync MariaDB schema:', error);

@@ -9,7 +9,8 @@ import {
   Layers, 
   Tag, 
   ArrowLeft,
-  ShoppingBag
+  ShoppingBag,
+  Settings
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -27,6 +28,7 @@ export default function AdminClientLayout({
     { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
     { label: 'Categories', href: '/admin/categories', icon: Layers },
     { label: 'Brands', href: '/admin/brands', icon: Tag },
+    { label: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
   return (

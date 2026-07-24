@@ -303,3 +303,11 @@ model WishlistItem {
 
   @@unique([userId, productId])
 }
+
+model WebsiteSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
