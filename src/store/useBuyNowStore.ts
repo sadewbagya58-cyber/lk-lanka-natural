@@ -6,6 +6,7 @@ export interface BuyNowItem {
   variantId: string | null;
   quantity: number;
   unitPrice: number;
+  image?: string | null;
 }
 
 interface BuyNowState {

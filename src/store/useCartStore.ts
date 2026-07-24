@@ -9,11 +9,20 @@ export interface CartItem {
   selectedVariantId: string | null;
   /** Price captured at the time the item was added */
   unitPrice: number;
+  /** Primary product or variant image URL */
+  image?: string | null;
 }
 
 interface CartState {
   cartItems: CartItem[];
-  addToCart: (productId: string, quantity: number, selectedVariantId: string | null, unitPrice: number, maxStock?: number) => void;
+  addToCart: (
+    productId: string,
+    quantity: number,
+    selectedVariantId: string | null,
+    unitPrice: number,
+    image?: string | null,
+    maxStock?: number
+  ) => void;
   removeFromCart: (productId: string, selectedVariantId?: string | null) => void;
   updateQuantity: (productId: string, quantity: number, selectedVariantId?: string | null, maxStock?: number) => void;
   clearCart: () => void;
@@ -27,7 +36,7 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       cartItems: [],
 
-      addToCart: (productId, quantity = 1, selectedVariantId = null, unitPrice, maxStock) => {
+      addToCart: (productId, quantity = 1, selectedVariantId = null, unitPrice, image = null, maxStock) => {
         if (maxStock !== undefined && maxStock <= 0) return;
 
         const items = get().cartItems;
@@ -50,6 +59,7 @@ export const useCartStore = create<CartState>()(
           updatedItems[existingIndex] = {
             ...updatedItems[existingIndex],
             quantity: newQty,
+            image: image || updatedItems[existingIndex].image || null,
           };
           set({ cartItems: updatedItems });
         } else {
@@ -62,7 +72,7 @@ export const useCartStore = create<CartState>()(
           set({
             cartItems: [
               ...items,
-              { productId, quantity: initialQty, selectedVariantId: normalizedVariantId, unitPrice },
+              { productId, quantity: initialQty, selectedVariantId: normalizedVariantId, unitPrice, image: image ?? null },
             ],
           });
         }

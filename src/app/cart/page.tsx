@@ -5,7 +5,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { formatPrice } from '@/lib/currency';
 import Link from 'next/link';
 import { Trash2, Minus, Plus, ShoppingBag, CreditCard, ChevronRight, ShieldCheck, RefreshCw } from 'lucide-react';
-import ProductIllustration from '@/components/ProductIllustration';
+import ItemImage from '@/components/ItemImage';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import type { ProductCardData } from '@/types/product';
@@ -62,6 +62,7 @@ export default function CartPage() {
 
                   const variant = product?.variants?.find((v) => v.id === item.selectedVariantId);
                   const variantName = variant?.name;
+                  const displayImage = variant?.imageUrl || item.image || product?.image;
 
                   return (
                     <div
@@ -69,10 +70,14 @@ export default function CartPage() {
                       className="flex flex-col sm:flex-row gap-4 py-6 border-b border-slate-100 last:border-0 last:pb-0 relative group"
                     >
                       {/* Product Visual */}
-                      <div className="relative w-20 h-20 rounded-xl bg-slate-50 border border-slate-150 overflow-hidden flex items-center justify-center shrink-0">
-                        <div className={`absolute inset-0 bg-gradient-to-tr ${gradient} opacity-10`} />
-                        <ProductIllustration type={visualSeed} className="w-10 h-10 text-slate-700/60" />
-                      </div>
+                      <ItemImage
+                        src={displayImage}
+                        alt={name}
+                        gradient={gradient}
+                        visualSeed={visualSeed}
+                        className="w-20 h-20"
+                        iconClassName="w-10 h-10"
+                      />
 
                       {/* Details */}
                       <div className="flex-1 flex flex-col sm:flex-row justify-between gap-4">

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, User, Phone, MapPin, Calendar, CreditCard, ShoppingBag, ShieldCheck, AlertCircle, Mail, FileText, Truck } from 'lucide-react';
 import { formatPrice } from '@/lib/currency';
-import ProductIllustration from '@/components/ProductIllustration';
+import ItemImage from '@/components/ItemImage';
 
 interface OrderItem {
   id: string;
@@ -13,6 +13,7 @@ interface OrderItem {
   variantId: string | null;
   productName?: string | null;
   variantName?: string | null;
+  productImage?: string | null;
   quantity: number;
   price: number;
   product?: {
@@ -20,9 +21,11 @@ interface OrderItem {
     slug: string;
     gradient: string;
     visualSeed: string;
+    images?: Array<{ url: string }>;
   };
   variant?: {
     name: string;
+    imageUrl?: string | null;
   } | null;
 }
 
@@ -270,13 +273,18 @@ export default function AdminOrderDetailPage({
               {order.items.map((item) => {
                 const name = item.productName || item.product?.name || 'Product';
                 const variantName = item.variantName || item.variant?.name;
+                const displayImage = item.productImage || item.variant?.imageUrl || item.product?.images?.[0]?.url;
                 return (
                   <div key={item.id} className="flex justify-between items-center py-4 first:pt-0 last:pb-0">
                     <div className="flex gap-3">
-                      <div className="relative w-11 h-11 rounded-lg bg-slate-50 border border-slate-150 overflow-hidden flex items-center justify-center shrink-0">
-                        <div className={`absolute inset-0 bg-gradient-to-tr ${item.product?.gradient || 'from-slate-100 to-slate-200'} opacity-10`} />
-                        <ProductIllustration type={item.product?.visualSeed || 'leaf'} className="w-5.5 h-5.5 text-slate-700/60" />
-                      </div>
+                      <ItemImage
+                        src={displayImage}
+                        alt={name}
+                        gradient={item.product?.gradient}
+                        visualSeed={item.product?.visualSeed}
+                        className="w-11 h-11"
+                        iconClassName="w-5.5 h-5.5"
+                      />
                       <div className="min-w-0">
                         <span className="font-bold text-slate-900 block truncate">{name}</span>
                         {variantName && (

@@ -6,8 +6,9 @@ import { SRI_LANKA_PROVINCES } from "@/lib/countries";
 
 interface CheckoutItemInput {
   productId: string;
-  selectedVariantId: string | null;
+  selectedVariantId?: string | null;
   quantity: number;
+  image?: string | null;
 }
 
 interface CustomerInfoInput {
@@ -209,7 +210,11 @@ export async function POST(request: Request) {
           // Variant stock validation
           const variant = await tx.productVariant.findUnique({
             where: { id: item.selectedVariantId },
-            include: { product: true }
+            include: {
+              product: {
+                include: { images: { orderBy: { sortOrder: 'asc' } } }
+              }
+            }
           });
 
           if (!variant || variant.productId !== item.productId) {
@@ -222,12 +227,14 @@ export async function POST(request: Request) {
 
           const unitPrice = variant.price;
           subtotal += unitPrice * item.quantity;
+          const productImage = item.image || variant.imageUrl || variant.product.images[0]?.url || null;
 
           orderItemsToCreate.push({
             productId: item.productId,
             variantId: item.selectedVariantId,
             productName: variant.product.name,
             variantName: variant.name,
+            productImage,
             quantity: item.quantity,
             price: unitPrice
           });
@@ -259,7 +266,8 @@ export async function POST(request: Request) {
         } else {
           // Base product stock validation
           const product = await tx.product.findUnique({
-            where: { id: item.productId }
+            where: { id: item.productId },
+            include: { images: { orderBy: { sortOrder: 'asc' } } }
           });
 
           if (!product) {
@@ -272,12 +280,14 @@ export async function POST(request: Request) {
 
           const unitPrice = product.price;
           subtotal += unitPrice * item.quantity;
+          const productImage = item.image || product.images[0]?.url || null;
 
           orderItemsToCreate.push({
             productId: item.productId,
             variantId: null,
             productName: product.name,
             variantName: null,
+            productImage,
             quantity: item.quantity,
             price: unitPrice
           });

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, ShoppingBag, ArrowRight, MapPin, Calendar, FileText } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import ItemImage from '@/components/ItemImage';
 import Footer from '@/components/Footer';
 import { formatPrice } from '@/lib/currency';
 
@@ -14,13 +15,18 @@ interface OrderItem {
   variantId: string | null;
   productName?: string | null;
   variantName?: string | null;
+  productImage?: string | null;
   quantity: number;
   price: number;
   product?: {
     name: string;
+    gradient?: string | null;
+    visualSeed?: string | null;
+    images?: Array<{ url: string }>;
   };
   variant?: {
     name: string;
+    imageUrl?: string | null;
   } | null;
 }
 
@@ -222,15 +228,26 @@ function SuccessContent() {
           {order.items.map((item) => {
             const name = item.productName || item.product?.name || 'Product';
             const variantName = item.variantName || item.variant?.name;
+            const displayImage = item.productImage || item.variant?.imageUrl || item.product?.images?.[0]?.url;
             return (
-              <div key={item.id} className="flex justify-between items-center py-3.5 first:pt-0 last:pb-0">
-                <div className="min-w-0">
-                  <span className="font-bold text-slate-900 block truncate">{name}</span>
-                  {variantName && (
-                    <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50 mt-1 inline-block">
-                      Option: {variantName}
-                    </span>
-                  )}
+              <div key={item.id} className="flex justify-between items-center py-3.5 first:pt-0 last:pb-0 gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <ItemImage
+                    src={displayImage}
+                    alt={name}
+                    gradient={item.product?.gradient}
+                    visualSeed={item.product?.visualSeed}
+                    className="w-11 h-11"
+                    iconClassName="w-5.5 h-5.5"
+                  />
+                  <div className="min-w-0">
+                    <span className="font-bold text-slate-900 block truncate">{name}</span>
+                    {variantName && (
+                      <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50 mt-1 inline-block">
+                        Option: {variantName}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-6 shrink-0 text-slate-600 font-medium">
                   <span>{item.quantity} x {formatPrice(item.price)}</span>

@@ -36,6 +36,7 @@ export async function GET(request: Request) {
                   slug: true,
                   gradient: true,
                   visualSeed: true,
+                  images: { orderBy: { sortOrder: 'asc' } },
                 }
               }
             }
@@ -70,10 +71,14 @@ export async function GET(request: Request) {
 
       const singleOrderEnriched = {
         ...singleOrder,
-        items: singleOrder.items.map((item) => ({
-          ...item,
-          variant: item.variantId ? variantMap.get(item.variantId) || null : null
-        }))
+        items: singleOrder.items.map((item) => {
+          const v = item.variantId ? variantMap.get(item.variantId) || null : null;
+          return {
+            ...item,
+            productImage: item.productImage || v?.imageUrl || item.product?.images[0]?.url || null,
+            variant: v,
+          };
+        })
       };
 
       return NextResponse.json({ success: true, order: singleOrderEnriched, orders: [singleOrderEnriched] });
@@ -100,6 +105,7 @@ export async function GET(request: Request) {
                 slug: true,
                 gradient: true,
                 visualSeed: true,
+                images: { orderBy: { sortOrder: 'asc' } },
               }
             }
           }
@@ -120,10 +126,14 @@ export async function GET(request: Request) {
 
     const ordersWithVariantDetails = orders.map((order) => ({
       ...order,
-      items: order.items.map((item) => ({
-        ...item,
-        variant: item.variantId ? variantMap.get(item.variantId) || null : null
-      }))
+      items: order.items.map((item) => {
+        const v = item.variantId ? variantMap.get(item.variantId) || null : null;
+        return {
+          ...item,
+          productImage: item.productImage || v?.imageUrl || item.product?.images[0]?.url || null,
+          variant: v,
+        };
+      })
     }));
 
     return NextResponse.json({ success: true, orders: ordersWithVariantDetails });

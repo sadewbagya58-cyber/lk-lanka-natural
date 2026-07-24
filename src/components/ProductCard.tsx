@@ -51,6 +51,8 @@ export default function ProductCard({ product }: ProductCardProps) {
     ? Math.round(((activeOriginal - activePrice) / activeOriginal) * 100)
     : null;
 
+  const displayImage = product.image || (product.images && product.images[0]) || null;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     if (hasVariants) {
@@ -58,7 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       return;
     }
     if (isOut) return;
-    addToCart(product.id, 1, null, product.price);
+    addToCart(product.id, 1, null, product.price, displayImage);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
@@ -75,6 +77,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       variantId: null,
       quantity: 1,
       unitPrice: product.price,
+      image: displayImage,
     });
     router.push('/checkout?buyNow=true');
   };

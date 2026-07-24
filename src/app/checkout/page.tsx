@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import ProductIllustration from '@/components/ProductIllustration';
+import ItemImage from '@/components/ItemImage';
 import type { ProductCardData } from '@/types/product';
 import {
   COUNTRIES,
@@ -768,6 +768,7 @@ function CheckoutContent() {
                   const gradient = product?.gradient ?? 'from-slate-100 to-slate-200';
                   const visualSeed = product?.visualSeed ?? 'leaf';
                   const variant = product?.variants?.find((v) => v.id === item.selectedVariantId);
+                  const displayImage = variant?.imageUrl || (isBuyNow ? buyNowItem?.image : item.image) || product?.image;
 
                   const effectiveUnitPrice = typeof item.unitPrice === 'number' && !isNaN(item.unitPrice) && item.unitPrice > 0
                     ? item.unitPrice
@@ -775,10 +776,14 @@ function CheckoutContent() {
 
                   return (
                     <div key={`${item.productId}-${item.selectedVariantId || ''}`} className="flex gap-3 pt-4 first:pt-0">
-                      <div className="relative w-12 h-12 rounded-lg bg-slate-50 border border-slate-150 overflow-hidden flex items-center justify-center shrink-0">
-                        <div className={`absolute inset-0 bg-gradient-to-tr ${gradient} opacity-10`} />
-                        <ProductIllustration type={visualSeed} className="w-6 h-6 text-slate-700/60" />
-                      </div>
+                      <ItemImage
+                        src={displayImage}
+                        alt={name}
+                        gradient={gradient}
+                        visualSeed={visualSeed}
+                        className="w-12 h-12"
+                        iconClassName="w-6 h-6"
+                      />
                       <div className="flex-1 min-w-0">
                         <h4 className="text-xs font-bold text-slate-900 truncate leading-snug">{name}</h4>
                         {variant && (

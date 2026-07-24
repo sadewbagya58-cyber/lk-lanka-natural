@@ -58,6 +58,7 @@ export async function ensureOrderColumnsExist(): Promise<void> {
     const itemColumnQueries = [
       "ALTER TABLE `OrderItem` ADD COLUMN IF NOT EXISTS `productName` VARCHAR(191) NULL",
       "ALTER TABLE `OrderItem` ADD COLUMN IF NOT EXISTS `variantName` VARCHAR(191) NULL",
+      "ALTER TABLE `OrderItem` ADD COLUMN IF NOT EXISTS `productImage` VARCHAR(191) NULL",
     ];
 
     for (const query of itemColumnQueries) {

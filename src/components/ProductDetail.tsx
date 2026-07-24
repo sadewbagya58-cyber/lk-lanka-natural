@@ -111,18 +111,21 @@ export default function ProductDetail({
 
   const handleAddToCart = () => {
     if (!canAdd) return;
-    addToCart(product.id, quantity, selectedVariant?.id ?? null, activePrice);
+    const displayImage = selectedVariant?.imageUrl || null;
+    addToCart(product.id, quantity, selectedVariant?.id ?? null, activePrice, displayImage);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
 
   const handleBuyNow = () => {
     if (!canAdd) return;
+    const displayImage = selectedVariant?.imageUrl || null;
     setBuyNowItem({
       productId: product.id,
       variantId: selectedVariant?.id ?? null,
       quantity,
       unitPrice: activePrice,
+      image: displayImage,
     });
     router.push('/checkout?buyNow=true');
   };

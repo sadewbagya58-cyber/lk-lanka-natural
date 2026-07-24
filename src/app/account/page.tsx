@@ -7,7 +7,7 @@ import { User, Phone, MapPin, ShieldCheck, AlertCircle, LogOut, ArrowRight, User
 import { useSession, signOut } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import ProductIllustration from '@/components/ProductIllustration';
+import ItemImage from '@/components/ItemImage';
 import { formatPrice } from '@/lib/currency';
 
 interface ProfileData {
@@ -21,14 +21,18 @@ interface OrderItem {
   id: string;
   productId: string;
   variantId: string | null;
+  productName?: string | null;
+  variantName?: string | null;
+  productImage?: string | null;
   quantity: number;
   price: number;
-  product: {
+  product?: {
     name: string;
     slug: string;
-    gradient: string;
-    visualSeed: string;
-  };
+    gradient?: string | null;
+    visualSeed?: string | null;
+    images?: Array<{ url: string }>;
+  } | null;
   variant?: {
     name: string;
     imageUrl?: string | null;
@@ -464,26 +468,34 @@ export default function AccountPage() {
                               {/* Order items list */}
                               <div className="flex flex-col gap-3">
                                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 block">Items Ordered</span>
-                                {order.items.map((item) => (
-                                  <div key={item.id} className="flex gap-3 pt-3 first:pt-0">
-                                    <div className="relative w-10 h-10 rounded-lg bg-slate-50 border border-slate-150 overflow-hidden flex items-center justify-center shrink-0">
-                                      <div className={`absolute inset-0 bg-gradient-to-tr ${item.product?.gradient || 'from-slate-100 to-slate-200'} opacity-10`} />
-                                      <ProductIllustration type={item.product?.visualSeed || 'leaf'} className="w-5 h-5 text-slate-700/60" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <h4 className="font-bold text-slate-900 truncate leading-snug">{item.product?.name || 'Product'}</h4>
-                                      {item.variant && (
-                                        <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50 mt-1 inline-block">
-                                          Option: {item.variant.name}
-                                        </span>
-                                      )}
-                                      <div className="flex justify-between mt-1 text-[10px] text-slate-500 font-medium">
-                                        <span>Qty: {item.quantity} x {formatPrice(item.price)}</span>
-                                        <span className="font-bold text-slate-800">{formatPrice(item.price * item.quantity)}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
+                                 {order.items.map((item) => {
+                                   const name = item.productName || item.product?.name || 'Product';
+                                   const displayImage = item.productImage || item.variant?.imageUrl || item.product?.images?.[0]?.url;
+                                   return (
+                                     <div key={item.id} className="flex gap-3 pt-3 first:pt-0">
+                                       <ItemImage
+                                         src={displayImage}
+                                         alt={name}
+                                         gradient={item.product?.gradient}
+                                         visualSeed={item.product?.visualSeed}
+                                         className="w-10 h-10"
+                                         iconClassName="w-5 h-5"
+                                       />
+                                       <div className="flex-1 min-w-0">
+                                         <h4 className="font-bold text-slate-900 truncate leading-snug">{name}</h4>
+                                         {item.variant && (
+                                           <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50 mt-1 inline-block">
+                                             Option: {item.variant.name}
+                                           </span>
+                                         )}
+                                         <div className="flex justify-between mt-1 text-[10px] text-slate-500 font-medium">
+                                           <span>Qty: {item.quantity} x {formatPrice(item.price)}</span>
+                                           <span className="font-bold text-slate-800">{formatPrice(item.price * item.quantity)}</span>
+                                         </div>
+                                       </div>
+                                     </div>
+                                   );
+                                 })}
                               </div>
 
                               {/* Delivery & payment info */}

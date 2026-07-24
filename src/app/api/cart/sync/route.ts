@@ -103,15 +103,16 @@ export async function POST(request: Request) {
       }
     });
 
-    // Fetch the final merged state from the database with prices
+    // Fetch the final merged state from the database with prices and images
     const finalDbItems = await prisma.cartItem.findMany({
       where: { userId },
       include: {
         product: {
           select: {
             price: true,
+            images: { orderBy: { sortOrder: 'asc' } },
             variants: {
-              select: { id: true, price: true }
+              select: { id: true, price: true, imageUrl: true }
             }
           }
         }
@@ -121,10 +122,15 @@ export async function POST(request: Request) {
     return NextResponse.json({
       cartItems: finalDbItems.map((item) => {
         let unitPrice = item.product?.price ?? 0;
+        let image: string | null = item.product?.images?.[0]?.url ?? null;
+
         if (item.variantId) {
           const v = item.product?.variants?.find((varItem) => varItem.id === item.variantId);
           if (v && typeof v.price === 'number') {
             unitPrice = v.price;
+          }
+          if (v && v.imageUrl) {
+            image = v.imageUrl;
           }
         }
 
@@ -133,6 +139,7 @@ export async function POST(request: Request) {
           quantity: item.quantity,
           selectedVariantId: item.variantId === "" ? null : item.variantId,
           unitPrice,
+          image,
         };
       }),
     });

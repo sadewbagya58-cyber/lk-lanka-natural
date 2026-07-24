@@ -6,7 +6,7 @@ import { X, ShoppingBag, Trash2, Minus, Plus, Truck, CreditCard } from 'lucide-r
 import Link from 'next/link';
 import { useCartStore } from '@/store/useCartStore';
 import { formatPrice } from '@/lib/currency';
-import ProductIllustration from './ProductIllustration';
+import ItemImage from './ItemImage';
 import type { ProductCardData } from '@/types/product';
 
 interface CartDrawerProps {
@@ -114,6 +114,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
               const variant = product?.variants?.find((v) => v.id === item.selectedVariantId);
               const variantName = variant?.name;
+              const displayImage = variant?.imageUrl || item.image || product?.image;
 
               return (
                 <div
@@ -121,10 +122,14 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   className="flex gap-4 p-3.5 bg-slate-50 border border-slate-100 rounded-2xl relative group"
                 >
                   {/* Thumbnail */}
-                  <div className="relative w-16 h-16 rounded-xl bg-white border border-slate-150 overflow-hidden flex items-center justify-center shrink-0">
-                    <div className={`absolute inset-0 bg-gradient-to-tr ${gradient} opacity-10`} />
-                    <ProductIllustration type={visualSeed} className="w-9 h-9 text-slate-700/60" />
-                  </div>
+                  <ItemImage
+                    src={displayImage}
+                    alt={name}
+                    gradient={gradient}
+                    visualSeed={visualSeed}
+                    className="w-16 h-16"
+                    iconClassName="w-9 h-9"
+                  />
 
                   {/* Details */}
                   <div className="flex-1 flex flex-col justify-between min-w-0 pr-6">

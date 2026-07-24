@@ -51,7 +51,8 @@ export default function FlashDeals() {
 
   const handleAddToCart = (prod: ProductCardData, e: React.MouseEvent) => {
     e.preventDefault();
-    addToCart(prod.id, 1, null, prod.price);
+    const displayImage = prod.image || (prod.images && prod.images[0]) || null;
+    addToCart(prod.id, 1, null, prod.price, displayImage);
     setAddedIds((prev) => [...prev, prod.id]);
     setTimeout(() => setAddedIds((prev) => prev.filter((id) => id !== prod.id)), 2000);
   };
@@ -63,11 +64,13 @@ export default function FlashDeals() {
       router.push(`/products/${prod.slug}?buyNow=true`);
       return;
     }
+    const displayImage = prod.image || (prod.images && prod.images[0]) || null;
     setBuyNowItem({
       productId: prod.id,
       variantId: null,
       quantity: 1,
       unitPrice: prod.price,
+      image: displayImage,
     });
     router.push('/checkout?buyNow=true');
   };
