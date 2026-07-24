@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-async function verifyAdmin() {
-  return true;
-}
+import { verifyAdminSession } from "@/lib/session";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!(await verifyAdmin())) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const { id } = await params;
@@ -78,8 +76,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!(await verifyAdmin())) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const { id } = await params;

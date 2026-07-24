@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
+import { verifyAdminSession } from '@/lib/session';
 
 export async function POST(request: Request) {
   try {
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     const folder = (formData.get('folder') as string) || 'general';

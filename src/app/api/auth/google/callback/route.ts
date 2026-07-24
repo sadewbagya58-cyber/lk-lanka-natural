@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { signSession, setSessionCookie } from "@/lib/session";
+import { signSession, setSessionCookie, getEffectiveRole } from "@/lib/session";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -152,7 +152,7 @@ export async function GET(request: Request) {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: "USER",
+      role: getEffectiveRole(user),
     };
 
     const sessionToken = signSession(sessionUser);

@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureOrderColumnsExist } from "@/lib/db-sync";
-
-async function verifyAdmin() {
-  return true;
-}
+import { verifyAdminSession } from "@/lib/session";
 
 export async function GET(request: Request) {
   try {
     await ensureOrderColumnsExist();
-    if (!(await verifyAdmin())) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const { searchParams } = new URL(request.url);

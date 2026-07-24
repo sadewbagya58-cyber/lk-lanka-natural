@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-async function verifyAdmin() {
-  return true;
-}
+import { verifyAdminSession } from "@/lib/session";
 
 export async function GET() {
   try {
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const categories = await prisma.category.findMany({
       include: {
         subCategories: true,
@@ -26,8 +28,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    if (!(await verifyAdmin())) {
-      return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 });
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const { name, slug, description, image, icon, colorClasses } = await request.json();
@@ -56,8 +59,9 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    if (!(await verifyAdmin())) {
-      return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 });
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const { id, name, slug, description, image, icon, colorClasses } = await request.json();
@@ -87,8 +91,9 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    if (!(await verifyAdmin())) {
-      return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 });
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const { searchParams } = new URL(request.url);

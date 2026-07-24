@@ -7,12 +7,17 @@ export async function GET(request: Request) {
   try {
     await ensureOrderColumnsExist();
 
+    const userSession = await getSessionUser();
+
+    // 1. All order access requires an authenticated session
+    if (!userSession) {
+      return NextResponse.json({ error: "Unauthorized: Please log in to view orders" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const orderIdParam = searchParams.get("orderId");
 
-    const userSession = await getSessionUser();
-
-    // If orderId is provided (e.g. on order confirmation page), allow lookup by orderId or orderNumber
+    // 2. Single Order Lookup by ID / Order Number
     if (orderIdParam) {
       const singleOrder = await prisma.order.findFirst({
         where: {
@@ -42,17 +47,30 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Order not found" }, { status: 404 });
       }
 
+      // Authorization check: Admin or Order Owner
+      const isAdmin = userSession.role === "ADMIN";
+      const isOwner =
+        (singleOrder.userId && singleOrder.userId === userSession.id) ||
+        (singleOrder.customerEmail && userSession.email && singleOrder.customerEmail.toLowerCase() === userSession.email.toLowerCase());
+
+      if (!isAdmin && !isOwner) {
+        return NextResponse.json(
+          { error: "Forbidden: You do not have permission to access this order" },
+          { status: 403 }
+        );
+      }
+
       // Resolve variant details
-      const variantIds = singleOrder.items.map(i => i.variantId).filter(Boolean) as string[];
+      const variantIds = singleOrder.items.map((i) => i.variantId).filter(Boolean) as string[];
       const variants = await prisma.productVariant.findMany({
         where: { id: { in: variantIds } },
         select: { id: true, name: true, imageUrl: true }
       });
-      const variantMap = new Map(variants.map(v => [v.id, v]));
+      const variantMap = new Map(variants.map((v) => [v.id, v]));
 
       const singleOrderEnriched = {
         ...singleOrder,
-        items: singleOrder.items.map(item => ({
+        items: singleOrder.items.map((item) => ({
           ...item,
           variant: item.variantId ? variantMap.get(item.variantId) || null : null
         }))
@@ -61,15 +79,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, order: singleOrderEnriched, orders: [singleOrderEnriched] });
     }
 
-    // For user order history, user session is required
-    if (!userSession) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = userSession.id;
+    // 3. User Order History Lookup
+    const userConditions = [
+      { userId: userSession.id },
+      ...(userSession.email ? [{ customerEmail: userSession.email }] : [])
+    ];
 
     const orders = await prisma.order.findMany({
-      where: { userId },
+      where: {
+        OR: userConditions
+      },
       orderBy: { createdAt: "desc" },
       include: {
         address: true,
@@ -89,7 +108,7 @@ export async function GET(request: Request) {
     });
 
     const variantIds = orders
-      .flatMap(o => o.items.map(i => i.variantId))
+      .flatMap((o) => o.items.map((i) => i.variantId))
       .filter(Boolean) as string[];
 
     const variants = await prisma.productVariant.findMany({
@@ -97,11 +116,11 @@ export async function GET(request: Request) {
       select: { id: true, name: true, imageUrl: true }
     });
 
-    const variantMap = new Map(variants.map(v => [v.id, v]));
+    const variantMap = new Map(variants.map((v) => [v.id, v]));
 
-    const ordersWithVariantDetails = orders.map(order => ({
+    const ordersWithVariantDetails = orders.map((order) => ({
       ...order,
-      items: order.items.map(item => ({
+      items: order.items.map((item) => ({
         ...item,
         variant: item.variantId ? variantMap.get(item.variantId) || null : null
       }))

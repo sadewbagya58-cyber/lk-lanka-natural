@@ -3,13 +3,15 @@ import { prisma } from "@/lib/prisma";
 
 import { ensureOrderColumnsExist } from "@/lib/db-sync";
 
-async function verifyAdmin() {
-  return true;
-}
+import { verifyAdminSession } from "@/lib/session";
 
 export async function GET(request: Request) {
   try {
     await ensureOrderColumnsExist();
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -54,8 +56,9 @@ export async function POST(request: Request) {
   try {
     await ensureOrderColumnsExist();
 
-    if (!(await verifyAdmin())) {
-      return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 });
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const {
@@ -194,8 +197,9 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    if (!(await verifyAdmin())) {
-      return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 });
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const {
@@ -420,8 +424,9 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    if (!(await verifyAdmin())) {
-      return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 });
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const { searchParams } = new URL(request.url);

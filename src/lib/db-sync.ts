@@ -67,10 +67,11 @@ export async function ensureOrderColumnsExist(): Promise<void> {
       }
     }
 
-    // 3. Product table nullable column modifications (brandId and subCategoryId optional)
+    // 3. Product & User table column modifications
     const productModifyQueries = [
       "ALTER TABLE `Product` MODIFY COLUMN `brandId` VARCHAR(191) NULL",
       "ALTER TABLE `Product` MODIFY COLUMN `subCategoryId` VARCHAR(191) NULL",
+      "ALTER TABLE `User` ADD COLUMN IF NOT EXISTS `role` VARCHAR(191) NOT NULL DEFAULT 'USER'",
     ];
 
     for (const query of productModifyQueries) {

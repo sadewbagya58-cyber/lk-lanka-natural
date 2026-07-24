@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
-import { signSession, setSessionCookie } from "@/lib/session";
+import { signSession, setSessionCookie, getEffectiveRole } from "@/lib/session";
 
 export async function POST(request: Request) {
   try {
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       id: newUser.id,
       email: newUser.email,
       name: newUser.name,
-      role: "USER"
+      role: getEffectiveRole(newUser)
     };
 
     // Auto-login the user after registration

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
-import { signSession, setSessionCookie } from "@/lib/session";
+import { signSession, setSessionCookie, getEffectiveRole } from "@/lib/session";
 
 export async function POST(request: Request) {
   try {
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: "USER" // Custom auth default role
+      role: getEffectiveRole(user)
     };
 
     const token = signSession(sessionUser);
