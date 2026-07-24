@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import bcrypt from 'bcrypt';
 
 let isSynced = false;
 
@@ -108,6 +109,37 @@ export async function ensureOrderColumnsExist(): Promise<void> {
       }
     } catch (err) {
       console.warn('Legacy order backfill notice:', (err as Error).message);
+    }
+
+    // 4. Ensure admin account (kllankanatural@gmail.com) exists with hashed password and ADMIN role
+    try {
+      const adminEmail = 'kllankanatural@gmail.com';
+      const existingAdmin = await prisma.user.findFirst({
+        where: { email: adminEmail }
+      });
+
+      const hashedPassword = await bcrypt.hash('kllankanatural2026', 12);
+
+      if (!existingAdmin) {
+        await prisma.user.create({
+          data: {
+            email: adminEmail,
+            name: 'KL Lanka Admin',
+            password: hashedPassword,
+            role: 'ADMIN'
+          }
+        });
+      } else {
+        await prisma.user.update({
+          where: { id: existingAdmin.id },
+          data: {
+            password: hashedPassword,
+            role: 'ADMIN'
+          }
+        });
+      }
+    } catch (adminErr) {
+      console.warn('Admin user seed notice:', (adminErr as Error).message);
     }
 
     isSynced = true;

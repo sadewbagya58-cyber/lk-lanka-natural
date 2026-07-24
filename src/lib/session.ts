@@ -37,7 +37,7 @@ export function getEffectiveRole(user: { role?: string | null; email?: string | 
 
   const configuredAdmins = process.env.ADMIN_EMAILS
     ? process.env.ADMIN_EMAILS.split(",").map((e) => e.trim().toLowerCase())
-    : ["admin@kllankanatural.lk", "admin@kllankanatural.com"];
+    : ["admin@kllankanatural.lk", "admin@kllankanatural.com", "kllankanatural@gmail.com"];
 
   if (user.email && configuredAdmins.includes(user.email.trim().toLowerCase())) {
     return "ADMIN";
