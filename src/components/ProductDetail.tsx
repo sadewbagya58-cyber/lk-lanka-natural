@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Heart, Minus, Plus, Truck, ShieldCheck, HelpCircle } from 'lucide-react';
+import { ShoppingBag, Heart, Minus, Plus, Truck, ShieldCheck, HelpCircle, Zap } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
+import { useBuyNowStore } from '@/store/useBuyNowStore';
 
 interface ProductVariant {
   id: string;
@@ -104,11 +106,25 @@ export default function ProductDetail({
 
   const canAdd = !isOut && (!hasVariants || selectedVariant !== null);
 
+  const setBuyNowItem = useBuyNowStore((state) => state.setBuyNowItem);
+  const router = useRouter();
+
   const handleAddToCart = () => {
     if (!canAdd) return;
     addToCart(product.id, quantity, selectedVariant?.id ?? null, activePrice);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
+  };
+
+  const handleBuyNow = () => {
+    if (!canAdd) return;
+    setBuyNowItem({
+      productId: product.id,
+      variantId: selectedVariant?.id ?? null,
+      quantity,
+      unitPrice: activePrice,
+    });
+    router.push('/checkout?buyNow=true');
   };
 
   const handleQuantity = (delta: number) => {
@@ -259,7 +275,7 @@ export default function ProductDetail({
       )}
 
       {/* Quantity & Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end mt-2">
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end mt-2">
         <div className="flex flex-col gap-2 shrink-0">
           <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Quantity</span>
           <div className="flex items-center border border-slate-200 rounded-xl h-12 bg-white w-full sm:w-32 shadow-sm focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500">
@@ -283,36 +299,57 @@ export default function ProductDetail({
           </div>
         </div>
 
-        <button
-          onClick={handleAddToCart}
-          disabled={!canAdd}
-          className={`flex-grow h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all select-none focus:outline-none focus:ring-2 focus:ring-emerald-550/40 ${
-            !canAdd
-              ? 'bg-slate-100 text-slate-450 border border-slate-200 cursor-not-allowed'
-              : isAdded
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-              : 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 shadow-md hover:shadow-lg shadow-emerald-600/10'
-          }`}
-        >
-          <ShoppingBag className="w-5 h-5 shrink-0" />
-          <span>
-            {hasVariants && !selectedVariant
-              ? 'Select Options'
-              : isOut
-              ? 'Out of Stock'
-              : isAdded
-              ? 'Added to Cart'
-              : 'Add to Cart'}
-          </span>
-        </button>
+        <div className="flex flex-1 gap-2.5">
+          <button
+            onClick={handleAddToCart}
+            disabled={!canAdd}
+            className={`flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all select-none focus:outline-none focus:ring-2 focus:ring-slate-400/40 ${
+              !canAdd
+                ? 'bg-slate-100 text-slate-450 border border-slate-200 cursor-not-allowed'
+                : isAdded
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-95 shadow-md hover:shadow-lg'
+            }`}
+          >
+            <ShoppingBag className="w-5 h-5 shrink-0" />
+            <span className="truncate">
+              {hasVariants && !selectedVariant
+                ? 'Select Option'
+                : isOut
+                ? 'Out of Stock'
+                : isAdded
+                ? 'Added'
+                : 'Add to Cart'}
+            </span>
+          </button>
 
-        <button
-          onClick={() => toggleWishlist(product.id)}
-          className="h-12 w-12 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-rose-500/20"
-          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-        >
-          <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-rose-500 text-rose-500' : ''}`} />
-        </button>
+          <button
+            onClick={handleBuyNow}
+            disabled={!canAdd}
+            className={`flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all select-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
+              !canAdd
+                ? 'bg-slate-100 text-slate-450 border border-slate-200 cursor-not-allowed'
+                : 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 shadow-md shadow-emerald-600/20 hover:shadow-lg'
+            }`}
+          >
+            <Zap className="w-5 h-5 shrink-0 fill-current" />
+            <span className="truncate">
+              {hasVariants && !selectedVariant
+                ? 'Select Option'
+                : isOut
+                ? 'Out of Stock'
+                : 'Buy Now'}
+            </span>
+          </button>
+
+          <button
+            onClick={() => toggleWishlist(product.id)}
+            className="h-12 w-12 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-rose-500/20"
+            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+          >
+            <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-rose-500 text-rose-500' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* Trust Indicators */}

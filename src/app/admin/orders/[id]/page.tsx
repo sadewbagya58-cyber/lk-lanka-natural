@@ -35,9 +35,11 @@ interface OrderDetails {
   customerPhone?: string | null;
   altPhone?: string | null;
   street?: string | null;
+  addressLine2?: string | null;
   city?: string | null;
   district?: string | null;
   province?: string | null;
+  state?: string | null;
   postalCode?: string | null;
   country?: string | null;
   deliveryNote?: string | null;
@@ -219,6 +221,15 @@ export default function AdminOrderDetailPage({
             <h1 className="text-lg font-black text-slate-900 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span>Order</span>
               <span className="font-mono text-emerald-700 font-bold">{displayOrderNumber}</span>
+              {country === 'Sri Lanka' ? (
+                <span className="text-[10px] font-extrabold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">
+                  🇱🇰 Sri Lanka Order
+                </span>
+              ) : (
+                <span className="text-[10px] font-extrabold bg-cyan-50 text-cyan-800 px-2 py-0.5 rounded border border-cyan-200">
+                  🌐 International Order ({country})
+                </span>
+              )}
             </h1>
             <p className="text-xs text-slate-450 font-light mt-1 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -328,16 +339,22 @@ export default function AdminOrderDetailPage({
 
             {/* Shipping address card */}
             <div className="bg-white border border-slate-150 rounded-2xl p-5 shadow-sm flex flex-col gap-3">
-              <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-2.5 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-emerald-600" />
-                <span>Delivery Address</span>
+              <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-2.5 flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-emerald-600" />
+                  <span>Delivery Address</span>
+                </span>
+                <span className="text-[10px] text-slate-500 font-bold uppercase">
+                  {country}
+                </span>
               </h4>
               <div className="text-xs flex flex-col gap-1.5 leading-relaxed">
                 <p className="font-bold text-slate-800">{street}</p>
+                {order.addressLine2 && <p className="font-medium text-slate-700">{order.addressLine2}</p>}
                 <p className="font-semibold text-slate-700">
-                  {[city, district, province, postalCode].filter(Boolean).join(', ')}
+                  {[city, district, province, order.state, postalCode].filter(Boolean).join(', ')}
                 </p>
-                <p className="font-semibold text-slate-600">{country}</p>
+                <p className="font-bold text-slate-800">{country}</p>
                 {order.deliveryNote && (
                   <div className="mt-2 pt-2 border-t border-slate-100 flex items-start gap-1.5 text-slate-500">
                     <FileText className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400" />

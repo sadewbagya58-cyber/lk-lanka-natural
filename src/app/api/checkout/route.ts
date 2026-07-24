@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { ensureOrderColumnsExist } from "@/lib/db-sync";
+import { SRI_LANKA_PROVINCES } from "@/lib/countries";
 
 interface CheckoutItemInput {
   productId: string;
@@ -17,9 +19,11 @@ interface CustomerInfoInput {
 
 interface DeliveryAddressInput {
   street: string;
+  addressLine2?: string;
   city: string;
-  district: string;
-  province: string;
+  district?: string;
+  province?: string;
+  state?: string;
   postalCode: string;
   country: string;
   deliveryNote?: string;
@@ -40,22 +44,8 @@ async function generateOrderNumber(tx: any): Promise<string> {
   return `KLN-${year}-${seq}-${randomSuffix}`;
 }
 
-import { ensureOrderColumnsExist } from "@/lib/db-sync";
-
-const SRI_LANKAN_PROVINCES = [
-  "Western Province",
-  "Central Province",
-  "Southern Province",
-  "Northern Province",
-  "Eastern Province",
-  "North Western Province",
-  "North Central Province",
-  "Uva Province",
-  "Sabaragamuwa Province",
-];
-
 const VALID_PAYMENT_METHODS = ["COD", "BANK_TRANSFER"];
-const VALID_DELIVERY_METHODS = ["STANDARD_COURIER", "COD"];
+const VALID_DELIVERY_METHODS = ["STANDARD_COURIER", "INTERNATIONAL_SHIPPING", "COD"];
 
 export async function POST(request: Request) {
   try {
@@ -70,12 +60,20 @@ export async function POST(request: Request) {
       deliveryAddress: DeliveryAddressInput;
       deliveryMethod?: string;
       paymentMethod?: string;
+      isBuyNow?: boolean;
       items: CheckoutItemInput[];
     };
 
-    const { customerInfo, deliveryAddress, deliveryMethod = "STANDARD_COURIER", paymentMethod = "COD", items } = body;
+    const {
+      customerInfo,
+      deliveryAddress,
+      deliveryMethod = "STANDARD_COURIER",
+      paymentMethod = "COD",
+      isBuyNow = false,
+      items,
+    } = body;
 
-    // 1. Server-side validation of required input fields
+    // 1. Server-side validation of customer info
     if (!customerInfo?.fullName?.trim()) {
       return NextResponse.json({ error: "Full Name is required." }, { status: 400 });
     }
@@ -94,40 +92,63 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Please enter a valid phone number." }, { status: 400 });
     }
 
+    // 2. Validate Country & Address fields
+    const country = deliveryAddress?.country?.trim() || "Sri Lanka";
+    const isSriLanka = country === "Sri Lanka";
+
     if (!deliveryAddress?.street?.trim()) {
-      return NextResponse.json({ error: "Street Address / Village is required." }, { status: 400 });
+      return NextResponse.json({
+        error: isSriLanka ? "Address / Street / Village is required." : "Address Line 1 is required."
+      }, { status: 400 });
     }
+
     if (!deliveryAddress?.city?.trim()) {
       return NextResponse.json({ error: "City / Town is required." }, { status: 400 });
     }
-    if (!deliveryAddress?.district?.trim()) {
-      return NextResponse.json({ error: "District is required." }, { status: 400 });
+
+    if (isSriLanka) {
+      if (!deliveryAddress?.district?.trim()) {
+        return NextResponse.json({ error: "District is required for Sri Lankan orders." }, { status: 400 });
+      }
+      if (!deliveryAddress?.province?.trim()) {
+        return NextResponse.json({ error: "Province is required for Sri Lankan orders." }, { status: 400 });
+      }
+      if (!(SRI_LANKA_PROVINCES as readonly string[]).includes(deliveryAddress.province.trim())) {
+        return NextResponse.json({ error: "Please select a valid Sri Lankan Province." }, { status: 400 });
+      }
     }
-    if (!deliveryAddress?.province?.trim()) {
-      return NextResponse.json({ error: "Province is required." }, { status: 400 });
-    }
-    if (!SRI_LANKAN_PROVINCES.includes(deliveryAddress.province.trim())) {
-      return NextResponse.json({ error: "Please select a valid Sri Lankan Province." }, { status: 400 });
-    }
+
     if (!deliveryAddress?.postalCode?.trim()) {
       return NextResponse.json({ error: "Postal / ZIP Code is required." }, { status: 400 });
     }
 
+    // 3. Payment Method validation
     if (!paymentMethod || !VALID_PAYMENT_METHODS.includes(paymentMethod)) {
       return NextResponse.json({ error: "Please select a valid Payment Method." }, { status: 400 });
     }
 
-    if (!deliveryMethod || !VALID_DELIVERY_METHODS.includes(deliveryMethod)) {
+    if (!isSriLanka && paymentMethod === "COD") {
+      return NextResponse.json({
+        error: "Cash on Delivery (COD) is only available for orders within Sri Lanka. Please select Direct Bank Transfer."
+      }, { status: 400 });
+    }
+
+    // 4. Delivery Method validation
+    const effectiveDeliveryMethod = isSriLanka
+      ? (deliveryMethod === "INTERNATIONAL_SHIPPING" ? "STANDARD_COURIER" : deliveryMethod)
+      : "INTERNATIONAL_SHIPPING";
+
+    if (!VALID_DELIVERY_METHODS.includes(effectiveDeliveryMethod)) {
       return NextResponse.json({ error: "Please select a valid Delivery Method." }, { status: 400 });
     }
 
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: "Your shopping cart is empty." }, { status: 400 });
+      return NextResponse.json({ error: "No products selected for checkout." }, { status: 400 });
     }
 
-    // 2. Transactionally verify stock, recalculate totals, deduct stock, and create order
+    // 5. Transactionally verify stock, recalculate totals, deduct stock, and create order
     const order = await prisma.$transaction(async (tx) => {
-      // 2.1 Handle address entity for logged-in user if available
+      // 5.1 Handle address entity for logged-in user if available
       let addressId: string | null = null;
       if (userId) {
         const existingDefault = await tx.address.findFirst({
@@ -141,9 +162,9 @@ export async function POST(request: Request) {
               phone: customerInfo.phone.trim(),
               street: deliveryAddress.street.trim(),
               city: deliveryAddress.city.trim(),
-              state: deliveryAddress.province.trim(),
+              state: isSriLanka ? deliveryAddress.province?.trim() : deliveryAddress.state?.trim() || null,
               postalCode: deliveryAddress.postalCode.trim(),
-              country: deliveryAddress.country?.trim() || "Sri Lanka",
+              country,
             }
           });
           addressId = updated.id;
@@ -155,9 +176,9 @@ export async function POST(request: Request) {
               phone: customerInfo.phone.trim(),
               street: deliveryAddress.street.trim(),
               city: deliveryAddress.city.trim(),
-              state: deliveryAddress.province.trim(),
+              state: isSriLanka ? deliveryAddress.province?.trim() : deliveryAddress.state?.trim() || null,
               postalCode: deliveryAddress.postalCode.trim(),
-              country: deliveryAddress.country?.trim() || "Sri Lanka",
+              country,
               isDefault: true,
             }
           });
@@ -165,7 +186,7 @@ export async function POST(request: Request) {
         }
       }
 
-      // 2.2 Verify stock & calculate server-side subtotal
+      // 5.2 Verify stock & calculate server-side subtotal
       let subtotal = 0;
       const orderItemsToCreate = [];
 
@@ -214,7 +235,7 @@ export async function POST(request: Request) {
           const allVariants = await tx.productVariant.findMany({
             where: { productId: item.productId }
           });
-          const newTotalStock = allVariants.reduce((sum, v) => sum + v.stockQuantity, 0);
+          const newTotalStock = allVariants.reduce((sum: number, v: { stockQuantity: number }) => sum + v.stockQuantity, 0);
 
           await tx.product.update({
             where: { id: item.productId },
@@ -263,13 +284,15 @@ export async function POST(request: Request) {
         }
       }
 
-      // Calculate server-side delivery fee ($4.99 or FREE for $50+)
-      const deliveryFee = subtotal >= 50.0 ? 0 : 4.99;
+      // Calculate delivery fee
+      // For Sri Lanka: $4.99 or FREE for $50+
+      // For International: $0.00 (quote pending confirmation)
+      const deliveryFee = isSriLanka ? (subtotal >= 50.0 ? 0 : 4.99) : 0;
       const finalTotalAmount = subtotal + deliveryFee;
 
       const orderNumber = await generateOrderNumber(tx);
 
-      // 2.3 Save complete Order record
+      // 5.3 Save complete Order record
       const createdOrder = await tx.order.create({
         data: {
           orderNumber,
@@ -281,11 +304,13 @@ export async function POST(request: Request) {
           altPhone: customerInfo.altPhone?.trim() || null,
 
           street: deliveryAddress.street.trim(),
+          addressLine2: deliveryAddress.addressLine2?.trim() || null,
           city: deliveryAddress.city.trim(),
-          district: deliveryAddress.district.trim(),
-          province: deliveryAddress.province.trim(),
+          district: isSriLanka ? (deliveryAddress.district?.trim() || null) : null,
+          province: isSriLanka ? (deliveryAddress.province?.trim() || null) : null,
+          state: !isSriLanka ? (deliveryAddress.state?.trim() || null) : null,
           postalCode: deliveryAddress.postalCode.trim(),
-          country: deliveryAddress.country?.trim() || "Sri Lanka",
+          country,
           deliveryNote: deliveryAddress.deliveryNote?.trim() || null,
 
           subtotal,
@@ -293,7 +318,7 @@ export async function POST(request: Request) {
           deliveryFee,
           totalAmount: finalTotalAmount,
 
-          deliveryMethod,
+          deliveryMethod: effectiveDeliveryMethod,
           paymentMethod,
           status: "PENDING",
           paymentStatus: "PENDING",
@@ -304,8 +329,8 @@ export async function POST(request: Request) {
         }
       });
 
-      // 2.4 Clear database cart if logged in
-      if (userId) {
+      // 5.4 Clear database cart ONLY if this is a standard cart checkout (not Buy Now)
+      if (userId && !isBuyNow) {
         await tx.cartItem.deleteMany({
           where: { userId }
         });

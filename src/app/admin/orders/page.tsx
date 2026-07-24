@@ -25,6 +25,7 @@ interface Order {
   customerName?: string | null;
   customerEmail?: string | null;
   customerPhone?: string | null;
+  country?: string | null;
   user?: {
     name: string;
     email: string;
@@ -251,9 +252,14 @@ export default function AdminOrdersPage() {
                       <span className="font-bold text-slate-800 block">
                         {order.customerName || order.user?.name || 'Customer'}
                       </span>
-                      <span className="text-[10px] text-slate-400 block">
-                        {order.customerEmail || order.user?.email}
-                      </span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[10px] text-slate-400 block truncate max-w-[140px]">
+                          {order.customerEmail || order.user?.email}
+                        </span>
+                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded border border-slate-200/60 shrink-0">
+                          {order.country || 'Sri Lanka'}
+                        </span>
+                      </div>
                     </td>
                     <td className="py-4 px-6 text-slate-500 font-medium">
                       {new Date(order.createdAt).toLocaleDateString()}

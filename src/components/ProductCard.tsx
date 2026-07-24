@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Eye, Heart, Star } from 'lucide-react';
+import { ShoppingBag, Heart, Star, Zap } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,7 @@ import type { ProductCardData } from '@/types/product';
 import ProductIllustration from './ProductIllustration';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
+import { useBuyNowStore } from '@/store/useBuyNowStore';
 
 interface ProductCardProps {
   product: ProductCardData;
@@ -20,6 +21,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
 
   const addToCart = useCartStore((state) => state.addToCart);
+  const setBuyNowItem = useBuyNowStore((state) => state.setBuyNowItem);
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist);
   const isWishlisted = useWishlistStore((state) => state.isInWishlist(product.id));
 
@@ -59,6 +61,22 @@ export default function ProductCard({ product }: ProductCardProps) {
     addToCart(product.id, 1, null, product.price);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
+  };
+
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (hasVariants) {
+      router.push(`/products/${product.slug}?buyNow=true`);
+      return;
+    }
+    if (isOut) return;
+    setBuyNowItem({
+      productId: product.id,
+      variantId: null,
+      quantity: 1,
+      unitPrice: product.price,
+    });
+    router.push('/checkout?buyNow=true');
   };
 
   return (
@@ -201,31 +219,34 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Action Grid */}
-        <div className="grid grid-cols-5 gap-2 pt-1">
+        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-1">
           <button
             onClick={handleAddToCart}
             disabled={isOut}
-            className={`col-span-4 h-10 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all select-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
+            className={`h-9 sm:h-10 px-2 sm:px-3 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 sm:gap-1.5 transition-all select-none focus:outline-none focus:ring-2 focus:ring-slate-400/40 ${
               isOut
                 ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-                : hasVariants
-                ? 'bg-slate-900 text-white hover:bg-slate-800 active:scale-95'
                 : isAdded
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                ? 'bg-emerald-600 text-white shadow-sm'
                 : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-95'
             }`}
           >
             <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-            <span>{isOut ? 'Out of Stock' : hasVariants ? 'Select Options' : isAdded ? 'Added' : 'Add to Cart'}</span>
+            <span className="truncate">{isOut ? 'Out of Stock' : hasVariants ? 'Options' : isAdded ? 'Added' : 'Add to Cart'}</span>
           </button>
 
-          <Link
-            href={`/products/${product.slug}`}
-            className="col-span-1 h-10 rounded-xl bg-slate-50 border border-slate-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-slate-400/40"
-            aria-label={`Quick View detail of ${product.name}`}
+          <button
+            onClick={handleBuyNow}
+            disabled={isOut}
+            className={`h-9 sm:h-10 px-2 sm:px-3 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 sm:gap-1.5 transition-all select-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 ${
+              isOut
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 shadow-sm hover:shadow'
+            }`}
           >
-            <Eye className="w-4 h-4" />
-          </Link>
+            <Zap className="w-3.5 h-3.5 shrink-0 fill-current" />
+            <span className="truncate">Buy Now</span>
+          </button>
         </div>
       </div>
     </div>

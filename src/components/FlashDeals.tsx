@@ -1,19 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShoppingBag, Eye, Heart, Star, Flame, Clock } from 'lucide-react';
+import { ShoppingBag, Heart, Star, Flame, Clock, Zap } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import type { ProductCardData } from '@/types/product';
 import ProductIllustration from './ProductIllustration';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
+import { useBuyNowStore } from '@/store/useBuyNowStore';
 
 export default function FlashDeals() {
   const [flashProducts, setFlashProducts] = useState<ProductCardData[]>([]);
   const [timeLeft, setTimeLeft] = useState({ hours: 8, minutes: 45, seconds: 30 });
+  const router = useRouter();
 
   const addToCart = useCartStore((state) => state.addToCart);
+  const setBuyNowItem = useBuyNowStore((state) => state.setBuyNowItem);
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist);
   const isInWishlist = useWishlistStore((state) => state.isInWishlist);
   const [addedIds, setAddedIds] = useState<string[]>([]);
@@ -50,6 +54,22 @@ export default function FlashDeals() {
     addToCart(prod.id, 1, null, prod.price);
     setAddedIds((prev) => [...prev, prod.id]);
     setTimeout(() => setAddedIds((prev) => prev.filter((id) => id !== prod.id)), 2000);
+  };
+
+  const handleBuyNow = (prod: ProductCardData, e: React.MouseEvent) => {
+    e.preventDefault();
+    const hasVariants = prod.variants && prod.variants.length > 0;
+    if (hasVariants) {
+      router.push(`/products/${prod.slug}?buyNow=true`);
+      return;
+    }
+    setBuyNowItem({
+      productId: prod.id,
+      variantId: null,
+      quantity: 1,
+      unitPrice: prod.price,
+    });
+    router.push('/checkout?buyNow=true');
   };
 
   if (flashProducts.length === 0) return null;
@@ -186,25 +206,25 @@ export default function FlashDeals() {
                   </div>
 
                   {/* Actions */}
-                  <div className="grid grid-cols-5 gap-2 pt-1">
+                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-1">
                     <button
                       onClick={(e) => handleAddToCart(prod, e)}
-                      className={`col-span-4 h-10 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/20 ${
+                      className={`h-9 sm:h-10 px-2 sm:px-3 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 sm:gap-1.5 transition-all focus:outline-none focus:ring-2 focus:ring-slate-400/20 ${
                         isAdded
-                          ? 'bg-emerald-600 text-white shadow-md'
+                          ? 'bg-emerald-600 text-white shadow-sm'
                           : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-95'
                       }`}
                     >
-                      <ShoppingBag className="w-3.5 h-3.5" />
-                      <span>{isAdded ? 'Added' : 'Add to Cart'}</span>
+                      <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{isAdded ? 'Added' : 'Add to Cart'}</span>
                     </button>
-                    <Link
-                      href={`/products/${prod.slug}`}
-                      className="col-span-1 h-10 rounded-xl bg-slate-50 border border-slate-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center justify-center focus:outline-none"
-                      aria-label={`View details of ${prod.name}`}
+                    <button
+                      onClick={(e) => handleBuyNow(prod, e)}
+                      className="h-9 sm:h-10 px-2 sm:px-3 rounded-xl font-bold text-[11px] sm:text-xs bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-rose-500/20"
                     >
-                      <Eye className="w-4 h-4" />
-                    </Link>
+                      <Zap className="w-3.5 h-3.5 shrink-0 fill-current" />
+                      <span className="truncate">Buy Now</span>
+                    </button>
                   </div>
                 </div>
               </div>

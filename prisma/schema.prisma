@@ -236,9 +236,11 @@ model Order {
 
   // Delivery Address Snapshot
   street         String?
+  addressLine2   String?
   city           String?
   district       String?
   province       String?
+  state          String?
   postalCode     String?
   country        String      @default("Sri Lanka")
   deliveryNote   String?     @db.Text
