@@ -93,10 +93,10 @@ export default function ProductDetail({
   // - If variant is selected, isOut/isLow based on variant
   // - If no variant is selected, it's not out of stock yet (unless all variants are 0 stock)
   const isOut = selectedVariant
-    ? (selectedVariant.stockQuantity === 0 || !selectedVariant.inStock)
+    ? (selectedVariant.stockQuantity <= 0)
     : (hasVariants 
-        ? product.variants!.every(v => v.stockQuantity === 0) 
-        : (product.stockQuantity === 0 || !product.inStock));
+        ? product.variants!.every((v) => v.stockQuantity <= 0) 
+        : (product.stockQuantity <= 0));
 
   const isLow = selectedVariant
     ? (!isOut && currentStock <= threshold)
@@ -256,20 +256,27 @@ export default function ProductDetail({
         <div className="flex flex-col gap-3">
           <span className="text-xs font-black text-slate-900 uppercase tracking-widest">Select Options</span>
           <div className="flex flex-wrap gap-2.5">
-            {product.variants!.map((v) => (
-              <button
-                key={v.id}
-                onClick={() => setSelectedVariant(v)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 focus:outline-none ${
-                  selectedVariant?.id === v.id
-                    ? 'border-emerald-600 bg-emerald-50/80 text-emerald-800 ring-2 ring-emerald-500/20 shadow-sm'
-                    : 'border-slate-200 bg-white text-slate-650 hover:border-slate-350 hover:text-slate-900'
-                }`}
-                aria-label={`Select option ${v.name}`}
-              >
-                {v.name}
-              </button>
-            ))}
+            {product.variants!.map((v) => {
+              const isOptionOut = v.stockQuantity <= 0;
+              const isSelected = selectedVariant?.id === v.id;
+              return (
+                <button
+                  key={v.id}
+                  onClick={() => setSelectedVariant(v)}
+                  disabled={isOptionOut}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 focus:outline-none ${
+                    isOptionOut
+                      ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed line-through'
+                      : isSelected
+                      ? 'border-emerald-600 bg-emerald-50/80 text-emerald-800 ring-2 ring-emerald-500/20 shadow-sm'
+                      : 'border-slate-200 bg-white text-slate-650 hover:border-slate-350 hover:text-slate-900'
+                  }`}
+                  aria-label={`Select option ${v.name}${isOptionOut ? ' (Out of stock)' : ''}`}
+                >
+                  {v.name} {isOptionOut ? '(Out of Stock)' : ''}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

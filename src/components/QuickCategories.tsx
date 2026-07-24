@@ -18,14 +18,14 @@ export default function QuickCategories() {
   if (categories.length === 0) return null;
 
   return (
-    <section className="w-full py-10 bg-white border-b border-slate-100" aria-label="Quick Category navigation">
+    <section className="w-full py-6 sm:py-10 bg-white border-b border-slate-100" aria-label="Quick Category navigation">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-4 sm:mb-8 flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Quick Shop</span>
-            <h2 className="text-xl md:text-2xl font-black text-slate-900 mt-0.5">Explore Categories</h2>
+            <h2 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 mt-0.5">Explore Categories</h2>
           </div>
           <Link
             href="/products"
@@ -35,15 +35,15 @@ export default function QuickCategories() {
           </Link>
         </div>
 
-        {/* Horizontal scroll strip */}
-        <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-3 select-none -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth snap-x snap-mandatory">
+        {/* Responsive Compact Categories Grid: 4-cols on mobile, 6 on sm, 8 on lg */}
+        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-4">
           {categories.map((cat) => (
             <Link
               key={cat.id}
               href={`/category/${cat.slug}`}
-              className={`snap-start shrink-0 flex flex-col items-center justify-center gap-2.5 p-4 sm:p-5 min-w-[110px] sm:min-w-[120px] rounded-2xl border transition-all duration-300 hover:shadow-md hover:scale-[1.03] active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 ${cat.colorClasses ?? 'bg-slate-50 border-slate-100'}`}
+              className="group flex flex-col items-center justify-center gap-1.5 p-2 sm:p-3 rounded-2xl border border-slate-100/80 bg-slate-50/60 hover:bg-white hover:border-emerald-500/30 hover:shadow-md transition-all duration-300 active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
             >
-              <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100/80 overflow-hidden flex items-center justify-center relative p-1">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex items-center justify-center relative p-1 group-hover:scale-105 transition-transform">
                 {cat.image ? (
                   <Image
                     src={cat.image}
@@ -53,17 +53,12 @@ export default function QuickCategories() {
                     unoptimized
                   />
                 ) : (
-                  <span className="text-base font-black text-emerald-700">{cat.name.charAt(0)}</span>
+                  <span className="text-sm sm:text-base font-black text-emerald-700">{cat.name.charAt(0)}</span>
                 )}
               </div>
-              <span className="text-xs font-bold text-slate-800 whitespace-nowrap text-center">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-800 text-center line-clamp-1 group-hover:text-emerald-700 transition-colors">
                 {cat.name}
               </span>
-              {cat.subCategories && cat.subCategories.length > 0 && (
-                <span className="text-[9px] font-semibold text-slate-400 bg-white/70 px-2 py-0.5 rounded-full border border-slate-100">
-                  {cat.subCategories.length} Options
-                </span>
-              )}
             </Link>
           ))}
         </div>

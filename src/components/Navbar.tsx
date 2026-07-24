@@ -40,8 +40,8 @@ export default function Navbar() {
   return (
     <>
       <header className="w-full bg-white shadow-sm sticky top-0 z-50 border-b border-slate-100 backdrop-blur-md bg-white/95">
-        {/* Top bar */}
-        <div className="w-full bg-slate-900 text-slate-350 text-xs py-2 border-b border-slate-800">
+        {/* Top bar (Desktop & Tablet only to save mobile vertical space) */}
+        <div className="hidden md:block w-full bg-slate-900 text-slate-350 text-xs py-2 border-b border-slate-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-2">
             <div className="flex items-center gap-6">
               <span className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer select-none">
@@ -71,10 +71,12 @@ export default function Navbar() {
         </div>
 
         {/* Main header */}
-        <div className="w-full py-3.5 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-            <Link href="/" className="flex items-center gap-3 shrink-0 focus:outline-none group">
-              <div className="relative h-11 w-11 md:h-12 md:w-12 rounded-xl overflow-hidden bg-white p-0.5 border border-slate-200/80 shadow-sm group-hover:border-emerald-500/40 transition-all shrink-0">
+        <div className="w-full py-2 sm:py-3.5 bg-white">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4">
+            
+            {/* Logo & Brand Title */}
+            <Link href="/" className="flex items-center gap-2 sm:gap-3 shrink-0 focus:outline-none group">
+              <div className="relative h-9 w-9 sm:h-11 sm:w-11 md:h-12 md:w-12 rounded-xl overflow-hidden bg-white p-0.5 border border-slate-200/80 shadow-sm group-hover:border-emerald-500/40 transition-all shrink-0">
                 <Image
                   src="/logo.png"
                   alt="KL Lanka Natural Logo"
@@ -85,10 +87,10 @@ export default function Navbar() {
                 />
               </div>
               <div className="flex flex-col justify-center">
-                <span className="text-base md:text-lg font-black tracking-tight text-slate-900 leading-tight">
+                <span className="text-sm sm:text-base md:text-lg font-black tracking-tight text-slate-900 leading-none sm:leading-tight">
                   KL LANKA <span className="text-emerald-600">NATURAL</span>
                 </span>
-                <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest leading-none mt-0.5">
+                <span className="text-[8px] sm:text-[9px] font-black text-amber-600 uppercase tracking-widest leading-none mt-0.5">
                   (PVT) LTD
                 </span>
               </div>
@@ -126,11 +128,13 @@ export default function Navbar() {
               </button>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-3.5 shrink-0">
+            {/* Actions (Account, Wishlist, Cart, Mobile Menu) */}
+            <div className="flex items-center gap-1.5 sm:gap-3.5 shrink-0">
+              
+              {/* Account / Login Action */}
               {!authLoading && user ? (
-                <Link href="/account" className="flex items-center gap-2 text-slate-750 hover:text-emerald-650 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20 p-1.5 rounded-xl" aria-label="My Account">
-                  <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black text-sm shrink-0">
+                <Link href="/account" className="flex items-center gap-1.5 p-1.5 sm:p-2 text-slate-750 hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20 rounded-xl" aria-label="My Account">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black text-xs sm:text-sm shrink-0 shadow-sm">
                     {(user.name || user.email || 'U').charAt(0).toUpperCase()}
                   </div>
                   <div className="hidden lg:flex flex-col text-left">
@@ -139,10 +143,8 @@ export default function Navbar() {
                   </div>
                 </Link>
               ) : (
-                <Link href="/login" className="flex items-center gap-2 text-slate-750 hover:text-emerald-650 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20 p-1.5 rounded-xl" aria-label="Sign In">
-                  <div className="p-2 bg-slate-50 rounded-lg border border-slate-100">
-                    <User className="w-4 h-4" />
-                  </div>
+                <Link href="/login" className="p-2 sm:p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-slate-750 hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20 flex items-center gap-2" aria-label="Sign In">
+                  <User className="w-4 h-4" />
                   <div className="hidden lg:flex flex-col text-left">
                     <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider leading-none mb-0.5">Welcome</span>
                     <span className="text-xs font-black text-slate-800 leading-none">Sign In</span>
@@ -150,28 +152,30 @@ export default function Navbar() {
                 </Link>
               )}
 
+              {/* Wishlist Icon Action */}
               <Link
                 href="/wishlist"
-                className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-slate-750 hover:text-emerald-600 transition-all relative focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="p-2 sm:p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-slate-750 hover:text-emerald-600 transition-all relative focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                 aria-label={`Wishlist containing ${wishlistCount} items`}
               >
-                <Heart className="w-4.5 h-4.5" />
+                <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-rose-550 text-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white shadow-sm">
+                  <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 bg-rose-550 text-white text-[8px] sm:text-[9px] font-black w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full flex items-center justify-center border border-white shadow-sm">
                     {wishlistCount}
                   </span>
                 )}
               </Link>
 
+              {/* Cart Drawer Action */}
               <button
                 onClick={() => setIsCartOpen(true)}
-                className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-100/50 text-emerald-700 hover:text-white hover:bg-emerald-600 transition-all relative flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-emerald-550/40 cursor-pointer"
+                className="p-2 sm:p-2.5 bg-emerald-50 rounded-xl border border-emerald-100/50 text-emerald-700 hover:text-white hover:bg-emerald-600 transition-all relative flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-emerald-550/40 cursor-pointer"
                 aria-label={`Cart containing ${cartCount} items`}
               >
                 <div className="relative">
-                  <ShoppingBag className="w-4.5 h-4.5 group-hover:scale-105 transition-transform" />
+                  <ShoppingBag className="w-4 h-4 sm:w-4.5 sm:h-4.5 group-hover:scale-105 transition-transform" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-emerald-600 text-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white shadow-sm">
+                    <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 bg-emerald-600 text-white text-[8px] sm:text-[9px] font-black w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full flex items-center justify-center border border-white shadow-sm">
                       {cartCount}
                     </span>
                   )}
@@ -182,29 +186,31 @@ export default function Navbar() {
                 </div>
               </button>
 
+              {/* Mobile Drawer Trigger Toggle */}
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="md:hidden p-2 text-slate-700 hover:text-emerald-600 rounded-xl hover:bg-slate-50 focus:outline-none"
                 aria-label="Toggle navigation menu"
               >
-                {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
+
             </div>
           </div>
         </div>
 
-        {/* Mobile search */}
-        <div className="w-full px-4 py-2 bg-slate-50 md:hidden border-b border-slate-100">
-          <div className="flex border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white focus-within:border-emerald-500">
+        {/* Compact Integrated Mobile Search Bar */}
+        <div className="w-full px-3 pb-2 pt-0.5 bg-white md:hidden border-t border-slate-100/60">
+          <div className="flex border border-slate-200/80 rounded-full overflow-hidden shadow-2xs bg-slate-50/70 focus-within:border-emerald-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/10 transition-all">
             <input
               type="text"
               placeholder="Search natural products, perfumes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2.5 text-xs text-slate-800 focus:outline-none font-medium placeholder-slate-400"
+              className="w-full px-3.5 py-1.5 text-xs text-slate-800 focus:outline-none font-medium placeholder-slate-400 bg-transparent"
               aria-label="Mobile Search items"
             />
-            <button className="bg-emerald-600 text-white px-4 flex items-center justify-center shrink-0">
+            <button className="bg-emerald-600 text-white px-3.5 flex items-center justify-center shrink-0">
               <Search className="w-3.5 h-3.5" />
             </button>
           </div>

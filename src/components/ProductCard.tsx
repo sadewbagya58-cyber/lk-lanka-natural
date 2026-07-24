@@ -34,8 +34,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   
   const threshold = product.lowStockThreshold ?? 5;
   const isOut = hasVariants
-    ? product.variants!.every(v => v.stockQuantity === 0)
-    : (stock === 0 || !product.inStock);
+    ? (product.variants!.length > 0 && product.variants!.every((v) => v.stockQuantity <= 0))
+    : (stock <= 0);
 
   const isLow = hasVariants
     ? false // Variant low stock is handled per option inside details page
