@@ -2,11 +2,50 @@ export const dynamic = 'force-dynamic';
 
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import type { Metadata } from 'next';
 import CategoryView from '@/components/CategoryView';
 import type { ProductCardData, SubCategoryData } from '@/types/product';
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
+  const cleanSlug = decodedSlug.replace(/&/g, 'and').replace(/[^a-z0-9-]/gi, '-').replace(/-+/g, '-').toLowerCase();
+  const rawSlugNoAmp = decodedSlug.replace(/&/g, '').replace(/\s+/g, '-').toLowerCase();
+  const dashesSlug = decodedSlug.replace(/\s+/g, '-').toLowerCase();
+
+  const category = await prisma.category.findFirst({
+    where: {
+      OR: [
+        { slug: slug },
+        { slug: decodedSlug },
+        { slug: cleanSlug },
+        { slug: rawSlugNoAmp },
+        { slug: dashesSlug },
+        { name: decodedSlug },
+        { name: decodedSlug.replace(/-/g, ' ') },
+        { name: decodedSlug.replace(/-/g, ' & ') },
+      ]
+    },
+    select: { name: true, description: true }
+  });
+
+  if (!category) {
+    return {
+      title: 'Category Not Found | KL Lanka Natural',
+    };
+  }
+
+  return {
+    title: `${category.name} | KL Lanka Natural Products`,
+    description: category.description || `Browse our selection of premium ${category.name} products at KL Lanka Natural. Fast delivery in Sri Lanka.`,
+    alternates: {
+      canonical: `/category/${slug}`,
+    },
+  };
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
@@ -118,8 +157,31 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     </span>
   );
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://kllankanatural.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": category.name,
+        "item": `https://kllankanatural.com/category/${category.slug}`
+      }
+    ]
+  };
+
   return (
     <main className="min-h-screen bg-slate-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <CategoryView
         category={serializableCategory}
         products={products}

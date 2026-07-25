@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { ensureOrderColumnsExist } from "@/lib/db-sync";
 import { SRI_LANKA_PROVINCES } from "@/lib/countries";
 import { isCustomPortraitArt } from "@/lib/custom-portrait";
-import { sendOrderConfirmationEmail, sendNewOrderAdminEmail } from "@/lib/email";
 
 interface CheckoutItemInput {
   productId: string;
@@ -368,23 +367,7 @@ export async function POST(request: Request) {
       return createdOrder;
     });
 
-    // Dispatch email notifications asynchronously without blocking the checkout response
-    try {
-      Promise.allSettled([
-        sendOrderConfirmationEmail(order.id),
-        sendNewOrderAdminEmail(order.id)
-      ]).then((results) => {
-        results.forEach((res, index) => {
-          if (res.status === 'rejected') {
-            console.error(`[Checkout Email Trigger Failure] ${index === 0 ? 'Customer' : 'Admin'} notification failed:`, res.reason);
-          }
-        });
-      }).catch((err) => {
-        console.error("[Checkout Email Promise Exception] Unhandled notification exception:", err);
-      });
-    } catch (emailTriggerError) {
-      console.error("[Checkout Email Sync Trigger Error] Failed to launch email dispatches:", emailTriggerError);
-    }
+
 
     return NextResponse.json({
       success: true,

@@ -20,6 +20,9 @@ export async function generateMetadata({ params }: PageProps) {
   return {
     title: `${p.name} | KL Lanka Natural`,
     description: p.metaDescription || p.shortDescription || p.description.substring(0, 160),
+    alternates: {
+      canonical: `/products/${slug}`,
+    },
   };
 }
 
@@ -134,8 +137,86 @@ export default async function ProductPage({ params }: PageProps) {
   }));
 
 
+  // JSON-LD structured data for search engine indexes
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": p.name,
+    "image": p.images.map(img => img.url),
+    "description": p.metaDescription || p.shortDescription || p.description.substring(0, 160),
+    "sku": p.variants[0]?.sku || p.id,
+    "brand": {
+      "@type": "Brand",
+      "name": p.brand?.name || "KL Lanka Natural"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://kllankanatural.com/products/${p.slug}`,
+      "priceCurrency": "USD",
+      "price": p.price,
+      "priceValidUntil": "2030-12-31",
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": p.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+    },
+    ...(p.rating ? {
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": p.rating,
+        "reviewCount": p.reviewsCount || 1
+      }
+    } : {})
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://kllankanatural.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Products",
+        "item": "https://kllankanatural.com/products"
+      },
+      ...(p.category ? [
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": p.category.name,
+          "item": `https://kllankanatural.com/category/${p.category.slug}`
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": p.name,
+          "item": `https://kllankanatural.com/products/${p.slug}`
+        }
+      ] : [
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": p.name,
+          "item": `https://kllankanatural.com/products/${p.slug}`
+        }
+      ])
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pt-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* Breadcrumb Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 mb-4">
         <nav className="flex items-center gap-2 text-xs font-semibold text-slate-400">

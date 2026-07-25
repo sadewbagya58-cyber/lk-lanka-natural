@@ -1,0 +1,14 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Update Password | KL Lanka Natural',
+  description: 'Enter your new customer password to update your account settings.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+export default function UpdatePasswordLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}

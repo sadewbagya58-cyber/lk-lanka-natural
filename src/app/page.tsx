@@ -10,13 +10,38 @@ import Footer from "@/components/Footer";
 import WhatsAppWidget from "@/components/WhatsAppWidget";
 
 export default function Home() {
-  // JSON-LD structured data for Google Search SEO ranking
-  const jsonLd = {
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "KL Lanka Natural (PVT) LTD",
+    "url": "https://kllankanatural.com",
+    "logo": "https://kllankanatural.com/logo.png",
+    "email": "kllankanatural@gmail.com",
+    "sameAs": [
+      "https://facebook.com/kllankanatural",
+      "https://instagram.com/kllankanatural",
+      "https://linkedin.com/company/kllankanatural"
+    ]
+  };
+
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "url": "https://kllankanatural.com",
+    "name": "KL Lanka Natural",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://kllankanatural.com/products?search={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
+  const storeJsonLd = {
     "@context": "https://schema.org",
     "@type": "OnlineStore",
     "name": "KL Lanka Natural (PVT) LTD",
     "description": "Premium Sri Lankan online marketplace selling organic foods, groceries, cosmetics, perfumes, baby care, and natural health products.",
-    "url": "https://kllankanatural.lk",
+    "url": "https://kllankanatural.com",
     "telephone": "+94112345678",
     "address": {
       "@type": "PostalAddress",
@@ -50,7 +75,15 @@ export default function Home() {
       {/* JSON-LD Schema Inject */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd) }}
       />
 
       {/* Header */}

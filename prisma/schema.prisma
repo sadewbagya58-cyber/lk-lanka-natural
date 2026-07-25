@@ -349,16 +349,5 @@ model FaqItem {
   updatedAt DateTime @updatedAt
 }
 
-model EmailNotification {
-  id                String   @id @default(uuid())
-  orderId           String
-  type              String
-  recipient         String
-  status            String
-  providerMessageId String?
-  error             String?  @db.Text
-  createdAt         DateTime @default(now())
-  sentAt            DateTime @default(now()) @updatedAt
-}
 
 
