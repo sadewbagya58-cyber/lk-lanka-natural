@@ -10,6 +10,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: page?.metaTitle || 'Terms of Service | KL Lanka Natural',
     description: page?.subtitle || 'The terms governing the use of KL Lanka Natural.',
+    alternates: {
+      canonical: '/terms-of-service',
+    },
   };
 }
 
@@ -19,8 +22,31 @@ export default async function TermsOfServicePage() {
   const subtitle = page?.subtitle || 'The terms governing your use of the KL Lanka Natural (PVT) LTD website and services.';
   const sections = page?.sections ?? [];
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://kllankanatural.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Terms of Service",
+        "item": "https://kllankanatural.com/terms-of-service"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <Navbar />
       <main>
         {/* Hero */}

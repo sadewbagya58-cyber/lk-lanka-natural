@@ -10,6 +10,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: page?.metaTitle || 'Returns & Refunds Policy | KL Lanka Natural',
     description: page?.subtitle || 'Our guidelines for returns, exchanges, and refunds.',
+    alternates: {
+      canonical: '/returns-refunds',
+    },
   };
 }
 
@@ -19,8 +22,31 @@ export default async function ReturnsRefundsPage() {
   const subtitle = page?.subtitle || 'Our guidelines for returns, exchanges, and refunds.';
   const sections = page?.sections ?? [];
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://kllankanatural.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Returns & Refunds Policy",
+        "item": "https://kllankanatural.com/returns-refunds"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <Navbar />
       <main>
         {/* Hero */}

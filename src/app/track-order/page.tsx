@@ -10,6 +10,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: page?.metaTitle || 'Track Your Order | KL Lanka Natural',
     description: page?.subtitle || 'Track your order status.',
+    alternates: {
+      canonical: '/track-order',
+    },
   };
 }
 
@@ -19,8 +22,31 @@ export default async function TrackOrderPage() {
   const subtitle = page?.subtitle || 'Order tracking is currently in development. Contact us for a status update.';
   const sections = page?.sections ?? [];
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://kllankanatural.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Track Your Order",
+        "item": "https://kllankanatural.com/track-order"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <Navbar />
       <main>
         {/* Hero */}

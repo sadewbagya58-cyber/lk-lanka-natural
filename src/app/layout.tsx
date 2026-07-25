@@ -3,6 +3,10 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://kllankanatural.com'),
+  alternates: {
+    canonical: '/',
+  },
   title: "KL Lanka Natural | Premium Online Marketplace Sri Lanka",
   description: "Shop premium natural products, groceries, cosmetics, health supplements, and exquisite perfumes at KL Lanka Natural (PVT) LTD. Fast island-wide delivery in Sri Lanka.",
   icons: {

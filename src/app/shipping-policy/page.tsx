@@ -10,6 +10,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: page?.metaTitle || 'Shipping & Delivery Policy | KL Lanka Natural',
     description: page?.subtitle || 'Delivery information for Sri Lanka and international orders.',
+    alternates: {
+      canonical: '/shipping-policy',
+    },
   };
 }
 
@@ -19,8 +22,31 @@ export default async function ShippingPolicyPage() {
   const subtitle = page?.subtitle || 'Delivery information for Sri Lanka and international orders.';
   const sections = page?.sections ?? [];
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://kllankanatural.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Shipping & Delivery Policy",
+        "item": "https://kllankanatural.com/shipping-policy"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <Navbar />
       <main>
         {/* Hero */}

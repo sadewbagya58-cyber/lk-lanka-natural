@@ -10,6 +10,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: page?.metaTitle || 'About Us | KL Lanka Natural',
     description: page?.subtitle || "Sri Lanka's premier destination for authentic natural wellness.",
+    alternates: {
+      canonical: '/about',
+    },
   };
 }
 
@@ -24,8 +27,31 @@ export default async function AboutPage() {
   const valuesSection = sections.find(s => s.sectionType === 'values');
   const contentSections = sections.filter(s => s.sectionType === 'content');
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://kllankanatural.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "About Us",
+        "item": "https://kllankanatural.com/about"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <Navbar />
       <main>
         {/* Hero */}

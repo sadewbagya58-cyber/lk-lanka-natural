@@ -10,6 +10,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: page?.metaTitle || 'Privacy Policy | KL Lanka Natural',
     description: page?.subtitle || 'How we collect, use, and protect your personal information.',
+    alternates: {
+      canonical: '/privacy-policy',
+    },
   };
 }
 
@@ -19,8 +22,31 @@ export default async function PrivacyPolicyPage() {
   const subtitle = page?.subtitle || 'How we collect, use, and protect your personal information.';
   const sections = page?.sections ?? [];
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://kllankanatural.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Privacy Policy",
+        "item": "https://kllankanatural.com/privacy-policy"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <Navbar />
       <main>
         {/* Hero */}
