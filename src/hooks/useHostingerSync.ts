@@ -17,7 +17,8 @@ export function useHostingerSync() {
   const clearWishlist = useWishlistStore((s) => s.clearWishlist);
 
   // Synchronization status refs to prevent feedback loops and duplicate runs
-  const mergedRef = useRef(false);
+  const cartMergedRef = useRef(false);
+  const wishlistMergedRef = useRef(false);
   const prevStatusRef = useRef(status);
   const lastCartSyncRef = useRef<string>('');
   const lastWishlistSyncRef = useRef<string>('');
@@ -29,7 +30,8 @@ export function useHostingerSync() {
     if (prevStatusRef.current === 'authenticated' && status === 'unauthenticated') {
       clearCart();
       clearWishlist();
-      mergedRef.current = false;
+      cartMergedRef.current = false;
+      wishlistMergedRef.current = false;
       lastCartSyncRef.current = '';
       lastWishlistSyncRef.current = '';
     }
@@ -50,7 +52,7 @@ export function useHostingerSync() {
       return;
     }
 
-    const isFirstMerge = !mergedRef.current;
+    const isFirstMerge = !cartMergedRef.current;
     isSyncingCartRef.current = true;
 
     async function doCartSync() {
@@ -82,7 +84,7 @@ export function useHostingerSync() {
             }
           }
           if (isFirstMerge) {
-            mergedRef.current = true;
+            cartMergedRef.current = true;
           }
         }
       } catch (err) {
@@ -111,7 +113,7 @@ export function useHostingerSync() {
       return;
     }
 
-    const isFirstMerge = !mergedRef.current;
+    const isFirstMerge = !wishlistMergedRef.current;
     isSyncingWishlistRef.current = true;
 
     async function doWishlistSync() {
@@ -135,7 +137,7 @@ export function useHostingerSync() {
             }
           }
           if (isFirstMerge) {
-            mergedRef.current = true;
+            wishlistMergedRef.current = true;
           }
         }
       } catch (err) {
