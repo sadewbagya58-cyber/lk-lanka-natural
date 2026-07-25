@@ -38,9 +38,10 @@ async function sendEmailViaResend(
 
   // 1.5 Guard against missing sender email
   if (!EMAIL_FROM) {
-    console.error(`[Email Error] EMAIL_FROM is not configured in environment variables. Cannot send ${type} for order ${orderId}.`);
-    await logNotification(orderId, type, recipient, 'FAILED', null, 'EMAIL_FROM env var is missing');
-    return false;
+    const errorMsg = 'EMAIL_FROM environment variable is not configured';
+    console.error(`[Email Error] ${errorMsg}. Cannot send ${type} for order ${orderId}.`);
+    await logNotification(orderId, type, recipient, 'FAILED', null, errorMsg);
+    throw new Error(errorMsg);
   }
 
   // 2. Guard against duplicate successful sends
