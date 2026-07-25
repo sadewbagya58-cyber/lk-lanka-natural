@@ -1,7 +1,7 @@
 import { prisma } from './prisma';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM || 'KLLANKA NATURAL <onboarding@resend.dev>';
+const EMAIL_FROM = process.env.EMAIL_FROM || 'KLLANKA NATURAL <orders@kllankanatural.com>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'kllankanatural@gmail.com';
 
 // Supported notification types
@@ -303,14 +303,14 @@ function getEmailLayout(title: string, innerContentHtml: string): string {
 }
 
 interface AddressFields {
-  street: string;
+  street?: string | null;
   addressLine2?: string | null;
-  city: string;
+  city?: string | null;
   district?: string | null;
   province?: string | null;
   state?: string | null;
-  postalCode: string;
-  country: string;
+  postalCode?: string | null;
+  country?: string | null;
 }
 
 /**
