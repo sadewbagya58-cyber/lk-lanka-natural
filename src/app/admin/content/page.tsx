@@ -1,10 +1,12 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  FileText, Info, HelpCircle, Truck, RotateCcw, Shield, Scale, MapPin, Settings, ChevronRight, Eye, EyeOff, MessageSquare, RefreshCcw
+  Info, HelpCircle, Truck, RotateCcw, Shield, Scale, MapPin, Settings, ChevronRight, Eye, EyeOff, MessageSquare, RefreshCcw
 } from 'lucide-react';
+
 
 interface PageSummary {
   id: string;

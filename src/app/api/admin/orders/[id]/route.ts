@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminSession } from "@/lib/session";
+import { sendOrderShippedEmail, sendOrderDeliveredEmail } from "@/lib/email";
 
 export async function GET(
   request: Request,
@@ -165,6 +166,28 @@ export async function PUT(
         }
       });
     });
+
+    // Dispatch emails on state transition
+    const statusChangedToShipped = status === "SHIPPED" && currentOrder.status !== "SHIPPED";
+    const statusChangedToDelivered = status === "DELIVERED" && currentOrder.status !== "DELIVERED";
+
+    if (statusChangedToShipped) {
+      try {
+        sendOrderShippedEmail(id).catch(err => {
+          console.error(`[Order Shipped Email Error] Failed to send shipped email for order ${id}:`, err);
+        });
+      } catch (err) {
+        console.error(`[Order Shipped Email Exception] Failed to trigger shipped email:`, err);
+      }
+    } else if (statusChangedToDelivered) {
+      try {
+        sendOrderDeliveredEmail(id).catch(err => {
+          console.error(`[Order Delivered Email Error] Failed to send delivered email for order ${id}:`, err);
+        });
+      } catch (err) {
+        console.error(`[Order Delivered Email Exception] Failed to trigger delivered email:`, err);
+      }
+    }
 
     return NextResponse.json({ success: true, order: updatedOrder });
   } catch (error: unknown) {

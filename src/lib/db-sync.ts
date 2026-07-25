@@ -256,6 +256,27 @@ export async function ensureOrderColumnsExist(): Promise<void> {
       console.warn('DB Sync FaqItem table notice:', (err as Error).message);
     }
 
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS \`EmailNotification\` (
+          \`id\` VARCHAR(191) NOT NULL,
+          \`orderId\` VARCHAR(191) NOT NULL,
+          \`type\` VARCHAR(191) NOT NULL,
+          \`recipient\` VARCHAR(191) NOT NULL,
+          \`status\` VARCHAR(191) NOT NULL,
+          \`providerMessageId\` VARCHAR(191) NULL,
+          \`error\` TEXT NULL,
+          \`createdAt\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+          \`sentAt\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+          PRIMARY KEY (\`id\`),
+          INDEX \`EmailNotification_orderId_idx\` (\`orderId\`),
+          INDEX \`EmailNotification_type_idx\` (\`type\`)
+        ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+      `);
+    } catch (err) {
+      console.warn('DB Sync EmailNotification table notice:', (err as Error).message);
+    }
+
     // 7. Seed default CMS page content
     try {
       const cmsDefaults: Array<{
