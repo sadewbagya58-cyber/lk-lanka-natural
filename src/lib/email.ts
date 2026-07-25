@@ -1,7 +1,7 @@
 import { prisma } from './prisma';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM || 'KLLANKA NATURAL <orders@kllankanatural.com>';
+const EMAIL_FROM = process.env.EMAIL_FROM;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'kllankanatural@gmail.com';
 
 // Supported notification types
@@ -33,6 +33,13 @@ async function sendEmailViaResend(
   if (!RESEND_API_KEY) {
     console.error(`[Email Error] RESEND_API_KEY is not configured in environment variables. Cannot send ${type} for order ${orderId}.`);
     await logNotification(orderId, type, recipient, 'FAILED', null, 'RESEND_API_KEY env var is missing');
+    return false;
+  }
+
+  // 1.5 Guard against missing sender email
+  if (!EMAIL_FROM) {
+    console.error(`[Email Error] EMAIL_FROM is not configured in environment variables. Cannot send ${type} for order ${orderId}.`);
+    await logNotification(orderId, type, recipient, 'FAILED', null, 'EMAIL_FROM env var is missing');
     return false;
   }
 
