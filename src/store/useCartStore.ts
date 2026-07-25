@@ -11,6 +11,7 @@ export interface CartItem {
   unitPrice: number;
   /** Primary product or variant image URL */
   image?: string | null;
+  customUploadImage?: string | null;
 }
 
 interface CartState {
@@ -21,10 +22,17 @@ interface CartState {
     selectedVariantId: string | null,
     unitPrice: number,
     image?: string | null,
-    maxStock?: number
+    maxStock?: number,
+    customUploadImage?: string | null
   ) => void;
-  removeFromCart: (productId: string, selectedVariantId?: string | null) => void;
-  updateQuantity: (productId: string, quantity: number, selectedVariantId?: string | null, maxStock?: number) => void;
+  removeFromCart: (productId: string, selectedVariantId?: string | null, customUploadImage?: string | null) => void;
+  updateQuantity: (
+    productId: string,
+    quantity: number,
+    selectedVariantId?: string | null,
+    maxStock?: number,
+    customUploadImage?: string | null
+  ) => void;
   clearCart: () => void;
   setCartItems: (items: CartItem[]) => void;
   getCartTotalItems: () => number;
@@ -36,7 +44,7 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       cartItems: [],
 
-      addToCart: (productId, quantity = 1, selectedVariantId = null, unitPrice, image = null, maxStock) => {
+      addToCart: (productId, quantity = 1, selectedVariantId = null, unitPrice, image = null, maxStock, customUploadImage = null) => {
         if (maxStock !== undefined && maxStock <= 0) return;
 
         const items = get().cartItems;
@@ -45,7 +53,8 @@ export const useCartStore = create<CartState>()(
         const existingIndex = items.findIndex(
           (item) =>
             item.productId === productId &&
-            (item.selectedVariantId ?? null) === normalizedVariantId
+            (item.selectedVariantId ?? null) === normalizedVariantId &&
+            (item.customUploadImage ?? null) === (customUploadImage ?? null)
         );
 
         if (existingIndex > -1) {
@@ -72,29 +81,37 @@ export const useCartStore = create<CartState>()(
           set({
             cartItems: [
               ...items,
-              { productId, quantity: initialQty, selectedVariantId: normalizedVariantId, unitPrice, image: image ?? null },
+              {
+                productId,
+                quantity: initialQty,
+                selectedVariantId: normalizedVariantId,
+                unitPrice,
+                image: image ?? null,
+                customUploadImage: customUploadImage ?? null,
+              },
             ],
           });
         }
       },
 
-      removeFromCart: (productId, selectedVariantId = null) => {
+      removeFromCart: (productId, selectedVariantId = null, customUploadImage = null) => {
         const normalizedVariantId = selectedVariantId ?? null;
         set({
           cartItems: get().cartItems.filter(
             (item) =>
               !(
                 item.productId === productId &&
-                (item.selectedVariantId ?? null) === normalizedVariantId
+                (item.selectedVariantId ?? null) === normalizedVariantId &&
+                (item.customUploadImage ?? null) === (customUploadImage ?? null)
               )
           ),
         });
       },
 
-      updateQuantity: (productId, quantity, selectedVariantId = null, maxStock) => {
+      updateQuantity: (productId, quantity, selectedVariantId = null, maxStock, customUploadImage = null) => {
         const normalizedVariantId = selectedVariantId ?? null;
         if (quantity <= 0) {
-          get().removeFromCart(productId, normalizedVariantId);
+          get().removeFromCart(productId, normalizedVariantId, customUploadImage);
           return;
         }
 
@@ -106,7 +123,8 @@ export const useCartStore = create<CartState>()(
         set({
           cartItems: get().cartItems.map((item) =>
             item.productId === productId &&
-            (item.selectedVariantId ?? null) === normalizedVariantId
+            (item.selectedVariantId ?? null) === normalizedVariantId &&
+            (item.customUploadImage ?? null) === (customUploadImage ?? null)
               ? { ...item, quantity: targetQty }
               : item
           ),

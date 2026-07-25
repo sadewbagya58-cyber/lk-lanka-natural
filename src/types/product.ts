@@ -41,6 +41,8 @@ export interface ProductCardData {
   totalStock?: number;
   lowStockThreshold?: number;
   categoryId?: string;
+  description?: string;
+  tags?: string[];
   variants?: ProductCardVariantData[];
 }
 

@@ -53,7 +53,7 @@ export default function ProductGrid() {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex items-center p-1 bg-slate-200/70 border border-slate-200 rounded-2xl w-full md:w-auto overflow-x-auto hide-scrollbar">
+          <div className="grid grid-cols-2 md:flex items-center p-1 bg-slate-200/70 border border-slate-200 rounded-2xl w-full md:w-auto gap-1 md:gap-0">
             {tabs.map((tab) => {
               const TabIcon = tab.icon;
               const isActive = activeTab === tab.id;

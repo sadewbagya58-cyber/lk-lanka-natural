@@ -11,7 +11,8 @@ import {
   ArrowLeft,
   ShoppingBag,
   Settings,
-  FileText
+  FileText,
+  MessageSquare
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -29,6 +30,7 @@ export default function AdminClientLayout({
     { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
     { label: 'Categories', href: '/admin/categories', icon: Layers },
     { label: 'Brands', href: '/admin/brands', icon: Tag },
+    { label: 'Reviews', href: '/admin/reviews', icon: MessageSquare },
     { label: 'Content', href: '/admin/content', icon: FileText },
     { label: 'Settings', href: '/admin/settings', icon: Settings },
   ];

@@ -73,6 +73,7 @@ function CheckoutContent() {
   // Method Selections
   const [deliveryMethod, setDeliveryMethod] = useState('STANDARD_COURIER');
   const [paymentMethod, setPaymentMethod] = useState('COD');
+  const [deliveryCost, setDeliveryCost] = useState(4.99);
 
   const [productMap, setProductMap] = useState<Record<string, ProductCardData>>({});
   const [loading, setLoading] = useState(true);
@@ -201,8 +202,8 @@ function CheckoutContent() {
     return getCartSubtotal();
   }, [isBuyNow, buyNowItem, productMap, getCartSubtotal]);
 
-  // Delivery fee logic: Sri Lanka = $4.99 or FREE for $50+. International = FREE / Quote Pending.
-  const shippingCost = isSriLanka ? (subtotal >= 50.0 ? 0 : 4.99) : 0;
+  // Delivery fee logic: Sri Lanka = dynamic deliveryCost. International = Quote Pending.
+  const shippingCost = isSriLanka ? deliveryCost : 0;
   const total = subtotal + shippingCost;
 
   // Load User Saved Profile Address & Product Display Data
@@ -214,9 +215,10 @@ function CheckoutContent() {
 
     async function loadCheckoutData() {
       try {
-        const [profileRes, productsRes] = await Promise.allSettled([
+        const [profileRes, productsRes, settingsRes] = await Promise.allSettled([
           fetch('/api/profile'),
           fetchWithRetry<{ products: ProductCardData[] }>('/api/products'),
+          fetch('/api/settings').then((r) => r.json()),
         ]);
 
         if (profileRes.status === 'fulfilled' && profileRes.value.ok) {
@@ -244,6 +246,13 @@ function CheckoutContent() {
           });
           setProductMap(map);
         }
+
+        if (settingsRes.status === 'fulfilled' && settingsRes.value?.success && settingsRes.value?.settings) {
+          const cost = parseFloat(settingsRes.value.settings.deliveryCost);
+          if (!isNaN(cost)) {
+            setDeliveryCost(cost);
+          }
+        }
       } catch (err) {
         console.error('Checkout data load warning:', err);
       } finally {
@@ -255,6 +264,16 @@ function CheckoutContent() {
       loadCheckoutData();
     }
   }, [status, session, cartItems.length, isBuyNow, router]);
+
+  useEffect(() => {
+    const customItem = currentItems.find((item) => (item as { customUploadImage?: string | null }).customUploadImage);
+    if (customItem && (customItem as { customUploadImage?: string | null }).customUploadImage) {
+      const timer = setTimeout(() => {
+        setReferencePhotoUrl((customItem as { customUploadImage?: string | null }).customUploadImage!);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [currentItems]);
 
   // Form Submit Handler
   const handleSubmitOrder = (e: React.FormEvent) => {
@@ -922,7 +941,7 @@ function CheckoutContent() {
                   const gradient = product?.gradient ?? 'from-slate-100 to-slate-200';
                   const visualSeed = product?.visualSeed ?? 'leaf';
                   const variant = product?.variants?.find((v) => v.id === item.selectedVariantId);
-                  const displayImage = variant?.imageUrl || (isBuyNow ? buyNowItem?.image : item.image) || product?.image;
+                  const displayImage = variant?.imageUrl || product?.image || (isBuyNow ? buyNowItem?.image : item.image);
 
                   const effectiveUnitPrice = typeof item.unitPrice === 'number' && !isNaN(item.unitPrice) && item.unitPrice > 0
                     ? item.unitPrice

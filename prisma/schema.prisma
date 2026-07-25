@@ -217,6 +217,7 @@ model Review {
   title      String?
   comment    String   @db.Text
   verified   Boolean  @default(false)
+  status     String   @default("PENDING") // PENDING, APPROVED, REJECTED
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }

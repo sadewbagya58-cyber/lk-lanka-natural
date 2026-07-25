@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, ShoppingBag, Trash2, Minus, Plus, CreditCard } from 'lucide-react';
+import { X, ShoppingBag, Trash2, Minus, Plus, CreditCard, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { useCartStore } from '@/store/useCartStore';
 import { formatPrice } from '@/lib/currency';
@@ -90,20 +90,20 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
               const variant = product?.variants?.find((v) => v.id === item.selectedVariantId);
               const variantName = variant?.name;
-              const displayImage = variant?.imageUrl || item.image || product?.image;
+              const displayImage = variant?.imageUrl || product?.image || item.image;
 
               return (
                 <div
-                  key={`${item.productId}-${item.selectedVariantId || ''}`}
+                  key={`${item.productId}-${item.selectedVariantId || ''}-${item.customUploadImage || ''}`}
                   className="flex gap-4 p-3.5 bg-slate-50 border border-slate-100 rounded-2xl relative group"
                 >
                   {/* Thumbnail */}
                   <ItemImage
-                    src={displayImage}
+                    src={item.customUploadImage || displayImage}
                     alt={name}
                     gradient={gradient}
                     visualSeed={visualSeed}
-                    className="w-16 h-16"
+                    className="w-16 h-16 animate-fade-in"
                     iconClassName="w-9 h-9"
                   />
 
@@ -116,13 +116,20 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                           Option: {variantName}
                         </span>
                       )}
+                      {item.customUploadImage && (
+                        <div className="mt-1">
+                          <span className="text-[9px] font-black text-purple-700 bg-purple-100 border border-purple-200/50 px-1.5 py-0.5 rounded-md inline-flex items-center gap-1 select-none">
+                            <Upload className="w-2.5 h-2.5" /> Photo Loaded
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-sm font-black text-slate-900">{formatPrice(displayPrice)}</span>
                       {/* Quantity switcher */}
                       <div className="flex items-center border border-slate-200 rounded-lg h-8 bg-white overflow-hidden shadow-sm">
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity - 1, item.selectedVariantId)}
+                          onClick={() => updateQuantity(item.productId, item.quantity - 1, item.selectedVariantId, undefined, item.customUploadImage)}
                           className="w-7 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 focus:outline-none"
                           aria-label="Decrease quantity"
                         >
@@ -134,7 +141,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                             item.productId,
                             item.quantity + 1,
                             item.selectedVariantId,
-                            variant ? variant.stockQuantity : product?.stockQuantity
+                            variant ? variant.stockQuantity : product?.stockQuantity,
+                            item.customUploadImage
                           )}
                           className="w-7 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 focus:outline-none"
                           aria-label="Increase quantity"
@@ -147,7 +155,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
                   {/* Delete */}
                   <button
-                    onClick={() => removeFromCart(item.productId, item.selectedVariantId)}
+                    onClick={() => removeFromCart(item.productId, item.selectedVariantId, item.customUploadImage)}
                     className="absolute top-3.5 right-3.5 p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors focus:outline-none"
                     aria-label={`Remove ${name} from cart`}
                   >

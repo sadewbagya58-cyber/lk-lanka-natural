@@ -19,6 +19,7 @@ export default function AdminSettingsPage() {
     helpLink_returnsRefunds: '',
     helpLink_faq: '',
     helpLink_helpCenter: '',
+    deliveryCost: '4.99',
   });
 
   const [loading, setLoading] = useState(true);
@@ -187,6 +188,30 @@ export default function AdminSettingsPage() {
                   className="w-full px-4 py-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none font-medium"
                 />
               </div>
+            </div>
+
+            {/* Delivery Cost */}
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <label htmlFor="deliveryCost" className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                Standard Sri Lanka Delivery Cost (USD) *
+              </label>
+              <div className="flex border border-slate-200 rounded-xl overflow-hidden focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 bg-white">
+                <span className="flex items-center px-3.5 text-slate-400 border-r border-slate-100 bg-slate-50">
+                  <Globe className="w-4 h-4 text-emerald-600" />
+                </span>
+                <input
+                  id="deliveryCost"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={settings.deliveryCost}
+                  onChange={(e) => setSettings({ ...settings, deliveryCost: e.target.value })}
+                  placeholder="e.g. 4.99"
+                  required
+                  className="w-full px-4 py-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none font-medium"
+                />
+              </div>
+              <span className="text-[9px] text-slate-450 font-medium">Default: 4.99 USD. Used to calculate courier shipping charges dynamically.</span>
             </div>
           </div>
         </div>

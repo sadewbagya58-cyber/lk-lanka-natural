@@ -164,6 +164,33 @@ export async function ensureOrderColumnsExist(): Promise<void> {
       console.warn('DB Sync WebsiteSetting table notice:', (err as Error).message);
     }
 
+    // Ensure Review table exists
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS \`Review\` (
+          \`id\` VARCHAR(191) NOT NULL,
+          \`userId\` VARCHAR(191) NOT NULL,
+          \`productId\` VARCHAR(191) NOT NULL,
+          \`rating\` INT NOT NULL,
+          \`title\` VARCHAR(191) NULL,
+          \`comment\` TEXT NOT NULL,
+          \`verified\` TINYINT(1) NOT NULL DEFAULT 0,
+          \`status\` VARCHAR(191) NOT NULL DEFAULT 'PENDING',
+          \`createdAt\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+          \`updatedAt\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+          PRIMARY KEY (\`id\`),
+          FOREIGN KEY (\`userId\`) REFERENCES \`User\`(\`id\`) ON DELETE CASCADE,
+          FOREIGN KEY (\`productId\`) REFERENCES \`Product\`(\`id\`) ON DELETE CASCADE
+        ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+      `);
+      // Run alter column just in case the table existed before
+      await prisma.$executeRawUnsafe(
+        "ALTER TABLE `Review` ADD COLUMN IF NOT EXISTS `status` VARCHAR(191) NOT NULL DEFAULT 'PENDING'"
+      );
+    } catch (err) {
+      console.warn('DB Sync Review table notice:', (err as Error).message);
+    }
+
     try {
       const defaultSettings = [
         { key: 'companyAddress', value: 'No. 124, Galle Road, Colombo 03, Sri Lanka' },
@@ -179,6 +206,7 @@ export async function ensureOrderColumnsExist(): Promise<void> {
         { key: 'helpLink_returnsRefunds', value: '/returns-refunds' },
         { key: 'helpLink_faq', value: '/faq' },
         { key: 'helpLink_helpCenter', value: '/contact' },
+        { key: 'deliveryCost', value: '4.99' },
       ];
 
       for (const setting of defaultSettings) {
@@ -295,7 +323,7 @@ export async function ensureOrderColumnsExist(): Promise<void> {
           subtitle: 'Delivery information for Sri Lanka and international orders.',
           metaTitle: 'Shipping & Delivery Policy | KL Lanka Natural',
           sections: [
-            { heading: 'Delivery Within Sri Lanka', content: 'We offer standard island-wide courier delivery across all provinces and districts in Sri Lanka.\n\nStandard Delivery Fee: $4.99 USD\n\nFree Delivery: Orders exceeding a subtotal of $50.00 USD qualify for free standard courier delivery.\n\nDelivery Timelines: Courier partners typically deliver packages within 3 to 7 business days from dispatch.', sectionType: 'content', sortOrder: 0 },
+            { heading: 'Delivery Within Sri Lanka', content: 'We offer standard island-wide courier delivery across all provinces and districts in Sri Lanka.\n\nDelivery Fee: Calculated dynamically during checkout.\n\nDelivery Timelines: Courier partners typically deliver packages within 3 to 7 business days from dispatch.', sectionType: 'content', sortOrder: 0 },
             { heading: 'International Shipping', content: 'We provide international shipping options to select destinations. Because international courier weights, dimensions, and destinations vary widely, shipping costs are calculated on a case-by-case basis.\n\nUpon submitting your international order, our support team will calculate the shipping parameters and email you a verified shipping quote at kllankanatural@gmail.com.', sectionType: 'content', sortOrder: 1 },
             { heading: 'Custom Portrait Art Orders', content: 'Products under the Custom Portrait Art category represent bespoke artist services rather than pre-stocked inventory.\n\nBespoke Production: Creating custom portrait art requires separate design and painting periods. Delivery times will vary based on artist queues and complexities.\n\nSubmission Validation: Production begins only after a valid reference photo is uploaded during checkout.', sectionType: 'content', sortOrder: 2 },
             { heading: 'Order Processing', content: 'Standard orders are typically processed and packed within 1 to 2 business days (Monday to Friday, excluding public holidays). Once dispatched, courier hand-off triggers delivery tracking information where available.', sectionType: 'content', sortOrder: 3 },
@@ -411,7 +439,7 @@ export async function ensureOrderColumnsExist(): Promise<void> {
           { question: 'Can I add Custom Portrait Art to my regular cart?', answer: 'No. Custom Portrait Art must be purchased using Buy Now to ensure your reference photo is correctly linked to your order.', category: 'Custom Portrait Art', sortOrder: 2 },
           { question: 'What types of photos should I upload?', answer: 'Upload clear, high-resolution photos with good lighting. The face and subject should be clearly visible. Avoid blurry or heavily filtered images.', category: 'Custom Portrait Art', sortOrder: 3 },
           { question: 'Are my uploaded reference photos kept private?', answer: 'Yes. Your uploaded reference photos are only accessed by our design team and professional artists. They are never shared publicly.', category: 'Custom Portrait Art', sortOrder: 4 },
-          { question: 'Do you deliver island-wide in Sri Lanka?', answer: 'Yes, we offer standard courier delivery across all provinces and districts in Sri Lanka. Standard delivery is $4.99 USD, with free delivery on orders over $50.', category: 'Delivery & Shipping', sortOrder: 0 },
+          { question: 'Do you deliver island-wide in Sri Lanka?', answer: 'Yes, we offer standard courier delivery across all provinces and districts in Sri Lanka. Standard delivery rates apply based on our current settings.', category: 'Delivery & Shipping', sortOrder: 0 },
           { question: 'Do you ship internationally?', answer: 'Yes, we ship to select international destinations. Shipping costs are calculated per-order based on weight and destination. You will receive a shipping quote via email after placing your order.', category: 'Delivery & Shipping', sortOrder: 1 },
           { question: 'How long does delivery take?', answer: 'Standard Sri Lanka deliveries typically arrive within 3 to 7 business days from dispatch. International delivery times vary by destination.', category: 'Delivery & Shipping', sortOrder: 2 },
           { question: 'What payment methods are available?', answer: 'Currently, Cash on Delivery (COD) is available for eligible Sri Lanka orders.', category: 'Payments', sortOrder: 0 },

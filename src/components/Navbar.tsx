@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Heart, ShoppingBag, User, MapPin, Phone, RefreshCw, ChevronDown, Menu, X, Globe, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import CartDrawer from './CartDrawer';
@@ -21,6 +22,28 @@ export default function Navbar() {
   const [categories, setCategories] = useState<CategoryData[]>([]);
 
   const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const query = searchQuery.trim();
+    let url = `/products`;
+    const params = new URLSearchParams();
+    if (query) {
+      params.set('search', query);
+    }
+    if (selectedCategory && selectedCategory !== 'All Categories') {
+      const cat = categories.find((c) => c.name === selectedCategory);
+      if (cat) {
+        params.set('category', cat.slug);
+      }
+    }
+    const queryString = params.toString();
+    if (queryString) {
+      url += `?${queryString}`;
+    }
+    router.push(url);
+  };
 
   const cartItems = useCartStore((state) => state.cartItems);
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
@@ -101,7 +124,7 @@ export default function Navbar() {
             </Link>
 
             {/* Desktop search */}
-            <div className="hidden md:flex flex-grow max-w-2xl border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:border-slate-350 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-550/15 transition-all">
+            <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-grow max-w-2xl border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:border-slate-350 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-550/15 transition-all">
               <div className="relative shrink-0 border-r border-slate-100 bg-slate-50 flex items-center px-4 text-xs font-bold text-slate-650 hover:bg-slate-100 cursor-pointer select-none gap-1">
                 <span>{selectedCategory}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -125,12 +148,13 @@ export default function Navbar() {
                 aria-label="Search items"
               />
               <button
+                type="submit"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 flex items-center justify-center shrink-0 transition-colors focus:outline-none focus:bg-emerald-700"
                 aria-label="Submit search"
               >
                 <Search className="w-4 h-4" />
               </button>
-            </div>
+            </form>
 
             {/* Actions (Account, Wishlist, Cart, Mobile Menu) */}
             <div className="flex items-center gap-1.5 sm:gap-3.5 shrink-0">
@@ -213,7 +237,7 @@ export default function Navbar() {
 
         {/* Compact Integrated Mobile Search Bar */}
         <div className="w-full px-3 pb-2 pt-0.5 bg-white md:hidden border-t border-slate-100/60">
-          <div className="flex border border-slate-200/80 rounded-full overflow-hidden shadow-2xs bg-slate-50/70 focus-within:border-emerald-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/10 transition-all">
+          <form onSubmit={handleSearchSubmit} className="flex border border-slate-200/80 rounded-full overflow-hidden shadow-2xs bg-slate-50/70 focus-within:border-emerald-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/10 transition-all">
             <input
               type="text"
               placeholder="Search natural products, perfumes..."
@@ -222,10 +246,10 @@ export default function Navbar() {
               className="w-full px-3.5 py-1.5 text-xs text-slate-800 focus:outline-none font-medium placeholder-slate-400 bg-transparent"
               aria-label="Mobile Search items"
             />
-            <button className="bg-emerald-600 text-white px-3.5 flex items-center justify-center shrink-0">
+            <button type="submit" className="bg-emerald-600 text-white px-3.5 flex items-center justify-center shrink-0">
               <Search className="w-3.5 h-3.5" />
             </button>
-          </div>
+          </form>
         </div>
       </header>
 

@@ -53,6 +53,7 @@ export async function PUT(request: Request) {
       'helpLink_returnsRefunds',
       'helpLink_faq',
       'helpLink_helpCenter',
+      'deliveryCost',
     ];
 
     // Validation
@@ -70,6 +71,13 @@ export async function PUT(request: Request) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(val.trim())) {
           return NextResponse.json({ error: 'Please enter a valid support email address.' }, { status: 400 });
+        }
+      }
+
+      if (key === 'deliveryCost') {
+        const costVal = parseFloat(val);
+        if (isNaN(costVal) || costVal < 0) {
+          return NextResponse.json({ error: 'Delivery cost must be a non-negative number.' }, { status: 400 });
         }
       }
     }

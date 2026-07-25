@@ -7,6 +7,7 @@ export interface BuyNowItem {
   quantity: number;
   unitPrice: number;
   image?: string | null;
+  customUploadImage?: string | null;
 }
 
 interface BuyNowState {

@@ -16,11 +16,20 @@ export async function GET(
         brand: true,
         images: { orderBy: { sortOrder: 'asc' } },
         variants: true,
-        reviews: { include: { user: { select: { name: true } } }, orderBy: { createdAt: 'desc' } },
+        reviews: {
+          where: { status: 'APPROVED' },
+          include: { user: { select: { name: true } } },
+          orderBy: { createdAt: 'desc' }
+        },
       },
     });
 
     if (!p) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    const approvedReviews = p.reviews;
+    const reviewsCount = approvedReviews.length;
+    const ratingSum = approvedReviews.reduce((sum, r) => sum + r.rating, 0);
+    const avgRating = reviewsCount > 0 ? parseFloat((ratingSum / reviewsCount).toFixed(1)) : 0;
 
     const card: ProductCardData = {
       id: p.id,
@@ -34,8 +43,8 @@ export async function GET(
       categoryId: p.categoryId,
       brandName: p.brand?.name ?? '',
       inStock: p.inStock,
-      rating: p.rating,
-      reviewsCount: p.reviewsCount,
+      rating: avgRating,
+      reviewsCount: reviewsCount,
       gradient: p.gradient,
       visualSeed: p.visualSeed,
       isFeatured: p.isFeatured,

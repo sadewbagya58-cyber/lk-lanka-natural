@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useCartStore } from '@/store/useCartStore';
 import { formatPrice } from '@/lib/currency';
 import Link from 'next/link';
-import { Trash2, Minus, Plus, ShoppingBag, CreditCard, ChevronRight, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Trash2, Minus, Plus, ShoppingBag, CreditCard, ChevronRight, ShieldCheck, RefreshCw, Upload } from 'lucide-react';
 import ItemImage from '@/components/ItemImage';
 import { fetchWithRetry } from '@/lib/fetcher';
 import Navbar from '@/components/Navbar';
@@ -14,9 +14,10 @@ import type { ProductCardData } from '@/types/product';
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, getCartSubtotal, clearCart } = useCartStore();
   const [productMap, setProductMap] = useState<Record<string, ProductCardData>>({});
+  const [deliveryCost, setDeliveryCost] = useState(4.99);
 
   const subtotal = getCartSubtotal();
-  const shippingCost = subtotal >= 50.0 ? 0 : 4.99;
+  const shippingCost = deliveryCost;
   const total = subtotal + shippingCost;
   // Fetch product display data for cart items
   useEffect(() => {
@@ -27,6 +28,18 @@ export default function CartPage() {
           const map: Record<string, ProductCardData> = {};
           data.products.forEach((p) => { map[p.id] = p; });
           setProductMap(map);
+        }
+      })
+      .catch(console.error);
+
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.success && data.settings) {
+          const cost = parseFloat(data.settings.deliveryCost);
+          if (!isNaN(cost)) {
+            setDeliveryCost(cost);
+          }
         }
       })
       .catch(console.error);
@@ -63,16 +76,16 @@ export default function CartPage() {
 
                   const variant = product?.variants?.find((v) => v.id === item.selectedVariantId);
                   const variantName = variant?.name;
-                  const displayImage = variant?.imageUrl || item.image || product?.image;
+                  const displayImage = variant?.imageUrl || product?.image || item.image;
 
                   return (
                     <div
-                      key={`${item.productId}-${item.selectedVariantId || ''}`}
+                      key={`${item.productId}-${item.selectedVariantId || ''}-${item.customUploadImage || ''}`}
                       className="flex flex-col sm:flex-row gap-4 py-6 border-b border-slate-100 last:border-0 last:pb-0 relative group"
                     >
                       {/* Product Visual */}
                       <ItemImage
-                        src={displayImage}
+                        src={item.customUploadImage || displayImage}
                         alt={name}
                         gradient={gradient}
                         visualSeed={visualSeed}
@@ -93,6 +106,13 @@ export default function CartPage() {
                                 Option: {variantName}
                               </span>
                             )}
+                            {item.customUploadImage && (
+                              <div className="mt-1">
+                                <span className="text-[9px] font-black text-purple-700 bg-purple-100 border border-purple-200/50 px-1.5 py-0.5 rounded-md inline-flex items-center gap-1 select-none">
+                                  <Upload className="w-2.5 h-2.5" /> Photo Loaded
+                                </span>
+                              </div>
+                            )}
                           </div>
                           <div className="flex items-center gap-1.5 mt-2">
                             <span className={`w-1.5 h-1.5 rounded-full ${inStock ? 'bg-emerald-600' : 'bg-slate-300'}`} />
@@ -108,7 +128,7 @@ export default function CartPage() {
                           <div className="flex items-center gap-4">
                             {/* Quantity switcher */}
                             <div className="flex items-center border border-slate-200 rounded-lg h-9 bg-white shadow-sm overflow-hidden">
-                              <button onClick={() => updateQuantity(item.productId, item.quantity - 1, item.selectedVariantId)}
+                              <button onClick={() => updateQuantity(item.productId, item.quantity - 1, item.selectedVariantId, undefined, item.customUploadImage)}
                                 className="w-8 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors focus:outline-none"
                                 aria-label="Decrease quantity">
                                 <Minus className="w-3.5 h-3.5" />
@@ -118,7 +138,8 @@ export default function CartPage() {
                                 item.productId,
                                 item.quantity + 1,
                                 item.selectedVariantId,
-                                variant ? variant.stockQuantity : product?.stockQuantity
+                                variant ? variant.stockQuantity : product?.stockQuantity,
+                                item.customUploadImage
                               )}
                                 className="w-8 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors focus:outline-none"
                                 aria-label="Increase quantity">
@@ -126,7 +147,7 @@ export default function CartPage() {
                               </button>
                             </div>
                             {/* Remove */}
-                            <button onClick={() => removeFromCart(item.productId, item.selectedVariantId)}
+                            <button onClick={() => removeFromCart(item.productId, item.selectedVariantId, item.customUploadImage)}
                               className="p-2 hover:bg-rose-50 text-slate-450 hover:text-rose-600 rounded-xl transition-colors focus:outline-none"
                               aria-label="Remove item">
                               <Trash2 className="w-4 h-4" />

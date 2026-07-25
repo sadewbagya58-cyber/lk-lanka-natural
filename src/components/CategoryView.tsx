@@ -75,13 +75,17 @@ export default function CategoryView({ category, products, iconNode }: CategoryV
               iconNode
             )}
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-4 drop-shadow-sm">
-            {category.name}
-          </h1>
-          <p className="text-lg text-white/90 max-w-2xl font-medium drop-shadow-sm">
-            {category.description}
-          </p>
-          <div className="mt-8 flex items-center text-sm font-medium text-white/80 bg-black/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10">
+          <div className="bg-slate-950/40 backdrop-blur-sm border border-white/10 p-6 md:p-10 rounded-3xl max-w-3xl shadow-xl flex flex-col items-center">
+            <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-4 drop-shadow-sm">
+              {category.name}
+            </h1>
+            {category.description && (
+              <p className="text-sm md:text-base text-slate-100 font-medium leading-relaxed max-w-2xl">
+                {category.description}
+              </p>
+            )}
+          </div>
+          <div className="mt-6 flex items-center text-sm font-medium text-white/80 bg-black/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10">
             <Link href="/" className="hover:text-white transition-colors">Home</Link>
             <ChevronRight className="w-4 h-4 mx-2 opacity-60" />
             <span className="text-white">{category.name}</span>

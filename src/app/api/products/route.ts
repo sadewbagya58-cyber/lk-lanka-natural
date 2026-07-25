@@ -43,6 +43,8 @@ export async function GET() {
         stockQuantity: p.stockQuantity,
         totalStock: p.totalStock,
         lowStockThreshold: p.lowStockThreshold,
+        description: p.description,
+        tags: p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
         variants: p.variants.map((v) => ({
           id: v.id,
           name: v.name,

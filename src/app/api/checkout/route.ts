@@ -313,9 +313,12 @@ export async function POST(request: Request) {
       }
 
       // Calculate delivery fee
-      // For Sri Lanka: $4.99 or FREE for $50+
-      // For International: $0.00 (quote pending confirmation)
-      const deliveryFee = isSriLanka ? (subtotal >= 50.0 ? 0 : 4.99) : 0;
+      // Load deliveryCost from settings database table
+      const costSetting = await tx.websiteSetting.findUnique({
+        where: { key: "deliveryCost" }
+      });
+      const dbDeliveryCost = costSetting ? parseFloat(costSetting.value) : 4.99;
+      const deliveryFee = isSriLanka ? (isNaN(dbDeliveryCost) ? 4.99 : dbDeliveryCost) : 0;
       const finalTotalAmount = subtotal + deliveryFee;
 
       const orderNumber = await generateOrderNumber(tx);

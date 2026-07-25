@@ -81,8 +81,8 @@ export default function HeroBanner() {
     sideOffers.push({
       id: 'so-shipping',
       title: 'Fast Island-wide Delivery',
-      tag: 'Free Shipping',
-      desc: 'On all qualified orders. Sourced ethically and delivered safely.',
+      tag: 'Island-wide',
+      desc: 'Standard courier delivery across all provinces. Sourced ethically and delivered safely.',
       icon: Truck,
       bgClass: 'bg-gradient-to-br from-emerald-50 to-teal-100/70 border-emerald-200/50',
       textColor: 'text-emerald-800',

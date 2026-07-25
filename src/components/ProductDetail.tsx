@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Heart, Minus, Plus, ShieldCheck, HelpCircle, Zap } from 'lucide-react';
+import { ShoppingBag, Heart, Minus, Plus, ShieldCheck, HelpCircle, Zap, Upload, CheckCircle2, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useBuyNowStore } from '@/store/useBuyNowStore';
+import Image from 'next/image';
 
 interface ProductVariant {
   id: string;
@@ -113,6 +114,45 @@ export default function ProductDetail({
   const setBuyNowItem = useBuyNowStore((state) => state.setBuyNowItem);
   const router = useRouter();
 
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoError(null);
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      setPhotoError('Invalid image format. Allowed formats: JPG, JPEG, PNG, WEBP.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setPhotoError('File size exceeds maximum limit of 10MB.');
+      return;
+    }
+    setPhotoUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload/reference', {
+        method: 'POST',
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPhotoUrl(data.url);
+      } else {
+        const data = await res.json();
+        setPhotoError(data.error || 'Failed to upload photo.');
+      }
+    } catch {
+      setPhotoError('Network error uploading photo.');
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
   const handleAddToCart = () => {
     if (!canAdd) return;
     const displayImage = selectedVariant?.imageUrl || null;
@@ -123,13 +163,18 @@ export default function ProductDetail({
 
   const handleBuyNow = () => {
     if (!canAdd) return;
+    if (isCustomPortrait && !photoUrl) {
+      setPhotoError('Please upload your reference photo before placing your order.');
+      return;
+    }
     const displayImage = selectedVariant?.imageUrl || null;
     setBuyNowItem({
       productId: product.id,
       variantId: selectedVariant?.id ?? null,
       quantity,
       unitPrice: activePrice,
-      image: displayImage,
+      image: photoUrl || displayImage,
+      customUploadImage: photoUrl,
     });
     router.push('/checkout?buyNow=true');
   };
@@ -288,11 +333,74 @@ export default function ProductDetail({
         </div>
       )}
 
-      {/* Quantity & Actions */}
+      {isCustomPortrait && (
+        <div className="bg-purple-50/50 border-2 border-purple-200 rounded-2xl p-5 shadow-2xs flex flex-col gap-3.5 mt-2">
+          <div className="flex items-center justify-between border-b border-purple-200/50 pb-2.5">
+            <span className="text-[10px] font-black text-purple-900 uppercase tracking-widest flex items-center gap-1.5">
+              <Upload className="w-3.5 h-3.5 text-purple-600" />
+              Upload Reference Photo *
+            </span>
+            <span className="text-[9px] font-bold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full uppercase">
+              Required
+            </span>
+          </div>
+
+          {photoError && (
+            <div className="bg-rose-105 border border-rose-200 text-rose-800 p-2.5 rounded-xl text-xs font-bold">
+              {photoError}
+            </div>
+          )}
+
+          {photoUrl ? (
+            <div className="flex items-center gap-3.5 bg-white p-3 rounded-xl border border-purple-150">
+              <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+                <Image src={photoUrl} alt="Preview" fill className="object-cover" unoptimized />
+              </div>
+              <div className="flex-grow flex flex-col gap-0.5">
+                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Photo Loaded
+                </span>
+                <span className="text-[9px] text-slate-400 truncate max-w-[150px]">Reference ready</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPhotoUrl(null)}
+                className="text-[10px] font-bold text-rose-600 hover:bg-rose-50 border border-rose-150 px-2.5 py-1.5 rounded-lg transition-colors"
+              >
+                Change
+              </button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center py-6 px-4 border-2 border-dashed border-purple-300 hover:border-purple-400 bg-white hover:bg-purple-50/30 rounded-xl cursor-pointer text-center relative transition-colors">
+              {photoUploading ? (
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
+                  <span className="text-[10px] font-black text-purple-900 uppercase">Uploading Photo...</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-1.5">
+                  <Upload className="w-5 h-5 text-purple-405" />
+                  <span className="text-xs font-bold text-purple-900">Click to upload photo</span>
+                  <span className="text-[9px] text-slate-450 font-medium">JPEG, PNG or WEBP (Max 10MB)</span>
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoSelect}
+                disabled={photoUploading}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                aria-label="Upload reference photo"
+              />
+            </label>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end mt-2">
         <div className="flex flex-col gap-2 shrink-0">
           <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Quantity</span>
-          <div className="flex items-center border border-slate-200 rounded-xl h-12 bg-white w-full sm:w-32 shadow-sm focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500">
+          <div className="flex items-center border border-slate-200 rounded-xl h-12 bg-white w-full sm:w-32 shadow-sm focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-550">
             <button
               onClick={() => handleQuantity(-1)}
               disabled={isOut || quantity <= 1 || (hasVariants && !selectedVariant)}
@@ -313,7 +421,7 @@ export default function ProductDetail({
           </div>
         </div>
 
-        <div className="flex flex-1 gap-2.5">
+        <div className="flex flex-grow gap-2.5">
           {isCustomPortrait ? (
             <button
               onClick={handleBuyNow}

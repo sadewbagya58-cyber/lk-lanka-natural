@@ -8,6 +8,8 @@ import ProductCard from './ProductCard';
 
 const PAGE_SIZE = 12;
 
+import { useSearchParams } from 'next/navigation';
+
 function applyFilters(
   products: ProductCardData[],
   search: string,
@@ -19,15 +21,14 @@ function applyFilters(
   let filtered = [...products];
 
   if (search) {
-    const q = search.toLowerCase();
-    filtered = filtered.filter((p) =>
-      p.name.toLowerCase().includes(q) ||
-      p.category.toLowerCase().includes(q) ||
-      p.brandName.toLowerCase().includes(q)
-    );
+    const keywords = search.toLowerCase().split(/\s+/).filter(Boolean);
+    filtered = filtered.filter((p) => {
+      const matchText = `${p.name} ${p.category} ${p.brandName} ${p.tags?.join(' ') || ''} ${p.description || ''}`.toLowerCase();
+      return keywords.every((kw) => matchText.includes(kw));
+    });
   }
   if (categorySlug) {
-    filtered = filtered.filter((p) => p.categorySlug === categorySlug);
+    filtered = filtered.filter((p) => p.categorySlug === categorySlug || p.categoryId === categorySlug);
   }
   if (brandIds.length > 0) {
     filtered = filtered.filter((p) => brandIds.includes(p.brandName));
@@ -50,14 +51,18 @@ function applyFilters(
 
 import { fetchWithRetry } from '@/lib/fetcher';
 
-export default function ProductCatalog() {
+function ProductCatalogContent() {
   const [allProducts, setAllProducts] = useState<ProductCardData[]>([]);
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [brands, setBrands] = useState<BrandData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get('search') || '';
+  const initialCategory = searchParams.get('category') || null;
+
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('relevance');
   const [currentPage, setCurrentPage] = useState(1);
@@ -84,6 +89,15 @@ export default function ProductCatalog() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  // Update query state if search parameter in URL changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchParams.get('search') || '');
+      setSelectedCategory(searchParams.get('category') || null);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [searchParams]);
 
   const filtered = useMemo(
     () => applyFilters(allProducts, searchQuery, selectedCategory, selectedBrands, inStockOnly, sortOption),
@@ -381,5 +395,24 @@ export default function ProductCatalog() {
         </div>
       </div>
     </div>
+  );
+}
+
+import React from 'react';
+
+function ProductCatalogFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400">
+      <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+      <span className="text-xs font-bold uppercase tracking-widest">Loading Catalog...</span>
+    </div>
+  );
+}
+
+export default function ProductCatalog() {
+  return (
+    <React.Suspense fallback={<ProductCatalogFallback />}>
+      <ProductCatalogContent />
+    </React.Suspense>
   );
 }
