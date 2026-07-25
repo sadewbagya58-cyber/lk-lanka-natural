@@ -177,3 +177,31 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const auth = await verifyAdminSession();
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
+    const { id } = await params;
+
+    // Delete order items first, then the order
+    await prisma.$transaction([
+      prisma.orderItem.deleteMany({ where: { orderId: id } }),
+      prisma.order.delete({ where: { id } }),
+    ]);
+
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    console.error("Admin delete order error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to delete order" },
+      { status: 500 }
+    );
+  }
+}

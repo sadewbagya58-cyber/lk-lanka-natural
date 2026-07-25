@@ -75,8 +75,9 @@ export async function POST(request: Request) {
 
           let targetQuantity = item.quantity;
           if (merge && dbItem) {
-            // Combine guest and authenticated user cart quantities
-            targetQuantity = dbItem.quantity + item.quantity;
+            // On first sync after login/page-load, take the greater of the two quantities.
+            // Using addition caused the 1->2->4->8 doubling bug on every page refresh.
+            targetQuantity = Math.max(dbItem.quantity, item.quantity);
           }
 
           const finalQuantity = Math.min(targetQuantity, maxStock);

@@ -124,11 +124,17 @@ export default function AdminCategories() {
         method: 'DELETE',
       });
 
-      if (res.ok) {
-        loadCategories();
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Failed to delete category.');
+        return;
       }
+
+      loadCategories();
     } catch (err) {
       console.error('Failed to delete category:', err);
+      alert('Failed to delete category. Please try again.');
     }
   };
 

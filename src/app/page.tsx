@@ -5,9 +5,8 @@ import FlashDeals from "@/components/FlashDeals";
 import BrandShowcase from "@/components/BrandShowcase";
 import PromotionalBanner from "@/components/PromotionalBanner";
 import CustomerReviews from "@/components/CustomerReviews";
-import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
-import WhatsAppWidget from "@/components/WhatsAppWidget";
+
 
 export default function Home() {
   const organizationJsonLd = {
@@ -42,7 +41,6 @@ export default function Home() {
     "name": "KL Lanka Natural (PVT) LTD",
     "description": "Premium Sri Lankan online marketplace selling organic foods, groceries, cosmetics, perfumes, baby care, and natural health products.",
     "url": "https://kllankanatural.com",
-    "telephone": "+94112345678",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "No. 124, Galle Road",
@@ -107,16 +105,11 @@ export default function Home() {
 
         {/* Customer Reviews & Star Ratings */}
         <CustomerReviews />
-
-        {/* Newsletter & Value Badges */}
-        <Newsletter />
       </main>
 
       {/* Footer */}
       <Footer />
 
-      {/* Floating Global WhatsApp Widget */}
-      <WhatsAppWidget />
     </div>
   );
 }

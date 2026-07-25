@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, User, Phone, MapPin, Calendar, CreditCard, ShoppingBag, ShieldCheck, AlertCircle, Mail, FileText, Truck } from 'lucide-react';
+import { ArrowLeft, User, Phone, MapPin, Calendar, CreditCard, ShoppingBag, ShieldCheck, AlertCircle, Mail, FileText, Truck, Trash2 } from 'lucide-react';
 import { formatPrice } from '@/lib/currency';
 import ItemImage from '@/components/ItemImage';
 
@@ -152,6 +152,23 @@ export default function AdminOrderDetailPage({
     });
   };
 
+  const handleDeleteOrder = () => {
+    if (!window.confirm(`Are you sure you want to permanently delete order ${order?.orderNumber || order?.id}? This cannot be undone.`)) return;
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/admin/orders/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error || 'Failed to delete order.');
+          return;
+        }
+        router.push('/admin/orders');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to delete order.');
+      }
+    });
+  };
+
   const getStatusColor = (orderStatus: string) => {
     switch (orderStatus) {
       case 'DELIVERED':
@@ -242,9 +259,20 @@ export default function AdminOrderDetailPage({
             </p>
           </div>
         </div>
-        <span className={`px-3.5 py-1 rounded-full border text-xs font-black uppercase tracking-wider ${getStatusColor(order.status)}`}>
-          {order.status}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className={`px-3.5 py-1 rounded-full border text-xs font-black uppercase tracking-wider ${getStatusColor(order.status)}`}>
+            {order.status}
+          </span>
+          <button
+            onClick={handleDeleteOrder}
+            disabled={isPending}
+            className="h-9 px-3.5 flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-all disabled:opacity-50 focus:outline-none"
+            title="Permanently delete this order"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Delete Order</span>
+          </button>
+        </div>
       </div>
 
       {/* Feedback Alerts */}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Heart, Minus, Plus, Truck, ShieldCheck, HelpCircle, Zap } from 'lucide-react';
+import { ShoppingBag, Heart, Minus, Plus, ShieldCheck, HelpCircle, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
@@ -380,12 +380,6 @@ export default function ProductDetail({
 
       {/* Trust Indicators */}
       <div className="flex flex-col gap-2 mt-4">
-        {activePrice > 50 && (
-          <div className="flex items-center gap-3 p-3.5 bg-emerald-50/50 rounded-xl text-emerald-800 border border-emerald-100/50">
-            <Truck className="w-4.5 h-4.5 text-emerald-600" />
-            <span className="text-xs font-bold uppercase tracking-wider">Eligible for FREE Shipping</span>
-          </div>
-        )}
         <div className="grid grid-cols-2 gap-3.5 mt-2">
           <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-100 rounded-xl select-none">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />

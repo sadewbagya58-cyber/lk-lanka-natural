@@ -98,6 +98,15 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Brand ID is required" }, { status: 400 });
     }
 
+    // Check for associated products first to avoid FK violation
+    const productCount = await prisma.product.count({ where: { brandId: id } });
+    if (productCount > 0) {
+      return NextResponse.json(
+        { error: `Cannot delete: ${productCount} product(s) are assigned to this brand. Reassign or delete them first.` },
+        { status: 409 }
+      );
+    }
+
     await prisma.brand.delete({
       where: { id }
     });

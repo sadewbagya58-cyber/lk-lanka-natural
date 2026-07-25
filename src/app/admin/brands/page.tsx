@@ -122,11 +122,17 @@ export default function AdminBrands() {
         method: 'DELETE',
       });
 
-      if (res.ok) {
-        loadBrands();
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Failed to delete brand.');
+        return;
       }
+
+      loadBrands();
     } catch (err) {
       console.error('Failed to delete brand:', err);
+      alert('Failed to delete brand. Please try again.');
     }
   };
 

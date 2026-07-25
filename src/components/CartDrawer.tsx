@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, ShoppingBag, Trash2, Minus, Plus, Truck, CreditCard } from 'lucide-react';
+import { X, ShoppingBag, Trash2, Minus, Plus, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { useCartStore } from '@/store/useCartStore';
 import { formatPrice } from '@/lib/currency';
@@ -20,9 +20,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const [productMap, setProductMap] = useState<Record<string, ProductCardData>>({});
 
   const subtotal = getCartSubtotal();
-  const shippingThreshold = 50.0;
-  const isFreeShipping = subtotal >= shippingThreshold;
-  const shippingProgress = Math.min((subtotal / shippingThreshold) * 100, 100);
   // Fetch product details for all items in the cart
   useEffect(() => {
     if (!isOpen || cartItems.length === 0) return;
@@ -79,28 +76,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           </button>
         </div>
 
-        {/* Free Shipping Progress */}
-        {cartItems.length > 0 && (
-          <div className="p-4 bg-emerald-50/40 border-b border-emerald-100/50 flex flex-col gap-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                <Truck className="w-4 h-4 text-emerald-650" />
-                {isFreeShipping
-                  ? 'Congratulations!'
-                  : `Add ${formatPrice(shippingThreshold - subtotal)} more for free shipping`}
-              </span>
-              <span className="text-emerald-700 font-black">
-                {isFreeShipping ? 'FREE SHIPPING ACTIVE' : `${Math.round(shippingProgress)}%`}
-              </span>
-            </div>
-            <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-emerald-600 transition-all duration-300 rounded-full"
-                style={{ width: `${shippingProgress}%` }}
-              />
-            </div>
-          </div>
-        )}
+
 
         {/* Cart Item List */}
         <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
@@ -205,7 +181,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             <div className="flex flex-col gap-1.5">
               <div className="flex justify-between text-xs text-slate-500">
                 <span>Shipping</span>
-                <span className="font-bold">{isFreeShipping ? 'FREE' : formatPrice(4.99)}</span>
+                <span className="font-bold">Calculated at checkout</span>
               </div>
               <div className="flex justify-between text-sm text-slate-900 font-bold border-t border-slate-200/50 pt-2">
                 <span>Estimated Subtotal</span>
