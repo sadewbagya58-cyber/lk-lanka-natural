@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, DollarSign, Clock, Search, ArrowRight, Eye } from 'lucide-react';
+import { ShoppingBag, DollarSign, Clock, Search, ArrowRight, Eye, Trash2 } from 'lucide-react';
 import { formatPrice } from '@/lib/currency';
 
 interface OrderItem {
@@ -69,6 +69,23 @@ export default function AdminOrdersPage() {
 
     loadOrders();
   }, [filterStatus, searchQuery]);
+
+  // 2. Delete Order
+  const handleDeleteOrder = async (id: string, orderNumber?: string | null) => {
+    const label = orderNumber || `#${id.substring(0, 8)}`;
+    if (!confirm(`Are you sure you want to permanently delete order ${label}? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`/api/admin/orders/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setOrders((prev) => prev.filter((o) => o.id !== id));
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to delete order.');
+      }
+    } catch {
+      alert('A network error occurred while deleting the order.');
+    }
+  };
 
   // Calculate stats from all orders
   const totalOrdersCount = orders.length;
@@ -216,13 +233,22 @@ export default function AdminOrdersPage() {
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
                   <span className="font-black text-slate-900 text-sm">{formatPrice(order.totalAmount)}</span>
-                  <Link
-                    href={`/admin/orders/${order.id}`}
-                    className="h-8 px-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-colors"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>Manage Order</span>
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/admin/orders/${order.id}`}
+                      className="h-8 px-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-colors"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Manage Order</span>
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteOrder(order.id, order.orderNumber)}
+                      className="h-8 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 rounded-xl flex items-center gap-1.5 text-xs font-bold transition-colors"
+                      title="Delete Order"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -281,14 +307,23 @@ export default function AdminOrdersPage() {
                       </span>
                     </td>
                     <td className="py-4 px-6 text-right">
-                      <Link
-                        href={`/admin/orders/${order.id}`}
-                        className="inline-flex h-8 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-lg items-center gap-1 text-[11px] font-bold transition-all active:scale-95"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Manage</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/orders/${order.id}`}
+                          className="inline-flex h-8 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 rounded-lg items-center gap-1 text-[11px] font-bold transition-all active:scale-95"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Manage</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteOrder(order.id, order.orderNumber)}
+                          className="inline-flex h-8 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 rounded-lg items-center gap-1 text-[11px] font-bold transition-all active:scale-95"
+                          title="Delete Order"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

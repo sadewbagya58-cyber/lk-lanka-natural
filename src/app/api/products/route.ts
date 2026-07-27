@@ -39,6 +39,7 @@ export async function GET() {
         isBestSeller: p.isBestSeller,
         isNewArrival: p.isNewArrival,
         isFlashDeal: p.isFlashDeal,
+        isFreeDelivery: p.isFreeDelivery,
         flashDealEndsAt: p.flashDealEndsAt?.toISOString() ?? null,
         stockQuantity: p.stockQuantity,
         totalStock: p.totalStock,

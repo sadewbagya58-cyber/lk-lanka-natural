@@ -21,12 +21,30 @@ function applyFilters(
   let filtered = [...products];
 
   if (search) {
-    const keywords = search.toLowerCase().split(/\s+/).filter(Boolean);
+    const q = search.toLowerCase().trim();
+    const keywords = q.split(/\s+/).filter(Boolean);
+
+    // Filter: product must contain all keywords somewhere in its text
     filtered = filtered.filter((p) => {
       const matchText = `${p.name} ${p.category} ${p.brandName} ${p.tags?.join(' ') || ''} ${p.description || ''}`.toLowerCase();
       return keywords.every((kw) => matchText.includes(kw));
     });
+
+    // Sort by relevance (only when no explicit sort is chosen)
+    if (sort === 'relevance') {
+      const score = (p: ProductCardData): number => {
+        const nameLower = p.name.toLowerCase();
+        if (nameLower === q) return 4;           // exact match
+        if (nameLower.startsWith(q)) return 3;   // starts with query
+        if (nameLower.includes(q)) return 2;     // name contains query
+        // check if all keywords appear in name
+        if (keywords.every((kw) => nameLower.includes(kw))) return 1;
+        return 0;                                 // match in tags/desc/category
+      };
+      filtered.sort((a, b) => score(b) - score(a));
+    }
   }
+
   if (categorySlug) {
     filtered = filtered.filter((p) => p.categorySlug === categorySlug || p.categoryId === categorySlug);
   }
@@ -48,6 +66,7 @@ function applyFilters(
   }
   return filtered;
 }
+
 
 import { fetchWithRetry } from '@/lib/fetcher';
 

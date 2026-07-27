@@ -144,6 +144,7 @@ model Product {
   isNewArrival      Boolean          @default(false)
   isFlashDeal       Boolean          @default(false)
   flashDealEndsAt   DateTime?
+  isFreeDelivery    Boolean          @default(false)
 
   // SEO
   metaTitle         String?

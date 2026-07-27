@@ -84,6 +84,7 @@ export async function POST(request: Request) {
       isBestSeller = false,
       isNewArrival = false,
       isFlashDeal = false,
+      isFreeDelivery = false,
       flashDealEndsAt = null,
     } = await request.json();
 
@@ -140,6 +141,7 @@ export async function POST(request: Request) {
           isBestSeller: Boolean(isBestSeller),
           isNewArrival: Boolean(isNewArrival),
           isFlashDeal: Boolean(isFlashDeal),
+          isFreeDelivery: Boolean(isFreeDelivery),
           flashDealEndsAt: flashDealEndsAt ? new Date(flashDealEndsAt) : null,
           images: {
             create: (images as Array<{ url: string; alt?: string; isPrimary?: boolean }>).map(
@@ -226,6 +228,7 @@ export async function PUT(request: Request) {
       isBestSeller,
       isNewArrival,
       isFlashDeal,
+      isFreeDelivery,
       flashDealEndsAt,
     } = await request.json();
 
@@ -399,6 +402,7 @@ export async function PUT(request: Request) {
           isBestSeller: isBestSeller !== undefined ? Boolean(isBestSeller) : undefined,
           isNewArrival: isNewArrival !== undefined ? Boolean(isNewArrival) : undefined,
           isFlashDeal: isFlashDeal !== undefined ? Boolean(isFlashDeal) : undefined,
+          isFreeDelivery: isFreeDelivery !== undefined ? Boolean(isFreeDelivery) : undefined,
           flashDealEndsAt: flashDealEndsAt ? new Date(flashDealEndsAt) : null,
         },
         include: {

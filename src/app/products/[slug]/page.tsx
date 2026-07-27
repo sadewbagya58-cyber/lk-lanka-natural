@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma';
 import { type ProductDetailData } from '@/components/ProductDetail';
 import ProductCard from '@/components/ProductCard';
 import ProductStorefrontContainer from '@/components/ProductStorefrontContainer';
+import ReviewForm from '@/components/ReviewForm';
 import type { ProductCardData } from '@/types/product';
 
 interface PageProps {
@@ -126,15 +127,17 @@ export default async function ProductPage({ params }: PageProps) {
     })),
   }));
 
-  const reviews = p.reviews.map((r) => ({
-    id: r.id,
-    rating: r.rating,
-    title: r.title ?? null,
-    comment: r.comment,
-    verified: r.verified,
-    authorName: r.user?.name ?? 'Anonymous',
-    createdAt: r.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
-  }));
+  const reviews = p.reviews
+    .filter((r) => r.status === 'APPROVED')
+    .map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      title: r.title ?? null,
+      comment: r.comment,
+      verified: r.verified,
+      authorName: r.user?.name ?? 'Anonymous',
+      createdAt: r.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+    }));
 
 
   // JSON-LD structured data for search engine indexes
@@ -275,6 +278,9 @@ export default async function ProductPage({ params }: PageProps) {
                         {[1, 2, 3, 4, 5].map((s) => (
                           <Star key={s} className={`w-3.5 h-3.5 ${s <= r.rating ? 'text-amber-500 fill-amber-500' : 'text-slate-200 fill-slate-200'}`} />
                         ))}
+                        {r.verified && (
+                          <span className="text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-100 ml-1">Verified Buyer</span>
+                        )}
                       </div>
                       {r.title && <h4 className="text-xs font-bold text-slate-800">{r.title}</h4>}
                       <p className="text-xs text-slate-600 font-light">{r.comment}</p>
@@ -282,6 +288,11 @@ export default async function ProductPage({ params }: PageProps) {
                   ))}
                 </div>
               )}
+
+              {/* Review Submission Form */}
+              <div className="mt-6 pt-6 border-t border-slate-100">
+                <ReviewForm productSlug={p.slug} />
+              </div>
             </div>
           </div>
 

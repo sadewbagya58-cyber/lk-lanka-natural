@@ -318,7 +318,19 @@ export async function POST(request: Request) {
         where: { key: "deliveryCost" }
       });
       const dbDeliveryCost = costSetting ? parseFloat(costSetting.value) : 4.99;
-      const deliveryFee = isSriLanka ? (isNaN(dbDeliveryCost) ? 4.99 : dbDeliveryCost) : 0;
+
+      // Check if all products in order have isFreeDelivery = true
+      const allProductIds = orderItemsToCreate.map(oi => oi.productId);
+      const productsForFreeCheck = await tx.product.findMany({
+        where: { id: { in: allProductIds } },
+        select: { id: true, isFreeDelivery: true }
+      });
+      const allFreeDelivery = productsForFreeCheck.length > 0 &&
+        productsForFreeCheck.every(p => p.isFreeDelivery === true);
+
+      const deliveryFee = isSriLanka
+        ? (allFreeDelivery ? 0 : (isNaN(dbDeliveryCost) ? 4.99 : dbDeliveryCost))
+        : 0;
       const finalTotalAmount = subtotal + deliveryFee;
 
       const orderNumber = await generateOrderNumber(tx);

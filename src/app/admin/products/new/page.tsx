@@ -57,6 +57,7 @@ export default function NewProductPage() {
   const [isFeatured, setIsFeatured] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(true);
+  const [isFreeDelivery, setIsFreeDelivery] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -176,6 +177,7 @@ export default function NewProductPage() {
           isFeatured,
           isBestSeller,
           isNewArrival,
+          isFreeDelivery,
         }),
       });
 
@@ -620,6 +622,16 @@ export default function NewProductPage() {
               className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
             />
             <span>New Arrival</span>
+          </label>
+
+          <label className="flex items-center gap-2 text-xs font-bold text-emerald-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isFreeDelivery}
+              onChange={(e) => setIsFreeDelivery(e.target.checked)}
+              className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+            />
+            <span>Free Delivery</span>
           </label>
         </div>
 

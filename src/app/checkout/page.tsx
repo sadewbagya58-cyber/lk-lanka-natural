@@ -149,6 +149,14 @@ function CheckoutContent() {
     });
   }, [currentItems, productMap]);
 
+  const hasAllFreeDelivery = useMemo(() => {
+    if (currentItems.length === 0 || Object.keys(productMap).length === 0) return false;
+    return currentItems.every((item) => {
+      const prod = productMap[item.productId];
+      return prod?.isFreeDelivery === true;
+    });
+  }, [currentItems, productMap]);
+
   const handlePhotoSelect = async (file: File) => {
     setReferencePhotoError(null);
 
@@ -202,8 +210,8 @@ function CheckoutContent() {
     return getCartSubtotal();
   }, [isBuyNow, buyNowItem, productMap, getCartSubtotal]);
 
-  // Delivery fee logic: Sri Lanka = dynamic deliveryCost. International = Quote Pending.
-  const shippingCost = isSriLanka ? deliveryCost : 0;
+  // Delivery fee logic: Sri Lanka = dynamic deliveryCost (or free if all items have isFreeDelivery). International = Quote Pending.
+  const shippingCost = isSriLanka ? (hasAllFreeDelivery ? 0 : deliveryCost) : 0;
   const total = subtotal + shippingCost;
 
   // Load User Saved Profile Address & Product Display Data

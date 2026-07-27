@@ -59,6 +59,7 @@ export default function EditProductPage() {
   const [isFeatured, setIsFeatured] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
+  const [isFreeDelivery, setIsFreeDelivery] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -97,6 +98,7 @@ export default function EditProductPage() {
           setIsFeatured(Boolean(p.isFeatured));
           setIsBestSeller(Boolean(p.isBestSeller));
           setIsNewArrival(Boolean(p.isNewArrival));
+          setIsFreeDelivery(Boolean(p.isFreeDelivery));
 
           if (p.images && p.images.length > 0) {
             setImages(
@@ -235,6 +237,7 @@ export default function EditProductPage() {
           isFeatured,
           isBestSeller,
           isNewArrival,
+          isFreeDelivery,
         }),
       });
 
@@ -659,7 +662,6 @@ export default function EditProductPage() {
           />
         </div>
 
-        {/* Checkbox Flags */}
         <div className="flex items-center gap-6 py-2">
           <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
             <input
@@ -689,6 +691,16 @@ export default function EditProductPage() {
               className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
             />
             <span>New Arrival</span>
+          </label>
+
+          <label className="flex items-center gap-2 text-xs font-bold text-emerald-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isFreeDelivery}
+              onChange={(e) => setIsFreeDelivery(e.target.checked)}
+              className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+            />
+            <span>Free Delivery</span>
           </label>
         </div>
 

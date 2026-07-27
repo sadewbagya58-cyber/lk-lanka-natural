@@ -36,6 +36,7 @@ export interface ProductCardData {
   isBestSeller: boolean;
   isNewArrival: boolean;
   isFlashDeal?: boolean;
+  isFreeDelivery?: boolean;
   flashDealEndsAt?: string | null;
   stockQuantity?: number;
   totalStock?: number;
