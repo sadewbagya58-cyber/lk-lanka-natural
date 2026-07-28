@@ -18,7 +18,8 @@ export default function robots(): MetadataRoute.Robots {
         '/forgot-password',
         '/auth/*',
         '/api/*',
-        '/uploads/*',
+        // NOTE: /uploads/* is intentionally NOT disallowed — product images
+        // served from /uploads/[folder]/[filename] must be crawlable by Google.
       ],
     },
     sitemap: 'https://kllankanatural.com/sitemap.xml',

@@ -14,7 +14,9 @@ export default function Home() {
     "@type": "Organization",
     "name": "KL Lanka Natural (PVT) LTD",
     "url": "https://kllankanatural.com",
+    // logo should be the primary square brand logo (schema.org recommendation)
     "logo": "https://kllankanatural.com/logo.png",
+    "image": "https://kllankanatural.com/og-image.jpg",
     "email": "kllankanatural@gmail.com",
     "sameAs": [
       "https://facebook.com/kllankanatural",

@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     siteName: "KL Lanka Natural",
     images: [
       {
-        url: "https://kllankanatural.com/logo.png",
+        url: "https://kllankanatural.com/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "KL Lanka Natural (PVT) LTD — Premium Online Marketplace Sri Lanka",
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "KL Lanka Natural | Premium Online Marketplace Sri Lanka",
     description: "Shop premium natural products, groceries, cosmetics, health supplements, and exquisite perfumes at KL Lanka Natural (PVT) LTD. Fast delivery in Sri Lanka.",
-    images: ["https://kllankanatural.com/logo.png"],
+    images: ["https://kllankanatural.com/og-image.jpg"],
   },
 };
 
