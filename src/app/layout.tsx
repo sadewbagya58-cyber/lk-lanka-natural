@@ -9,6 +9,33 @@ export const metadata: Metadata = {
   },
   title: "KL Lanka Natural | Premium Online Marketplace Sri Lanka",
   description: "Shop premium natural products, groceries, cosmetics, health supplements, and exquisite perfumes at KL Lanka Natural (PVT) LTD. Fast island-wide delivery in Sri Lanka.",
+  keywords: [
+    'natural products Sri Lanka',
+    'Ayurvedic products Sri Lanka',
+    'herbal products Sri Lanka',
+    'organic products Sri Lanka',
+    'vitamins supplements Sri Lanka',
+    'health products Sri Lanka',
+    'gemstones Sri Lanka',
+    'fashion jewellery Sri Lanka',
+    'custom portrait art',
+    'online shopping Sri Lanka',
+    'KL Lanka Natural',
+    'natural cosmetics',
+    'herbal supplements',
+    'Ceylon products',
+    'Sri Lankan marketplace',
+  ],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   // Next.js App Router auto-discovers favicon.ico, icon.png, and apple-icon.png from src/app/
   // No manual icons config needed — it would conflict with auto-discovery
 
@@ -20,9 +47,9 @@ export const metadata: Metadata = {
     images: [
       {
         url: "https://kllankanatural.com/logo.png",
-        width: 1000,
-        height: 1000,
-        alt: "KL Lanka Natural (PVT) LTD Logo",
+        width: 1200,
+        height: 630,
+        alt: "KL Lanka Natural (PVT) LTD — Premium Online Marketplace Sri Lanka",
       },
     ],
     locale: "en_LK",

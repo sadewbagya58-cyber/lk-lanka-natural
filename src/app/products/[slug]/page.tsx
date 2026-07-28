@@ -16,13 +16,63 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const p = await prisma.product.findUnique({ where: { slug }, select: { name: true, metaDescription: true, shortDescription: true, description: true } });
+  const p = await prisma.product.findUnique({
+    where: { slug },
+    select: {
+      name: true,
+      metaDescription: true,
+      shortDescription: true,
+      description: true,
+      price: true,
+      brand: { select: { name: true } },
+      category: { select: { name: true } },
+      images: { orderBy: { sortOrder: 'asc' }, take: 1, select: { url: true } },
+    },
+  });
   if (!p) return { title: 'Product Not Found' };
+
+  const description = p.metaDescription || p.shortDescription || p.description.substring(0, 160);
+  const productImageUrl = p.images[0]?.url
+    ? (p.images[0].url.startsWith('http') ? p.images[0].url : `https://kllankanatural.com${p.images[0].url}`)
+    : 'https://kllankanatural.com/logo.png';
+
+  const keywords = [
+    p.name,
+    p.brand?.name,
+    p.category?.name,
+    'buy online Sri Lanka',
+    'KL Lanka Natural',
+    'natural products Sri Lanka',
+  ].filter(Boolean) as string[];
+
   return {
     title: `${p.name} | KL Lanka Natural`,
-    description: p.metaDescription || p.shortDescription || p.description.substring(0, 160),
+    description,
+    keywords,
     alternates: {
       canonical: `/products/${slug}`,
+    },
+    openGraph: {
+      title: `${p.name} | KL Lanka Natural`,
+      description,
+      url: `https://kllankanatural.com/products/${slug}`,
+      siteName: 'KL Lanka Natural',
+      images: [
+        {
+          url: productImageUrl,
+          width: 1200,
+          height: 630,
+          alt: p.name,
+        },
+      ],
+      type: 'website',
+      locale: 'en_LK',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${p.name} | KL Lanka Natural`,
+      description,
+      images: [productImageUrl],
     },
   };
 }
@@ -150,11 +200,13 @@ export default async function ProductPage({ params }: PageProps) {
 
 
   // JSON-LD structured data for search engine indexes
+  // Only emit aggregateRating when BOTH rating > 0 AND there are real approved reviews
+  const approvedReviewCount = reviews.length;
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     "name": p.name,
-    "image": p.images.map(img => img.url),
+    "image": p.images.map(img => img.url).filter(Boolean),
     "description": p.metaDescription || p.shortDescription || p.description.substring(0, 160),
     "sku": p.variants[0]?.sku || p.id,
     "brand": {
@@ -164,17 +216,17 @@ export default async function ProductPage({ params }: PageProps) {
     "offers": {
       "@type": "Offer",
       "url": `https://kllankanatural.com/products/${p.slug}`,
-      "priceCurrency": "USD",
+      "priceCurrency": "LKR",
       "price": p.price,
       "priceValidUntil": "2030-12-31",
       "itemCondition": "https://schema.org/NewCondition",
       "availability": p.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
     },
-    ...(p.rating ? {
+    ...(p.rating && approvedReviewCount > 0 ? {
       "aggregateRating": {
         "@type": "AggregateRating",
         "ratingValue": p.rating,
-        "reviewCount": p.reviewsCount || 1
+        "reviewCount": approvedReviewCount
       }
     } : {})
   };
