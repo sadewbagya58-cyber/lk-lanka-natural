@@ -4,45 +4,57 @@ import { useState, useTransition, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mail, Lock, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, Phone, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
 import { signIn } from '@/components/AuthProvider';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
-/**
- * Inner component — isolated so useSearchParams() is inside a Suspense boundary.
- */
-function LoginInner() {
+function SignupInner() {
   const searchParams = useSearchParams();
   const rawRedirect = searchParams.get('redirect');
-  const redirectPath = (rawRedirect && !rawRedirect.startsWith('/login')) ? rawRedirect : '/account';
+  const redirectPath = (rawRedirect && !rawRedirect.startsWith('/signup') && !rawRedirect.startsWith('/register')) ? rawRedirect : '/account';
 
-  const oauthErrorParam = searchParams.get('error');
-
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(
-    oauthErrorParam === 'google_auth_failed'
-      ? 'Google authentication failed. Please try again or log in with your email and password.'
-      : oauthErrorParam === 'google_auth_config_missing'
-      ? 'Google authentication service is currently unavailable.'
-      : null
-  );
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
 
-    if (!email || !password) {
-      setError('Please fill in all fields.');
+    if (!name || !email || !password) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
       return;
     }
 
     startTransition(async () => {
       try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, phone }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          setError(data.error || 'An unexpected registration error occurred.');
+          return;
+        }
+
+        setSuccess('Account created successfully! Signing in...');
+        
+        // Auto sign-in the user
         const result = await signIn('credentials', {
           email,
           password,
@@ -51,25 +63,24 @@ function LoginInner() {
         });
 
         if (result?.error) {
-          setError(result.error || 'Invalid email or password.');
+          setError('Could not automatically sign you in. Redirecting to login page...');
+          setTimeout(() => {
+            window.location.href = `/login?redirect=${encodeURIComponent(redirectPath)}`;
+          }, 1000);
           return;
         }
 
-        setSuccess('Logged in successfully! Redirecting...');
+        // Clear fields
+        setName('');
+        setEmail('');
+        setPhone('');
+        setPassword('');
+
         window.location.href = redirectPath;
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
+        setError(err instanceof Error ? err.message : 'An unexpected registration error occurred.');
       }
     });
-  };
-
-  const handleGoogleOAuth = () => {
-    setError(null);
-    try {
-      window.location.href = '/api/auth/google';
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred during Google Sign In.');
-    }
   };
 
   return (
@@ -84,12 +95,12 @@ function LoginInner() {
             <div className="w-14 h-14 rounded-2xl overflow-hidden bg-white p-0.5 border border-slate-200 shadow-md mb-3">
               <Image src="/logo.png" alt="KL Lanka Natural" width={56} height={56} className="w-full h-full object-contain" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Registered Members</span>
-            <h1 className="text-2xl font-black text-slate-900 mt-1">Sign In to Your Account</h1>
-            <p className="text-xs text-slate-400 font-light mt-1.5">Manage your shipping details, order lists, and saved wishlist</p>
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Join KL Lanka</span>
+            <h1 className="text-2xl font-black text-slate-900 mt-1">Create Your Account</h1>
+            <p className="text-xs text-slate-400 font-light mt-1.5">Sign up today for faster checkout, order tracking, and exclusive discounts</p>
           </div>
 
-          {/* Feedback alerts */}
+          {/* Alert messages */}
           {error && (
             <div className="flex items-start gap-2.5 p-3.5 bg-rose-50 border border-rose-100 rounded-xl text-rose-800 text-xs font-semibold">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -104,11 +115,34 @@ function LoginInner() {
             </div>
           )}
 
-          {/* Login form */}
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+          {/* Form */}
+          <form onSubmit={handleRegister} className="flex flex-col gap-4">
+            
+            {/* Full Name */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="name" className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                Full Name *
+              </label>
+              <div className="flex border border-slate-200 rounded-xl overflow-hidden focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 bg-white">
+                <span className="flex items-center px-3.5 text-slate-400 border-r border-slate-100 bg-slate-50/50">
+                  <User className="w-4 h-4" />
+                </span>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full px-4 py-3 text-sm text-slate-800 focus:outline-none placeholder-slate-400 font-medium"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Email */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="email" className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                Email Address
+                Email Address *
               </label>
               <div className="flex border border-slate-200 rounded-xl overflow-hidden focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 bg-white">
                 <span className="flex items-center px-3.5 text-slate-400 border-r border-slate-100 bg-slate-50/50">
@@ -119,25 +153,38 @@ function LoginInner() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@domain.com"
+                  placeholder="john@example.com"
                   className="w-full px-4 py-3 text-sm text-slate-800 focus:outline-none placeholder-slate-400 font-medium"
                   required
                 />
               </div>
             </div>
 
+            {/* Phone */}
             <div className="flex flex-col gap-1.5">
-              <div className="flex justify-between items-center">
-                <label htmlFor="password" className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                  Password
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
-                >
-                  Forgot password?
-                </Link>
+              <label htmlFor="phone" className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                Phone Number (Optional)
+              </label>
+              <div className="flex border border-slate-200 rounded-xl overflow-hidden focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 bg-white">
+                <span className="flex items-center px-3.5 text-slate-400 border-r border-slate-100 bg-slate-50/50">
+                  <Phone className="w-4 h-4" />
+                </span>
+                <input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+94 77 123 4567"
+                  className="w-full px-4 py-3 text-sm text-slate-800 focus:outline-none placeholder-slate-400 font-medium"
+                />
               </div>
+            </div>
+
+            {/* Password */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="password" className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                Password *
+              </label>
               <div className="flex border border-slate-200 rounded-xl overflow-hidden focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 bg-white">
                 <span className="flex items-center px-3.5 text-slate-400 border-r border-slate-100 bg-slate-50/50">
                   <Lock className="w-4 h-4" />
@@ -147,8 +194,8 @@ function LoginInner() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 text-sm text-slate-800 focus:outline-none placeholder-slate-450 font-medium"
+                  placeholder="Min. 6 characters"
+                  className="w-full px-4 py-3 text-sm text-slate-800 focus:outline-none placeholder-slate-400 font-medium"
                   required
                 />
               </div>
@@ -157,27 +204,26 @@ function LoginInner() {
             <button
               type="submit"
               disabled={isPending}
-              className="h-12 bg-emerald-600 hover:bg-emerald-705 text-white font-bold rounded-xl flex items-center justify-center gap-2 mt-2 transition-all active:scale-95 shadow-md shadow-emerald-600/10 disabled:bg-slate-100 disabled:text-slate-400 disabled:active:scale-100"
+              className="h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 mt-2 transition-all active:scale-95 shadow-md shadow-emerald-600/10 disabled:bg-slate-100 disabled:text-slate-400"
             >
-              <span>{isPending ? 'Signing In...' : 'Sign In'}</span>
+              <span>{isPending ? 'Creating Account...' : 'Create Account'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          {/* Social Sign In */}
+          {/* Social Sign Up */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 text-slate-400 text-xs font-bold select-none my-1">
               <span className="h-px bg-slate-200 flex-1" />
-              <span>OR SIGN IN WITH</span>
+              <span>OR REGISTER WITH</span>
               <span className="h-px bg-slate-200 flex-1" />
             </div>
 
             <button
-              onClick={handleGoogleOAuth}
+              onClick={() => { window.location.href = '/api/auth/google'; }}
               disabled={isPending}
               className="h-11 rounded-xl border border-slate-200 hover:border-slate-300 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-2.5 transition-colors focus:outline-none"
             >
-              {/* Google vector icon */}
               <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -200,14 +246,14 @@ function LoginInner() {
             </button>
           </div>
 
-          {/* Registration Redirect */}
+          {/* Login link redirect */}
           <p className="text-xs text-slate-500 text-center font-semibold mt-2">
-            New to KL Lanka Natural?{' '}
+            Already have an account?{' '}
             <Link
-              href={`/signup?redirect=${encodeURIComponent(redirectPath)}`}
+              href={`/login?redirect=${encodeURIComponent(redirectPath)}`}
               className="text-emerald-600 hover:text-emerald-700 hover:underline font-bold"
             >
-              Create an Account
+              Sign In
             </Link>
           </p>
 
@@ -219,11 +265,7 @@ function LoginInner() {
   );
 }
 
-/**
- * Exported page component — wraps LoginInner in Suspense as required by
- * Next.js when useSearchParams() is used inside a statically rendered page.
- */
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <Suspense
       fallback={
@@ -236,7 +278,7 @@ export default function LoginPage() {
         </div>
       }
     >
-      <LoginInner />
+      <SignupInner />
     </Suspense>
   );
 }

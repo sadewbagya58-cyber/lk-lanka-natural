@@ -10,8 +10,10 @@ import { fetchWithRetry } from '@/lib/fetcher';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import type { ProductCardData } from '@/types/product';
+import { useSession } from '@/components/AuthProvider';
 
 export default function CartPage() {
+  const { data: session } = useSession();
   const { cartItems, updateQuantity, removeFromCart, getCartSubtotal, clearCart } = useCartStore();
   const [productMap, setProductMap] = useState<Record<string, ProductCardData>>({});
   const [deliveryCost, setDeliveryCost] = useState(4.99);
@@ -190,7 +192,7 @@ export default function CartPage() {
                   <span className="text-xl font-black text-slate-950">{formatPrice(total)}</span>
                 </div>
                 <Link
-                  href="/checkout"
+                  href={session ? "/checkout" : `/signup?redirect=${encodeURIComponent('/checkout')}`}
                   className="h-12 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all mt-4 focus:outline-none shadow-md hover:shadow-lg shadow-emerald-600/10"
                 >
                   <CreditCard className="w-5 h-5" />

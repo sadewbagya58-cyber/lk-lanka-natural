@@ -8,6 +8,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useBuyNowStore } from '@/store/useBuyNowStore';
 import Image from 'next/image';
+import { useSession } from '@/components/AuthProvider';
 
 interface ProductVariant {
   id: string;
@@ -60,6 +61,7 @@ export default function ProductDetail({
   selectedVariant: propSelectedVariant,
   setSelectedVariant: propSetSelectedVariant,
 }: ProductDetailProps) {
+  const { data: session } = useSession();
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   
@@ -184,7 +186,11 @@ export default function ProductDetail({
       image: photoUrl || displayImage,
       customUploadImage: photoUrl,
     });
-    router.push('/checkout?buyNow=true');
+    if (!session) {
+      router.push(`/signup?redirect=${encodeURIComponent('/checkout?buyNow=true')}`);
+    } else {
+      router.push('/checkout?buyNow=true');
+    }
   };
 
   const handleQuantity = (delta: number) => {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 import { ensureOrderColumnsExist } from "@/lib/db-sync";
 
@@ -34,18 +35,72 @@ export async function GET(request: Request) {
       return NextResponse.json({ product });
     }
 
-    const products = await prisma.product.findMany({
-      include: {
-        category: true,
-        subCategory: true,
-        brand: true,
-        images: { orderBy: { sortOrder: 'asc' } },
-        variants: true,
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    const hasPage = searchParams.has("page");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const search = searchParams.get("search") || "";
 
-    return NextResponse.json({ products });
+    let whereClause: Prisma.ProductWhereInput = {};
+    if (search.trim()) {
+      const keywords = search.trim().split(/\s+/).filter(Boolean);
+      if (keywords.length > 0) {
+        whereClause = {
+          AND: keywords.map((kw) => ({
+            OR: [
+              { name: { contains: kw } },
+              { slug: { contains: kw } },
+              { category: { name: { contains: kw } } },
+              { brand: { name: { contains: kw } } },
+              { variants: { some: { sku: { contains: kw } } } },
+            ]
+          }))
+        };
+      }
+    }
+
+    if (hasPage) {
+      const skip = (page - 1) * limit;
+      const [products, total] = await Promise.all([
+        prisma.product.findMany({
+          where: whereClause,
+          include: {
+            category: true,
+            subCategory: true,
+            brand: true,
+            images: { orderBy: { sortOrder: 'asc' } },
+            variants: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit,
+        }),
+        prisma.product.count({ where: whereClause }),
+      ]);
+
+      return NextResponse.json({
+        products,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        }
+      });
+    } else {
+      const products = await prisma.product.findMany({
+        where: whereClause,
+        include: {
+          category: true,
+          subCategory: true,
+          brand: true,
+          images: { orderBy: { sortOrder: 'asc' } },
+          variants: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return NextResponse.json({ products });
+    }
   } catch (error: unknown) {
     console.error("Admin products GET error:", error);
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });

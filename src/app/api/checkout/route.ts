@@ -58,7 +58,10 @@ export async function POST(request: Request) {
     await ensureOrderColumnsExist();
 
     const userSession = await getSessionUser();
-    const userId = userSession?.id || null;
+    if (!userSession || !userSession.id) {
+      return NextResponse.json({ error: 'AUTH_REQUIRED' }, { status: 401 });
+    }
+    const userId = userSession.id;
 
     const body = await request.json() as {
       customerInfo: CustomerInfoInput;

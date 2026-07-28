@@ -269,6 +269,11 @@ function CheckoutContent() {
     }
 
     if (status !== 'loading') {
+      if (!session || !session.user?.id) {
+        const dest = isBuyNow ? '/checkout?buyNow=true' : '/checkout';
+        router.push(`/signup?redirect=${encodeURIComponent(dest)}`);
+        return;
+      }
       loadCheckoutData();
     }
   }, [status, session, cartItems.length, isBuyNow, router]);
@@ -297,6 +302,16 @@ function CheckoutContent() {
   const handleSubmitOrder = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Case 2 check: Check authentication first before any client-side verification
+    if (status === 'loading') {
+      return; // Do nothing while loading
+    }
+    if (status === 'unauthenticated' || !session || !session.user?.id) {
+      const dest = isBuyNow ? '/checkout?buyNow=true' : '/checkout';
+      router.push(`/signup?redirect=${encodeURIComponent(dest)}`);
+      return;
+    }
 
     // Validate Customer Fields
     if (!customerInfo.fullName.trim()) {
@@ -1013,7 +1028,7 @@ function CheckoutContent() {
               {/* Submit Order Button */}
               <button
                 type="submit"
-                disabled={isPending}
+                disabled={isPending || (status as string) === 'loading'}
                 className="h-12 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/10 active:scale-95 disabled:opacity-50"
               >
                 <ShieldCheck className="w-4.5 h-4.5" />

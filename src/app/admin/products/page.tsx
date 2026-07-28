@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Trash2, Pencil, Package } from 'lucide-react';
+import { Plus, Trash2, Pencil, Package, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ProductItem {
   id: string;
@@ -31,41 +31,49 @@ interface ProductItem {
 export default function AdminProducts() {
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const limit = 20;
 
-  const loadProducts = async () => {
+  // Debouncing effect for search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1); // Reset page to page 1 on query change
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
     try {
-      const res = await fetch('/api/admin/products');
+      const res = await fetch(`/api/admin/products?page=${currentPage}&limit=${limit}&search=${encodeURIComponent(debouncedSearch)}`);
       const data = await res.json();
       if (data.products) {
         setProducts(data.products);
+        if (data.pagination) {
+          setTotalPages(data.pagination.totalPages || 1);
+          setTotalProducts(data.pagination.total || 0);
+        } else {
+          setTotalPages(1);
+          setTotalProducts(data.products.length);
+        }
       }
     } catch (err) {
       console.error('Failed to load products:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, debouncedSearch]);
 
   useEffect(() => {
-    let isMounted = true;
-    async function fetchData() {
-      try {
-        const res = await fetch('/api/admin/products');
-        const data = await res.json();
-        if (isMounted && data.products) {
-          setProducts(data.products);
-        }
-      } catch (err) {
-        console.error('Failed to load products:', err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-    fetchData();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadProducts();
+  }, [loadProducts]);
 
   const handleDeleteProduct = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
@@ -102,6 +110,27 @@ export default function AdminProducts() {
         </Link>
       </div>
 
+      {/* Search Bar */}
+      <div className="relative border border-slate-200 rounded-2xl bg-white shadow-sm flex items-center px-4 py-2">
+        <Search className="w-5 h-5 text-slate-400 mr-2 shrink-0" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search products by name, SKU, category..."
+          className="w-full text-slate-800 text-sm focus:outline-none placeholder-slate-400 font-medium bg-transparent"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="p-1 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-600 focus:outline-none"
+            title="Clear search"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
       {/* Data Table */}
       {loading ? (
         <div className="py-12 flex justify-center">
@@ -110,17 +139,23 @@ export default function AdminProducts() {
       ) : products.length === 0 ? (
         <div className="py-12 text-center flex flex-col items-center gap-3 bg-slate-50 rounded-2xl border border-dashed border-slate-200 p-8">
           <Package className="w-12 h-12 text-slate-300" />
-          <h3 className="text-base font-bold text-slate-800">No products in database yet</h3>
+          <h3 className="text-base font-bold text-slate-800">
+            {debouncedSearch ? 'No products found' : 'No products in database yet'}
+          </h3>
           <p className="text-xs text-slate-500 font-light max-w-sm">
-            Click &quot;Add New Product&quot; to add your first real product into Hostinger MySQL.
+            {debouncedSearch
+              ? `We couldn't find any products matching "${debouncedSearch}". Try another search term.`
+              : 'Click "Add New Product" to add your first real product into Hostinger MySQL.'}
           </p>
-          <Link
-            href="/admin/products/new"
-            className="mt-2 h-10 px-4 bg-emerald-600 text-white text-xs font-bold rounded-xl flex items-center gap-2 hover:bg-emerald-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Product</span>
-          </Link>
+          {!debouncedSearch && (
+            <Link
+              href="/admin/products/new"
+              className="mt-2 h-10 px-4 bg-emerald-600 text-white text-xs font-bold rounded-xl flex items-center gap-2 hover:bg-emerald-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Product</span>
+            </Link>
+          )}
         </div>
       ) : (
         <>
@@ -285,6 +320,53 @@ export default function AdminProducts() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-slate-150 pt-4 mt-2 px-2 text-xs">
+              <span className="text-slate-500 font-medium">
+                Showing <strong className="text-slate-800">{products.length}</strong> of <strong className="text-slate-800">{totalProducts}</strong> products
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  disabled={currentPage <= 1 || loading}
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  className="p-2 border border-slate-200 hover:border-slate-350 bg-white rounded-xl text-slate-650 hover:text-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="Previous Page"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                
+                {/* Page numbers */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => {
+                  const isCurrent = pNum === currentPage;
+                  return (
+                    <button
+                      key={pNum}
+                      onClick={() => setCurrentPage(pNum)}
+                      disabled={loading}
+                      className={`w-8 h-8 rounded-xl font-bold flex items-center justify-center transition-colors text-xs ${
+                        isCurrent
+                          ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10'
+                          : 'border border-slate-200 hover:border-slate-350 bg-white text-slate-650 hover:text-slate-800'
+                      }`}
+                    >
+                      {pNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  disabled={currentPage >= totalPages || loading}
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  className="p-2 border border-slate-200 hover:border-slate-350 bg-white rounded-xl text-slate-650 hover:text-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="Next Page"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
