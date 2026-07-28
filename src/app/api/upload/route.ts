@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
 import { verifyAdminSession } from '@/lib/session';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
   try {
