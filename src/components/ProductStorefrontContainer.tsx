@@ -68,20 +68,26 @@ export default function ProductStorefrontContainer({
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mb-4">{product.name}</h1>
 
         <div className="flex items-center gap-4 mb-8">
-          <div className="flex items-center gap-1">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                className={`w-4 h-4 ${
-                  star <= Math.round(rating)
-                    ? 'text-amber-500 fill-amber-500'
-                    : 'text-slate-200 fill-slate-200'
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-sm font-bold text-slate-700">{rating}</span>
-          <span className="text-sm text-slate-500 font-medium">({reviewsCount} reviews)</span>
+          {reviewsCount > 0 ? (
+            <>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-4 h-4 ${
+                      star <= Math.round(rating)
+                        ? 'text-amber-500 fill-amber-500'
+                        : 'text-slate-200 fill-slate-200'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-sm font-bold text-slate-700">{rating}</span>
+              <span className="text-sm text-slate-500 font-medium">({reviewsCount} reviews)</span>
+            </>
+          ) : (
+            <span className="text-sm text-slate-400 font-medium">No reviews yet</span>
+          )}
         </div>
 
         <ProductDetail

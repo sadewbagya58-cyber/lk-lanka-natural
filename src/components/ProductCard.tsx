@@ -174,11 +174,15 @@ export default function ProductCard({ product }: ProductCardProps) {
           <span className="text-[8px] sm:text-[9px] text-slate-400 font-extrabold uppercase tracking-wider truncate">
             {product.category}
           </span>
-          <div className="flex items-center gap-0.5 sm:gap-1 bg-amber-50 border border-amber-100/50 px-1 sm:px-1.5 py-0.5 rounded-lg text-amber-700 font-bold text-[9px] sm:text-[10px] shrink-0">
-            <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-500 text-amber-500" strokeWidth={1} />
-            <span>{product.rating ? product.rating.toFixed(1) : '4.8'}</span>
-            <span className="text-slate-400 font-medium hidden sm:inline">({product.reviewsCount ?? 12})</span>
-          </div>
+          {product.reviewsCount > 0 ? (
+            <div className="flex items-center gap-0.5 sm:gap-1 bg-amber-50 border border-amber-100/50 px-1 sm:px-1.5 py-0.5 rounded-lg text-amber-700 font-bold text-[9px] sm:text-[10px] shrink-0">
+              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-500 text-amber-500" strokeWidth={1} />
+              <span>{product.rating.toFixed(1)}</span>
+              <span className="text-slate-400 font-medium hidden sm:inline">({product.reviewsCount})</span>
+            </div>
+          ) : (
+            <span className="text-[9px] sm:text-[10px] text-slate-400 font-semibold uppercase tracking-wider shrink-0">No reviews</span>
+          )}
         </div>
 
         {/* Product Title */}

@@ -174,10 +174,15 @@ export default function FlashDeals() {
                   {/* Category & Rating */}
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">{prod.category}</span>
-                    <div className="flex items-center gap-1 bg-amber-50 border border-amber-100/50 px-1.5 py-0.5 rounded-lg text-amber-700 font-bold text-[10px]">
-                      <Star className="w-3 h-3 fill-amber-500 text-amber-500" strokeWidth={1} />
-                      <span>{prod.rating.toFixed(1)}</span>
-                    </div>
+                    {prod.reviewsCount > 0 ? (
+                      <div className="flex items-center gap-1 bg-amber-50 border border-amber-100/50 px-1.5 py-0.5 rounded-lg text-amber-700 font-bold text-[10px]">
+                        <Star className="w-3 h-3 fill-amber-500 text-amber-500" strokeWidth={1} />
+                        <span>{prod.rating.toFixed(1)}</span>
+                        <span className="text-slate-400 font-medium hidden sm:inline">({prod.reviewsCount})</span>
+                      </div>
+                    ) : (
+                      <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">No reviews</span>
+                    )}
                   </div>
 
                   <Link href={`/products/${prod.slug}`} className="focus:outline-none">

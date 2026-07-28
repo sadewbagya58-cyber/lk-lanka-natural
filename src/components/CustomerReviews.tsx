@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 async function getTopReviews() {
   try {
     const reviews = await prisma.review.findMany({
-      where: { verified: true },
+      where: { verified: true, status: 'APPROVED' },
       include: {
         user: { select: { name: true } },
         product: { select: { name: true } },
