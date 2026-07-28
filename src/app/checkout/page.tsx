@@ -273,15 +273,25 @@ function CheckoutContent() {
     }
   }, [status, session, cartItems.length, isBuyNow, router]);
 
+  // Pre-load the reference photo URL from buyNow state (set by ProductDetail when Buy Now is clicked)
   useEffect(() => {
-    const customItem = currentItems.find((item) => (item as { customUploadImage?: string | null }).customUploadImage);
-    if (customItem && (customItem as { customUploadImage?: string | null }).customUploadImage) {
+    // Use setTimeout to avoid synchronous setState inside effect (ESLint react-hooks/set-state-in-effect)
+    if (isBuyNow && buyNowItem?.customUploadImage) {
       const timer = setTimeout(() => {
-        setReferencePhotoUrl((customItem as { customUploadImage?: string | null }).customUploadImage!);
+        setReferencePhotoUrl((prev) => prev || buyNowItem.customUploadImage!);
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [currentItems]);
+    // Also check currentItems for customUploadImage (cart flow fallback)
+    const customItem = currentItems.find((item) => (item as { customUploadImage?: string | null }).customUploadImage);
+    if (customItem && (customItem as { customUploadImage?: string | null }).customUploadImage) {
+      const timer = setTimeout(() => {
+        setReferencePhotoUrl((prev) => prev || (customItem as { customUploadImage?: string | null }).customUploadImage!);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [isBuyNow, buyNowItem, currentItems]);
+
 
   // Form Submit Handler
   const handleSubmitOrder = (e: React.FormEvent) => {

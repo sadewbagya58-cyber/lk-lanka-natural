@@ -1,6 +1,10 @@
 /**
- * Resilient fetch utility with exponential backoff retries and SWR in-memory caching.
+ * Resilient fetch utility with exponential backoff retries and in-memory caching.
  * Prevents temporary server or database hiccups from wiping out valid UI storefront data.
+ *
+ * Timeout: 10s per attempt (generous for slow hosting but not infinite)
+ * Retries: 2 attempts total (1 retry) for fast feedback
+ * Cache: Returns stale cached data if all retries fail (graceful degradation)
  */
 
 const memoryCache = new Map<string, unknown>();
@@ -12,14 +16,15 @@ function delay(ms: number): Promise<void> {
 export async function fetchWithRetry<T>(
   url: string,
   options?: RequestInit,
-  maxRetries = 3
+  maxRetries = 2
 ): Promise<T | null> {
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout per attempt
+      // 10s timeout per attempt — generous for slow hosting but not infinite
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const res = await fetch(url, {
         ...options,
@@ -37,17 +42,19 @@ export async function fetchWithRetry<T>(
       }
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
+      // Don't retry on non-timeout errors (e.g. network offline) — fail fast
+      if (lastError.name !== 'AbortError') break;
     }
 
     if (attempt < maxRetries - 1) {
-      const backoff = 250 * Math.pow(2, attempt); // 250ms, 500ms, 1000ms
-      await delay(backoff);
+      // Shorter backoff: 500ms between retries
+      await delay(500);
     }
   }
 
-  console.warn(`[fetchWithRetry] All ${maxRetries} retries failed for ${url}:`, lastError?.message);
+  console.warn(`[fetchWithRetry] Failed for ${url}:`, lastError?.message);
 
-  // Return stale cached data if available to prevent UI elements from disappearing
+  // Return stale cached data if available (graceful degradation — don't blank the UI)
   if (memoryCache.has(url)) {
     return memoryCache.get(url) as T;
   }

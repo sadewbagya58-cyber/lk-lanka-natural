@@ -2,13 +2,15 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { ProductCardData } from '@/types/product';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const products = await prisma.product.findMany({
       include: {
-        category: true,
-        brand: true,
-        images: { orderBy: { sortOrder: 'asc' } },
+        category: { select: { name: true, slug: true } },
+        brand: { select: { name: true } },
+        images: { orderBy: { sortOrder: 'asc' }, select: { url: true, isPrimary: true, sortOrder: true } },
         variants: { orderBy: { sortOrder: 'asc' } },
       },
       orderBy: { createdAt: 'desc' },

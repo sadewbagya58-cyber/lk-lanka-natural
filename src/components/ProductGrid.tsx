@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from './ProductCard';
-import { Sparkles, Flame, CheckCircle2, LayoutGrid, Package } from 'lucide-react';
+import { Sparkles, Flame, CheckCircle2, LayoutGrid, Package, RefreshCw } from 'lucide-react';
 import type { ProductCardData } from '@/types/product';
 
 import { fetchWithRetry } from '@/lib/fetcher';
@@ -12,6 +12,7 @@ export default function ProductGrid() {
   const [activeTab, setActiveTab] = useState<'all' | 'featured' | 'bestseller' | 'new'>('all');
   const [allProducts, setAllProducts] = useState<ProductCardData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const tabs = [
     { id: 'all', label: 'All Products', icon: LayoutGrid },
@@ -20,17 +21,27 @@ export default function ProductGrid() {
     { id: 'new', label: 'New Arrivals', icon: Flame },
   ] as const;
 
-  // Fetch products from API on mount
-  useEffect(() => {
+  // Fetch products — wrapped in useCallback so the retry button can call it
+  const loadProducts = useCallback(() => {
+    setLoading(true);
+    setLoadError(false);
     fetchWithRetry<{ products: ProductCardData[] }>('/api/products')
       .then((data) => {
         if (data && Array.isArray(data.products) && data.products.length > 0) {
           setAllProducts(data.products);
+          setLoadError(false);
+        } else {
+          setLoadError(data === null);
         }
       })
-      .catch((err) => console.error('Failed to load products:', err))
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadProducts();
+  }, [loadProducts]);
 
   const dataMap: Record<string, ProductCardData[]> = {
     all: allProducts,
@@ -85,13 +96,33 @@ export default function ProductGrid() {
         {/* Loading Skeleton */}
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
-            {[1, 2, 3, 4].map((n) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
               <div key={n} className="bg-white rounded-2xl border border-slate-100 p-4 h-80 animate-pulse flex flex-col justify-between">
                 <div className="w-full aspect-square bg-slate-100 rounded-xl mb-4" />
                 <div className="h-4 bg-slate-100 rounded w-3/4 mb-2" />
                 <div className="h-4 bg-slate-100 rounded w-1/2" />
               </div>
             ))}
+          </div>
+        ) : loadError ? (
+          /* Error State — API failed */
+          <div className="py-16 text-center flex flex-col items-center justify-center gap-4 bg-white rounded-3xl border border-dashed border-rose-200 p-8 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-400">
+              <Package className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-800">Unable to load products</h3>
+              <p className="text-xs text-slate-400 font-light max-w-sm mt-1">
+                We&apos;re having trouble connecting to the store. Please check your internet connection and try again.
+              </p>
+            </div>
+            <button
+              onClick={loadProducts}
+              className="mt-2 px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-2"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Try Again
+            </button>
           </div>
         ) : filteredProducts.length === 0 ? (
           /* Empty State for Filtered Collection */

@@ -1,14 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { ensureOrderColumnsExist } from '@/lib/db-sync';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Safely ensure DB columns/tables exist before querying
-    await ensureOrderColumnsExist();
-
     const dbSettings = await prisma.websiteSetting.findMany();
     const settings: Record<string, string> = {};
     

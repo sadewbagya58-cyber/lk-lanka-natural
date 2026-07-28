@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { Search, SlidersHorizontal, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { Search, SlidersHorizontal, X, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ProductCardData, CategoryData, BrandData, SortOption } from '@/types/product';
 import ProductCard from './ProductCard';
@@ -75,6 +75,7 @@ function ProductCatalogContent() {
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [brands, setBrands] = useState<BrandData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
@@ -88,15 +89,19 @@ function ProductCatalogContent() {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
+    setLoading(true);
+    setLoadError(false);
     Promise.allSettled([
       fetchWithRetry<{ products: ProductCardData[] }>('/api/products'),
       fetchWithRetry<{ categories: CategoryData[] }>('/api/categories'),
       fetchWithRetry<{ brands: BrandData[] }>('/api/brands'),
     ])
       .then(([prodRes, catRes, brandRes]) => {
+        let hasProducts = false;
         if (prodRes.status === 'fulfilled' && prodRes.value?.products?.length) {
           setAllProducts(prodRes.value.products);
+          hasProducts = true;
         }
         if (catRes.status === 'fulfilled' && catRes.value?.categories?.length) {
           setCategories(catRes.value.categories);
@@ -104,10 +109,21 @@ function ProductCatalogContent() {
         if (brandRes.status === 'fulfilled' && brandRes.value?.brands?.length) {
           setBrands(brandRes.value.brands);
         }
+        // Only show error if products failed AND there's nothing cached
+        if (!hasProducts && prodRes.status === 'fulfilled' && prodRes.value === null) {
+          setLoadError(true);
+        }
       })
-      .catch(console.error)
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadData();
+  }, [loadData]);
+
+
 
   // Update query state if search parameter in URL changes
   useEffect(() => {
@@ -320,7 +336,7 @@ function ProductCatalogContent() {
           {/* Sort + Results */}
           <div className="flex items-center justify-between mb-6">
             <p className="text-sm text-slate-500 font-medium">
-              {loading ? 'Loading…' : total > 0 ? `Showing ${startItem}–${endItem} of ${total} products` : 'No products found'}
+              {loading ? 'Loading products…' : loadError ? 'Unable to load products' : total > 0 ? `Showing ${startItem}–${endItem} of ${total} products` : 'No products found'}
             </p>
             <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm">
               <span className="text-xs font-bold text-slate-500 hidden sm:inline">Sort:</span>
@@ -339,6 +355,26 @@ function ProductCatalogContent() {
               </select>
             </div>
           </div>
+
+          {/* Error State */}
+          {!loading && loadError && (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4">
+                <Search className="w-7 h-7 text-rose-300" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Unable to load products</h3>
+              <p className="text-slate-500 text-sm mb-6 max-w-sm">
+                We couldn&apos;t connect to the store. Please check your connection and try again.
+              </p>
+              <button
+                onClick={loadData}
+                className="px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors text-sm flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Try Again
+              </button>
+            </div>
+          )}
 
           {/* Empty state */}
           {!loading && items.length === 0 && (

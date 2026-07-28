@@ -14,18 +14,34 @@ export function isCustomPortraitArt(product?: {
 } | null): boolean {
   if (!product) return false;
 
-  const categoryObj = product.category && typeof product.category === 'object' ? product.category as { name?: string | null; slug?: string | null } : null;
-  const slug = product.slug || categoryObj?.slug || product.categorySlug || (typeof product.category === 'string' ? product.category : '');
-  const name = product.name || categoryObj?.name || product.categoryName || (typeof product.category === 'string' ? product.category : '');
+  // 1. Check categorySlug directly (most reliable — comes from DB category relation)
+  const catSlug = (product.categorySlug || '').toLowerCase().trim();
+  if (catSlug === CUSTOM_PORTRAIT_SLUG || catSlug.includes('portrait-art') || catSlug.includes('custom-portrait')) {
+    return true;
+  }
 
-  const cleanSlug = (slug || '').toLowerCase().trim();
-  const cleanName = (name || '').toLowerCase().trim();
+  // 2. Check categoryName directly
+  const catName = (product.categoryName || '').toLowerCase().trim();
+  if (catName === CUSTOM_PORTRAIT_NAME.toLowerCase() || catName.includes('custom portrait')) {
+    return true;
+  }
 
-  return (
-    cleanSlug === CUSTOM_PORTRAIT_SLUG ||
-    cleanSlug.includes('portrait-art') ||
-    cleanSlug.includes('custom-portrait') ||
-    cleanName === CUSTOM_PORTRAIT_NAME.toLowerCase() ||
-    cleanName.includes('custom portrait')
-  );
+  // 3. Check nested category object
+  const categoryObj = product.category && typeof product.category === 'object'
+    ? product.category as { name?: string | null; slug?: string | null }
+    : null;
+  if (categoryObj?.slug) {
+    const s = (categoryObj.slug || '').toLowerCase().trim();
+    if (s === CUSTOM_PORTRAIT_SLUG || s.includes('portrait-art') || s.includes('custom-portrait')) return true;
+  }
+  if (categoryObj?.name) {
+    const n = (categoryObj.name || '').toLowerCase().trim();
+    if (n === CUSTOM_PORTRAIT_NAME.toLowerCase() || n.includes('custom portrait')) return true;
+  }
+
+  // 4. Fallback: check product name (least reliable but catches edge cases)
+  const productName = (product.name || '').toLowerCase().trim();
+  if (productName.includes('custom portrait')) return true;
+
+  return false;
 }

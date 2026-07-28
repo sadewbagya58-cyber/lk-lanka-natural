@@ -9,14 +9,9 @@ export const metadata: Metadata = {
   },
   title: "KL Lanka Natural | Premium Online Marketplace Sri Lanka",
   description: "Shop premium natural products, groceries, cosmetics, health supplements, and exquisite perfumes at KL Lanka Natural (PVT) LTD. Fast island-wide delivery in Sri Lanka.",
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/logo.png", type: "image/png" },
-    ],
-    shortcut: "/favicon.ico",
-    apple: "/logo.png",
-  },
+  // Next.js App Router auto-discovers favicon.ico, icon.png, and apple-icon.png from src/app/
+  // No manual icons config needed — it would conflict with auto-discovery
+
   openGraph: {
     title: "KL Lanka Natural | Premium Online Marketplace Sri Lanka",
     description: "Shop premium natural products, groceries, cosmetics, health supplements, and exquisite perfumes at KL Lanka Natural (PVT) LTD. Fast island-wide delivery in Sri Lanka.",

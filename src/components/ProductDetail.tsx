@@ -26,6 +26,9 @@ export interface ProductDetailData {
   id: string;
   name: string;
   slug: string;
+  categorySlug?: string | null;
+  categoryName?: string | null;
+  isFreeDelivery?: boolean;
   price: number;
   originalPrice?: number | null;
   shortDescription?: string | null;
@@ -69,7 +72,12 @@ export default function ProductDetail({
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist);
   const isWishlisted = useWishlistStore((state) => state.isInWishlist(product.id));
 
-  const isCustomPortrait = isCustomPortraitArt(product);
+  const isCustomPortrait = isCustomPortraitArt({
+    slug: product.slug,
+    name: product.name,
+    categorySlug: product.categorySlug,
+    categoryName: product.categoryName,
+  });
   const hasVariants = !isCustomPortrait && product.variants && product.variants.length > 0;
   
   // Calculate price ranges

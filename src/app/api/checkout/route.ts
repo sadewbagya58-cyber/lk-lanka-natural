@@ -277,7 +277,17 @@ export async function POST(request: Request) {
             throw new Error(`Product not found.`);
           }
 
-          const isCustomPortrait = isCustomPortraitArt(product);
+          const isCustomPortrait = isCustomPortraitArt({
+            slug: product.slug,
+            categorySlug: product.category?.slug,
+            categoryName: product.category?.name,
+            name: product.name,
+          });
+
+          // Server-side validation: Custom Portrait Art MUST have a reference photo
+          if (isCustomPortrait && !item.customUploadImage?.trim()) {
+            throw new Error(`A reference photo is required for '${product.name}'. Please upload your reference photo before placing this order.`);
+          }
 
           if (!isCustomPortrait && product.stockQuantity < item.quantity) {
             throw new Error(`Insufficient stock for '${product.name}'. Available: ${product.stockQuantity}, Requested: ${item.quantity}`);
