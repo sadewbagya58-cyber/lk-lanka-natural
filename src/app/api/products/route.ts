@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { ProductCardData } from '@/types/product';
+import { ensureOrderColumnsExist } from '@/lib/db-sync';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    await ensureOrderColumnsExist();
     const products = await prisma.product.findMany({
       include: {
         category: { select: { name: true, slug: true } },
@@ -63,9 +65,25 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ products: data });
+    return new NextResponse(JSON.stringify({ products: data }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   } catch (error) {
     console.error('Products GET error:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    return new NextResponse(JSON.stringify({ error: 'Failed to fetch products' }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   }
 }

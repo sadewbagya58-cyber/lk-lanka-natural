@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
   try {
@@ -42,6 +43,15 @@ export async function POST(request: Request) {
     const filePath = path.join(uploadDir, filename);
 
     fs.writeFileSync(filePath, buffer);
+
+    // Save to database for persistence across server restarts/rebuilds
+    await prisma.uploadedFile.create({
+      data: {
+        filename,
+        mimeType: file.type,
+        data: buffer,
+      }
+    });
 
     const publicUrl = `/uploads/custom-portraits/${filename}`;
 

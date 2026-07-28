@@ -19,6 +19,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const [isAdded, setIsAdded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const router = useRouter();
 
   const addToCart = useCartStore((state) => state.addToCart);
@@ -59,7 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     ? Math.round(((activeOriginal - activePrice) / activeOriginal) * 100)
     : null;
 
-  const displayImage = product.image || (product.images && product.images[0]) || null;
+  const displayImage = !imageError && (product.image || (product.images && product.images[0])) || null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -149,12 +150,16 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Product Image Link */}
         <Link href={`/products/${product.slug}`} className="block relative mb-2.5 sm:mb-4 select-none focus:outline-none">
           <div className="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
-            {product.image ? (
+            {displayImage ? (
               <Image
-                src={product.image}
+                src={displayImage}
                 alt={product.name}
                 fill
                 className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                onError={() => {
+                  console.warn(`[ProductCard] Image failed to load: ${displayImage}`);
+                  setImageError(true);
+                }}
                 unoptimized
               />
             ) : (

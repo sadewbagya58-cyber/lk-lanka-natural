@@ -285,6 +285,23 @@ export async function ensureOrderColumnsExist(): Promise<void> {
       console.warn('DB Sync FaqItem table notice:', (err as Error).message);
     }
 
+    // Ensure UploadedFile table exists
+    try {
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS \`UploadedFile\` (
+          \`id\` VARCHAR(191) NOT NULL,
+          \`filename\` VARCHAR(191) NOT NULL,
+          \`mimeType\` VARCHAR(191) NOT NULL,
+          \`data\` LONGBLOB NOT NULL,
+          \`createdAt\` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+          PRIMARY KEY (\`id\`),
+          UNIQUE INDEX \`UploadedFile_filename_key\` (\`filename\`)
+        ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+      `);
+    } catch (err) {
+      console.warn('DB Sync UploadedFile table notice:', (err as Error).message);
+    }
+
     // 7. Seed default CMS page content
     try {
       const cmsDefaults: Array<{

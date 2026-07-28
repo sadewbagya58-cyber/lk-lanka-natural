@@ -51,6 +51,15 @@ export async function POST(request: Request) {
 
     fs.writeFileSync(filePath, buffer);
 
+    // Save to database for persistence across server restarts/rebuilds
+    await prisma.uploadedFile.create({
+      data: {
+        filename,
+        mimeType: file.type,
+        data: buffer,
+      }
+    });
+
     const publicUrl = `/uploads/${sanitizedFolder}/${filename}`;
 
     return NextResponse.json({ url: publicUrl, filename }, { status: 201 });

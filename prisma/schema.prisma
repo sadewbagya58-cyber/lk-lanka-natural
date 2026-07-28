@@ -351,5 +351,10 @@ model FaqItem {
   updatedAt DateTime @updatedAt
 }
 
-
-
+model UploadedFile {
+  id        String   @id @default(uuid())
+  filename  String   @unique
+  mimeType  String
+  data      Bytes    @db.LongBlob
+  createdAt DateTime @default(now())
+}

@@ -15,6 +15,7 @@ import { useBuyNowStore } from '@/store/useBuyNowStore';
 export default function FlashDeals() {
   const [flashProducts, setFlashProducts] = useState<ProductCardData[]>([]);
   const [timeLeft, setTimeLeft] = useState({ hours: 8, minutes: 45, seconds: 30 });
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const router = useRouter();
 
   const addToCart = useCartStore((state) => state.addToCart);
@@ -152,12 +153,16 @@ export default function FlashDeals() {
                   {/* Product Image */}
                   <Link href={`/products/${prod.slug}`} className="block relative mb-4 select-none focus:outline-none">
                     <div className="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
-                      {prod.image ? (
+                      {prod.image && !failedImages[prod.image] ? (
                         <Image
                           src={prod.image}
                           alt={prod.name}
                           fill
                           className="object-contain p-2 hover:scale-105 transition-transform duration-500"
+                          onError={() => {
+                            console.warn(`[FlashDeals] Image failed to load: ${prod.image}`);
+                            setFailedImages((prev) => ({ ...prev, [prod.image!]: true }));
+                          }}
                           unoptimized
                         />
                       ) : (

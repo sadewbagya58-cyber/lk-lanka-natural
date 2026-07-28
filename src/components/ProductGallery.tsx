@@ -59,6 +59,7 @@ export default function ProductGallery({
     }
   }
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   const handlePrev = () => {
     setActiveIndex((prev) => (prev === 0 ? sortedImages.length - 1 : prev - 1));
@@ -81,19 +82,33 @@ export default function ProductGallery({
   }
 
   const activeImage = sortedImages[activeIndex] || sortedImages[0];
+  const activeImageFailed = activeImage ? failedImages[activeImage.url] : true;
 
   return (
     <div className="flex flex-col gap-4 w-full">
       {/* Large Main Image Display Box */}
       <div className="relative aspect-square w-full rounded-3xl bg-white border border-slate-100 overflow-hidden flex items-center justify-center shadow-sm group">
-        <Image
-          src={activeImage.url}
-          alt={`${name} - Image ${activeIndex + 1}`}
-          fill
-          className="object-contain p-4 transition-transform duration-300 group-hover:scale-[1.02] cursor-pointer"
-          onClick={() => setLightboxOpen(true)}
-          unoptimized
-        />
+        {!activeImageFailed ? (
+          <Image
+            src={activeImage.url}
+            alt={`${name} - Image ${activeIndex + 1}`}
+            fill
+            className="object-contain p-4 transition-transform duration-300 group-hover:scale-[1.02] cursor-pointer"
+            onClick={() => setLightboxOpen(true)}
+            onError={() => {
+              console.warn(`[ProductGallery] Image failed to load: ${activeImage.url}`);
+              setFailedImages((prev) => ({ ...prev, [activeImage.url]: true }));
+            }}
+            unoptimized
+          />
+        ) : (
+          <>
+            <div className={`absolute inset-0 bg-gradient-to-tr ${gradient} opacity-20`} />
+            <div className="w-2/3 h-2/3 flex items-center justify-center transform hover:scale-105 transition-transform duration-500">
+              <ProductIllustration type={visualSeed} className="w-full h-full text-slate-700/70" />
+            </div>
+          </>
+        )}
 
         {/* Floating Actions overlay */}
         <button
