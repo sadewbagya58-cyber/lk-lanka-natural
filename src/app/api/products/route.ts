@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { ProductCardData } from '@/types/product';
-import { ensureOrderColumnsExist } from '@/lib/db-sync';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    await ensureOrderColumnsExist();
     const products = await prisma.product.findMany({
       include: {
         category: { select: { name: true, slug: true } },
