@@ -15,24 +15,26 @@ export default function ImageHeroBanner() {
       className="w-full relative overflow-hidden bg-[#f4f0e9]"
       aria-label="KL Lanka Natural — Natural Choices, Better Life"
     >
-      {/* Responsive container using aspect-ratio so the full image shows on all devices */}
+      {/* 
+        Responsive container:
+        - Mobile: uses aspect-[2/1] to preserve the full composition and prevent distortion.
+        - Tablet/Desktop: overrides aspect ratio to use fixed heights matching premium e-commerce layouts.
+      */}
       <div
-        className="relative w-full"
-        style={{ aspectRatio: '1792 / 896' }}
+        className="relative w-full aspect-[2/1] sm:aspect-auto sm:h-[360px] md:h-[420px] lg:h-[460px]"
       >
         <Image
           src="/hero-banner.png"
           alt="KL Lanka Natural — Natural Choices, Better Life. All-in-one shopping for Ayurvedic, vitamins, skincare, hair care, perfumes, fashion, and health products delivered across Sri Lanka."
           fill
           priority
-          quality={88}
+          quality={92}
           sizes="100vw"
           className="object-cover object-center"
         />
 
         {/* 
-          Subtle bottom gradient on mobile to soften the transition into page content.
-          Not a full CTA overlay — the image already contains its own "Shop Now" button.
+          Bottom gradient on mobile to soften transition.
         */}
         <div
           className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-50/60 to-transparent pointer-events-none sm:hidden"
