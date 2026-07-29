@@ -1,5 +1,5 @@
 // ============================================================
-// KL Lanka Natural (PVT) LTD — Currency & Pricing System
+// KL Lanka Natural — Currency & Pricing System
 // ============================================================
 
 export type CurrencyCode = 'USD' | 'LKR' | 'EUR' | 'GBP';

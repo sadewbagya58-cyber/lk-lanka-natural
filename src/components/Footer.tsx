@@ -59,7 +59,7 @@ export default function Footer() {
             <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-white p-0.5 border border-slate-700 shadow-md group-hover:border-emerald-500 transition-all shrink-0">
               <Image
                 src="/logo.png"
-                alt="KL Lanka Natural (PVT) LTD Logo"
+                alt="KL Lanka Natural Logo"
                 width={48}
                 height={48}
                 className="w-full h-full object-contain"
@@ -69,13 +69,10 @@ export default function Footer() {
               <span className="text-lg font-black tracking-tight text-white leading-tight">
                 KL LANKA <span className="text-emerald-500">NATURAL</span>
               </span>
-              <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest leading-none mt-0.5">
-                (PVT) LTD
-              </span>
             </div>
           </Link>
           <p className="text-sm leading-relaxed text-slate-400 font-light pr-2">
-            KL Lanka Natural (PVT) LTD is Sri Lanka&apos;s leading premium marketplace for health products, exquisite perfumes, and handcrafted jewellery. Sourced ethically, delivered safely.
+            KL Lanka Natural is a leading multi-category online marketplace offering supplements, hardware, electronics, food, jewellery, fancy items, stationery, and other general products. Sourced ethically, delivered safely.
           </p>
           <div className="flex items-center gap-3 mt-3">
             <a href={settings.facebookUrl || "https://facebook.com"} target="_blank" rel="noopener noreferrer"
@@ -127,11 +124,12 @@ export default function Footer() {
         <div className="flex flex-col gap-4">
           <h4 className="text-sm font-bold text-white uppercase tracking-widest">Customer Help</h4>
           <ul className="flex flex-col gap-2.5 text-sm">
-            <li><Link href={settings.helpLink_trackOrder || "/track-order"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Track Your Order</Link></li>
-            <li><Link href={settings.helpLink_shippingPolicy || "/shipping-policy"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Shipping &amp; Delivery</Link></li>
-            <li><Link href={settings.helpLink_returnsRefunds || "/returns-refunds"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Returns &amp; Refunds</Link></li>
-            <li><Link href={settings.helpLink_faq || "/faq"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Frequently Asked FAQs</Link></li>
-            <li><Link href={settings.helpLink_helpCenter || "/contact"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Help Center</Link></li>
+            <li><Link href="/shipping-policy" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Shipping &amp; Delivery</Link></li>
+            <li><Link href="/returns-refunds" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Returns &amp; Refunds</Link></li>
+            <li><Link href="/faq" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">FAQ</Link></li>
+            <li><Link href="/privacy-policy" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Privacy Policy</Link></li>
+            <li><Link href="/terms-of-service" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Terms of Service</Link></li>
+            <li><Link href="/contact" className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">Contact / Customer Support</Link></li>
           </ul>
         </div>
 

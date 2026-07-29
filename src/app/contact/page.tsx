@@ -3,7 +3,7 @@ import ContactClient from './ContactClient';
 
 export const metadata: Metadata = {
   title: 'Contact Us & Help Center | KL Lanka Natural',
-  description: 'Get in touch with KL Lanka Natural (PVT) LTD. Contact support, find our headquarters details, or send an inquiry.',
+  description: 'Get in touch with KL Lanka Natural. Contact customer support, find our headquarters details, or send an inquiry.',
   alternates: {
     canonical: '/contact',
   },

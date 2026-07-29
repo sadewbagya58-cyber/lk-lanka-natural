@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function TermsOfServicePage() {
   const page = await getCmsPage('terms-of-service');
   const title = page?.title || 'Terms of Service';
-  const subtitle = page?.subtitle || 'The terms governing your use of the KL Lanka Natural (PVT) LTD website and services.';
+  const subtitle = page?.subtitle || 'The terms governing your use of the KL Lanka Natural website and services.';
   const sections = page?.sections ?? [];
 
   const breadcrumbJsonLd = {

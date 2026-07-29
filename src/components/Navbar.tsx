@@ -117,9 +117,6 @@ export default function Navbar() {
                 <span className="text-sm sm:text-base md:text-lg font-black tracking-tight text-slate-900 leading-none sm:leading-tight">
                   KL LANKA <span className="text-emerald-600">NATURAL</span>
                 </span>
-                <span className="text-[8px] sm:text-[9px] font-black text-amber-600 uppercase tracking-widest leading-none mt-0.5">
-                  (PVT) LTD
-                </span>
               </div>
             </Link>
 
@@ -282,9 +279,6 @@ export default function Navbar() {
                     <div className="flex flex-col justify-center">
                       <span className="text-base font-black tracking-tight text-slate-900 leading-tight">
                         KL LANKA <span className="text-emerald-600">NATURAL</span>
-                      </span>
-                      <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest leading-none mt-0.5">
-                        (PVT) LTD
                       </span>
                     </div>
                   </Link>

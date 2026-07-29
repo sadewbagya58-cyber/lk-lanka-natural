@@ -162,7 +162,7 @@ export default function AdminSettingsPage() {
                   type="text"
                   value={settings.companyAddress}
                   onChange={(e) => setSettings({ ...settings, companyAddress: e.target.value })}
-                  placeholder="e.g. No. 124, Galle Road, Colombo 03, Sri Lanka"
+                  placeholder="e.g. 97/15H, Avissawella Road, Wellampitiya, Sri Lanka"
                   maxLength={200}
                   className="w-full px-4 py-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none font-medium"
                 />
@@ -206,12 +206,12 @@ export default function AdminSettingsPage() {
                   min="0"
                   value={settings.deliveryCost}
                   onChange={(e) => setSettings({ ...settings, deliveryCost: e.target.value })}
-                  placeholder="e.g. 4.99"
+                  placeholder="e.g. 1.50"
                   required
                   className="w-full px-4 py-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none font-medium"
                 />
               </div>
-              <span className="text-[9px] text-slate-450 font-medium">Default: 4.99 USD. Used to calculate courier shipping charges dynamically.</span>
+              <span className="text-[9px] text-slate-450 font-medium">Default: 1.50 USD. Used to calculate courier shipping charges dynamically.</span>
             </div>
           </div>
         </div>

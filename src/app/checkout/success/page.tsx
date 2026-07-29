@@ -134,8 +134,8 @@ function SuccessContent() {
   const customerName = order.customerName || 'Valued Customer';
   const phone = order.customerPhone || order.address?.phone || '';
 
-  const subtotal = order.subtotal ?? (order.totalAmount >= 50 ? order.totalAmount : order.totalAmount - 4.99);
-  const deliveryFee = order.deliveryFee ?? (order.totalAmount >= 50 ? 0 : 4.99);
+  const subtotal = order.subtotal ?? (order.totalAmount >= 50 ? order.totalAmount : order.totalAmount - 1.50);
+  const deliveryFee = order.deliveryFee ?? (order.totalAmount >= 50 ? 0 : 1.50);
 
   return (
     <div className="max-w-3xl mx-auto w-full">

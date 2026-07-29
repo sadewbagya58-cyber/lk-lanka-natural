@@ -74,7 +74,7 @@ function CheckoutContent() {
   // Method Selections
   const [deliveryMethod, setDeliveryMethod] = useState('STANDARD_COURIER');
   const [paymentMethod, setPaymentMethod] = useState('COD');
-  const [deliveryCost, setDeliveryCost] = useState(4.99);
+  const [deliveryCost, setDeliveryCost] = useState(1.50);
 
   const [productMap, setProductMap] = useState<Record<string, ProductCardData>>({});
   const [loading, setLoading] = useState(true);
@@ -376,14 +376,7 @@ function CheckoutContent() {
       return;
     }
 
-    if (paymentMethod === 'CARD') {
-      setError(
-        isSriLanka
-          ? 'Online card payments are currently unavailable. Please select Cash on Delivery.'
-          : 'Online card payment is currently unavailable for international orders. Please check back soon.'
-      );
-      return;
-    }
+    // Card payments are available; the checkout API will create the order with a PENDING payment status.
 
     if (hasCustomPortraitArt && !referencePhotoUrl) {
       setError('Please upload your reference photo for the Custom Portrait Art before placing your order.');

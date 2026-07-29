@@ -224,8 +224,8 @@ export default function AdminOrderDetailPage({
   const postalCode = order.postalCode || '';
   const country = order.country || 'Sri Lanka';
 
-  const subtotal = order.subtotal ?? (order.totalAmount >= 50 ? order.totalAmount : order.totalAmount - 4.99);
-  const deliveryFee = order.deliveryFee ?? (order.totalAmount >= 50 ? 0 : 4.99);
+  const subtotal = order.subtotal ?? (order.totalAmount >= 50 ? order.totalAmount : order.totalAmount - 1.50);
+  const deliveryFee = order.deliveryFee ?? (order.totalAmount >= 50 ? 0 : 1.50);
 
   return (
     <div className="flex flex-col gap-8">

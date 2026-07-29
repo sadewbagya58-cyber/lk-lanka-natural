@@ -39,8 +39,8 @@ export const metadata: Metadata = {
   // No manual icons config needed — it would conflict with auto-discovery
 
   openGraph: {
-    title: "KL Lanka Natural | Premium Online Marketplace Sri Lanka",
-    description: "Shop premium natural products, groceries, cosmetics, health supplements, and exquisite perfumes at KL Lanka Natural (PVT) LTD. Fast island-wide delivery in Sri Lanka.",
+    title: "KL Lanka Natural | Multi-Category Online Marketplace",
+    description: "KL Lanka Natural is a leading multi-category online marketplace offering supplements, hardware, electronics, food, jewellery, fancy items, stationery, and other general products. Shipping to Sri Lanka, Europe, and worldwide.",
     url: "https://kllankanatural.com",
     siteName: "KL Lanka Natural",
     images: [
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
         url: "https://kllankanatural.com/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "KL Lanka Natural (PVT) LTD — Premium Online Marketplace Sri Lanka",
+        alt: "KL Lanka Natural — Multi-Category Online Marketplace",
       },
     ],
     locale: "en_LK",
@@ -56,8 +56,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "KL Lanka Natural | Premium Online Marketplace Sri Lanka",
-    description: "Shop premium natural products, groceries, cosmetics, health supplements, and exquisite perfumes at KL Lanka Natural (PVT) LTD. Fast delivery in Sri Lanka.",
+    title: "KL Lanka Natural | Multi-Category Online Marketplace",
+    description: "KL Lanka Natural is a leading multi-category online marketplace offering supplements, hardware, electronics, food, jewellery, fancy items, stationery, and other general products. Shipping to Sri Lanka, Europe, and worldwide.",
     images: ["https://kllankanatural.com/og-image.jpg"],
   },
 };
