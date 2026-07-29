@@ -13,12 +13,12 @@ export default function Home() {
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "KL Lanka Natural (PVT) LTD",
+    "name": "KL Lanka Natural",
     "url": "https://kllankanatural.com",
     // logo should be the primary square brand logo (schema.org recommendation)
     "logo": "https://kllankanatural.com/logo.png",
     "image": "https://kllankanatural.com/og-image.jpg",
-    "email": "kllankanatural@gmail.com",
+    "email": "kllanka234@gmail.com",
     "sameAs": [
       "https://facebook.com/kllankanatural",
       "https://instagram.com/kllankanatural",
@@ -41,13 +41,13 @@ export default function Home() {
   const storeJsonLd = {
     "@context": "https://schema.org",
     "@type": "OnlineStore",
-    "name": "KL Lanka Natural (PVT) LTD",
-    "description": "Premium Sri Lankan online marketplace selling organic foods, groceries, cosmetics, perfumes, baby care, and natural health products.",
+    "name": "KL Lanka Natural",
+    "description": "KL Lanka Natural is a leading multi-category online marketplace offering supplements, hardware, electronics, food, jewellery, fancy items, stationery, and other general products.",
     "url": "https://kllankanatural.com",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "No. 124, Galle Road",
-      "addressLocality": "Colombo 03",
+      "streetAddress": "97/15H, Avissawella Road",
+      "addressLocality": "Wellampitiya",
       "addressCountry": "LK"
     },
     "openingHoursSpecification": {

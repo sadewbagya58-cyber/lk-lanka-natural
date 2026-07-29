@@ -1,10 +1,10 @@
-﻿import type { MetadataRoute } from 'next';
+import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'KL Lanka Natural (PVT) LTD',
+    name: 'KL Lanka Natural',
     short_name: 'KL Lanka Natural',
-    description: 'Premium online marketplace for natural, Ayurvedic, and wellness products in Sri Lanka.',
+    description: 'KL Lanka Natural is a leading multi-category online marketplace offering supplements, hardware, electronics, food, jewellery, fancy items, stationery, and other general products.',
     start_url: '/',
     display: 'standalone',
     background_color: '#f8fafc',

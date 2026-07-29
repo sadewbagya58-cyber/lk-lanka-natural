@@ -113,11 +113,11 @@ export default function ContactClient() {
                 </div>
                 <p className="text-sm text-slate-500 mb-3">Our verified customer support email:</p>
                 <a
-                  href="mailto:kllankanatural@gmail.com"
+                  href="mailto:kllanka234@gmail.com"
                   className="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors break-all"
                 >
                   <Mail size={14} />
-                  kllankanatural@gmail.com
+                  kllanka234@gmail.com
                 </a>
               </div>
 

@@ -312,11 +312,11 @@ export default function Navbar() {
               </div>
 
               <div className="border-t border-slate-100 pt-6 mt-8">
-                <p className="text-xs font-bold text-slate-550">KL Lanka Natural (PVT) LTD</p>
-                <p className="text-[11px] text-slate-400 mt-1.5">Galle Road, Colombo 03, Sri Lanka</p>
+                <p className="text-xs font-bold text-slate-555">KL Lanka Natural</p>
+                <p className="text-[11px] text-slate-400 mt-1.5">97/15H, Avissawella Road, Wellampitiya, Sri Lanka</p>
                 <div className="mt-4 flex items-center gap-2 text-[11px] text-emerald-750 font-bold bg-emerald-50/50 py-2.5 px-3.5 rounded-lg border border-emerald-100/60">
                   <Phone className="w-3.5 h-3.5" />
-                  Hotline: +94 11 234 5678
+                  Hotline: 0757726363
                 </div>
               </div>
             </motion.div>

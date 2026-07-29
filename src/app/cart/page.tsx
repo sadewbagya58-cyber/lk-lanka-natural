@@ -11,12 +11,13 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import type { ProductCardData } from '@/types/product';
 import { useSession } from '@/components/AuthProvider';
+import { BUSINESS_CONFIG } from '@/lib/business-config';
 
 export default function CartPage() {
   const { data: session } = useSession();
   const { cartItems, updateQuantity, removeFromCart, getCartSubtotal, clearCart } = useCartStore();
   const [productMap, setProductMap] = useState<Record<string, ProductCardData>>({});
-  const [deliveryCost, setDeliveryCost] = useState(4.99);
+  const [deliveryCost, setDeliveryCost] = useState(1.50);
 
   const subtotal = getCartSubtotal();
   const shippingCost = deliveryCost;
@@ -182,9 +183,15 @@ export default function CartPage() {
                     <span>Items Subtotal</span>
                     <span className="font-bold text-slate-800">{formatPrice(subtotal)}</span>
                   </div>
-                  <div className="flex justify-between text-slate-500">
-                    <span>Estimated Shipping</span>
-                    <span className="font-bold text-slate-800">{shippingCost === 0 ? 'FREE' : formatPrice(shippingCost)}</span>
+                  <div className="flex flex-col gap-1 text-xs text-slate-400 pt-1.5 border-t border-slate-100/50">
+                    <div className="flex justify-between">
+                      <span>Sri Lanka Est. Delivery</span>
+                      <span>{BUSINESS_CONFIG.delivery.sriLanka.display}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>International Delivery</span>
+                      <span>{BUSINESS_CONFIG.delivery.international.display}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex justify-between text-base font-bold text-slate-900">

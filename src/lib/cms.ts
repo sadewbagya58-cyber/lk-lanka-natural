@@ -82,14 +82,14 @@ export async function getFaqItems(): Promise<FaqItemData[]> {
 
 /** Default fallback titles per page slug */
 export const PAGE_DEFAULTS: Record<string, { title: string; subtitle: string }> = {
-  about: { title: 'About Us', subtitle: 'Sri Lanka\'s premier natural wellness marketplace.' },
+  about: { title: 'About Us', subtitle: 'KL Lanka Natural is a leading multi-category online marketplace offering supplements, hardware, electronics, food, jewellery, fancy items, stationery, and other general products.' },
   contact: { title: 'Help Center', subtitle: 'We\'re here to help. Reach out to our support team.' },
   faq: { title: 'Frequently Asked Questions', subtitle: 'Find answers to the most common questions.' },
-  'shipping-policy': { title: 'Shipping & Delivery Policy', subtitle: 'Delivery information for Sri Lanka and international orders.' },
+  'shipping-policy': { title: 'Shipping & Delivery Policy', subtitle: 'Delivery charges and shipping guidelines for Sri Lanka and international orders.' },
   'returns-refunds': { title: 'Returns & Refunds Policy', subtitle: 'Our guidelines for returns, exchanges, and refunds.' },
   'privacy-policy': { title: 'Privacy Policy', subtitle: 'How we collect, use, and protect your personal information.' },
   'terms-of-service': { title: 'Terms of Service', subtitle: 'The terms governing the use of KL Lanka Natural.' },
-  'track-order': { title: 'Track Your Order', subtitle: 'Order tracking is coming soon. Contact us for updates.' },
+  'track-order': { title: 'Track Your Order', subtitle: 'Order tracking is currently in development. Contact us for a status update on your order.' },
 };
 
 /** Parses metadata JSON string safely */

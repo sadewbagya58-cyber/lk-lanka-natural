@@ -28,6 +28,7 @@ import {
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ItemImage from '@/components/ItemImage';
+import { BUSINESS_CONFIG } from '@/lib/business-config';
 import { fetchWithRetry } from '@/lib/fetcher';
 import { isCustomPortraitArt } from '@/lib/custom-portrait';
 import type { ProductCardData } from '@/types/product';
@@ -210,8 +211,15 @@ function CheckoutContent() {
     return getCartSubtotal();
   }, [isBuyNow, buyNowItem, productMap, getCartSubtotal]);
 
-  // Delivery fee logic: Sri Lanka = dynamic deliveryCost (or free if all items have isFreeDelivery). International = Quote Pending.
-  const shippingCost = isSriLanka ? (hasAllFreeDelivery ? 0 : deliveryCost) : 0;
+  // Calculate total weight in KG (approximate 1 KG per quantity)
+  const totalWeightKg = useMemo(() => {
+    return currentItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  }, [currentItems]);
+
+  // Delivery fee logic: Sri Lanka = dynamic deliveryCost (or free if all items have isFreeDelivery). International = $22.30 per KG.
+  const shippingCost = isSriLanka
+    ? (hasAllFreeDelivery ? 0 : deliveryCost)
+    : (BUSINESS_CONFIG.delivery.international.ratePerKg * totalWeightKg);
   const total = subtotal + shippingCost;
 
   // Load User Saved Profile Address & Product Display Data
@@ -581,7 +589,7 @@ function CheckoutContent() {
                       type="tel"
                       value={customerInfo.phone}
                       onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
-                      placeholder={isSriLanka ? "+94 77 123 4567" : "+1 555 123 4567"}
+                      placeholder={isSriLanka ? "e.g. 0757726363" : "+1 555 123 4567"}
                       className="w-full px-4 py-2.5 text-sm text-slate-800 focus:outline-none font-medium"
                       required
                     />
@@ -599,7 +607,7 @@ function CheckoutContent() {
                       type="tel"
                       value={customerInfo.altPhone}
                       onChange={(e) => setCustomerInfo({ ...customerInfo, altPhone: e.target.value })}
-                      placeholder={isSriLanka ? "+94 11 234 5678" : "+1 555 987 6543"}
+                      placeholder={isSriLanka ? "e.g. 0757726363" : "+1 555 987 6543"}
                       className="w-full px-4 py-2.5 text-sm text-slate-800 focus:outline-none font-medium"
                     />
                   </div>
@@ -859,8 +867,8 @@ function CheckoutContent() {
                       className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 border-slate-300"
                     />
                     <div>
-                      <span className="text-xs font-bold text-slate-900 block">Standard Courier Delivery (Island-wide)</span>
-                      <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">Delivered safely to your doorstep within 2-4 business days.</span>
+                      <span className="text-xs font-bold text-slate-950 block">Standard Courier Delivery (Island-wide)</span>
+                      <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">Estimated delivery charge: {BUSINESS_CONFIG.delivery.sriLanka.display}. Flat {formatPrice(deliveryCost)} charged.</span>
                     </div>
                   </div>
                   <span className="text-xs font-bold text-slate-700">{shippingCost === 0 ? 'FREE' : formatPrice(shippingCost)}</span>
@@ -873,11 +881,11 @@ function CheckoutContent() {
                       <span>International Shipping ({deliveryAddress.country})</span>
                     </div>
                     <span className="text-[10px] font-black text-emerald-700 uppercase tracking-wider bg-white px-2 py-0.5 rounded border border-emerald-200">
-                      Quote Pending
+                      {formatPrice(shippingCost)}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                    International shipping charges will be calculated based on your destination country and order details after order submission.
+                    Shipping rate: {BUSINESS_CONFIG.delivery.international.display}. Total weight: {totalWeightKg} KG.
                   </p>
                 </div>
               )}
@@ -925,8 +933,8 @@ function CheckoutContent() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-slate-900 block">Pay Online by Card</span>
-                        <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                          Online card payment — Coming Soon
+                        <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          Card Payment — Available
                         </span>
                       </div>
                       <span className="text-[10px] text-slate-500 font-medium mt-0.5 block">
@@ -937,13 +945,13 @@ function CheckoutContent() {
                 </label>
 
                 {!isSriLanka && (
-                  <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-900 flex flex-col gap-1">
-                    <span className="font-bold flex items-center gap-1.5 text-amber-800">
-                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                      Notice for International Customers
+                  <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex flex-col gap-1">
+                    <span className="font-bold flex items-center gap-1.5 text-emerald-800">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      Payment Method
                     </span>
-                    <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
-                      Online card payment is currently unavailable for international orders. Please check back soon.
+                    <p className="text-[11px] text-emerald-805 leading-relaxed font-medium">
+                      Card payment is required for international orders. Cash on Delivery is not available outside Sri Lanka.
                     </p>
                   </div>
                 )}
@@ -1016,7 +1024,7 @@ function CheckoutContent() {
                 <div className="flex justify-between text-slate-500 font-medium">
                   <span>Delivery Fee</span>
                   <span className="font-bold text-slate-800">
-                    {isSriLanka ? (shippingCost === 0 ? 'FREE' : formatPrice(shippingCost)) : 'Quote Pending'}
+                    {isSriLanka ? (shippingCost === 0 ? 'FREE' : formatPrice(shippingCost)) : formatPrice(shippingCost)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm font-bold text-slate-900 border-t border-slate-100 pt-3 mt-1">

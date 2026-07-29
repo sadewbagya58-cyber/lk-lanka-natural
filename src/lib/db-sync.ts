@@ -118,9 +118,9 @@ export async function ensureOrderColumnsExist(): Promise<void> {
       console.warn('Legacy order backfill notice:', (err as Error).message);
     }
 
-    // 4. Ensure admin account (kllankanatural@gmail.com) exists with hashed password and ADMIN role
+    // 4. Ensure admin account (kllanka234@gmail.com) exists with hashed password and ADMIN role
     try {
-      const adminEmail = 'kllankanatural@gmail.com';
+      const adminEmail = 'kllanka234@gmail.com';
       const existingAdmin = await prisma.user.findFirst({
         where: { email: adminEmail }
       });
@@ -195,35 +195,29 @@ export async function ensureOrderColumnsExist(): Promise<void> {
 
     try {
       const defaultSettings = [
-        { key: 'companyAddress', value: 'No. 124, Galle Road, Colombo 03, Sri Lanka' },
-        { key: 'phoneNumber', value: '+94 11 234 5678' },
-        { key: 'supportEmail', value: 'kllankanatural@gmail.com' },
+        { key: 'companyAddress', value: '97/15H, Avissawella Road, Wellampitiya, Sri Lanka' },
+        { key: 'phoneNumber', value: '0757726363' },
+        { key: 'supportEmail', value: 'kllanka234@gmail.com' },
         { key: 'facebookUrl', value: 'https://facebook.com' },
         { key: 'instagramUrl', value: 'https://instagram.com' },
         { key: 'linkedinUrl', value: 'https://linkedin.com' },
         { key: 'newsletterTitle', value: 'Subscribe to our Newsletter' },
-        { key: 'newsletterDescription', value: 'Get the latest updates on natural wellness, organic foods, and exclusive offers.' },
+        { key: 'newsletterDescription', value: 'Get the latest updates on products and exclusive offers.' },
         { key: 'helpLink_trackOrder', value: '/track-order' },
         { key: 'helpLink_shippingPolicy', value: '/shipping-policy' },
         { key: 'helpLink_returnsRefunds', value: '/returns-refunds' },
         { key: 'helpLink_faq', value: '/faq' },
         { key: 'helpLink_helpCenter', value: '/contact' },
-        { key: 'deliveryCost', value: '4.99' },
+        { key: 'deliveryCost', value: '1.50' },
       ];
 
       for (const setting of defaultSettings) {
-        const existing = await prisma.websiteSetting.findUnique({
-          where: { key: setting.key }
+        // Upsert settings so we force update them to the new values
+        await prisma.websiteSetting.upsert({
+          where: { key: setting.key },
+          update: { value: setting.value },
+          create: { key: setting.key, value: setting.value, updatedAt: new Date() }
         });
-        if (!existing) {
-          await prisma.websiteSetting.create({
-            data: {
-              key: setting.key,
-              value: setting.value,
-              updatedAt: new Date()
-            }
-          });
-        }
       }
     } catch (err) {
       console.warn('WebsiteSetting seed notice:', (err as Error).message);
@@ -303,7 +297,7 @@ export async function ensureOrderColumnsExist(): Promise<void> {
       console.warn('DB Sync UploadedFile table notice:', (err as Error).message);
     }
 
-    // 7. Seed default CMS page content
+    // 7. Seed/Sync default CMS page content
     try {
       const cmsDefaults: Array<{
         slug: string;
@@ -315,15 +309,15 @@ export async function ensureOrderColumnsExist(): Promise<void> {
         {
           slug: 'about',
           title: 'About Us',
-          subtitle: "Sri Lanka's premier destination for authentic natural wellness, exquisite perfumes, and handcrafted jewellery.",
+          subtitle: "KL Lanka Natural is a leading multi-category online marketplace offering supplements, hardware, electronics, food, jewellery, fancy items, stationery, and other general products.",
           metaTitle: 'About Us | KL Lanka Natural',
           sections: [
-            { heading: 'Who We Are', content: 'KL Lanka Natural (PVT) LTD was founded with a singular mission — to bring the purest natural products from Sri Lanka and around the world to your doorstep. We believe that wellness should be authentic, accessible, and rooted in nature.', sectionType: 'intro', sortOrder: 0 },
-            { heading: 'Our Mission', content: 'To source and deliver the highest quality natural, organic, and Ayurvedic products to customers across Sri Lanka and beyond — ensuring authenticity, transparency, and exceptional customer care at every step.', sectionType: 'content', sortOrder: 1 },
-            { heading: 'Our Vision', content: 'To become Sri Lanka\'s most trusted natural wellness marketplace, empowering every family to live healthier, more natural lives through access to premium certified products.', sectionType: 'content', sortOrder: 2 },
-            { heading: 'Why Shop With Us', content: 'Every product we carry is carefully vetted for authenticity and quality. We partner directly with trusted suppliers and artisans to bring you the real thing — never imitations. Your trust is our most valuable asset.', sectionType: 'content', sortOrder: 3 },
-            { heading: 'Our Core Values', content: 'Authenticity — We source only genuine, certified natural products.\n\nSustainability — We prioritize eco-friendly packaging and ethical supply chains.\n\nTransparency — Clear product information, honest pricing, and straightforward policies.\n\nCommunity — Supporting Sri Lankan artisans, farmers, and small producers.', sectionType: 'values', sortOrder: 4 },
-            { heading: 'Ready to Experience Natural Wellness?', content: 'Browse our curated collection of natural products, premium perfumes, handcrafted jewellery, and custom artworks.', sectionType: 'cta', sortOrder: 5, metadata: '{"ctaText":"Shop Now","ctaLink":"/products"}' },
+            { heading: 'Who We Are', content: 'KL Lanka Natural was founded to bring a premium, multi-category shopping experience directly to you. We offer a wide range of products including health supplements, hardware tools, electronics, food items, jewellery, stationery, and other general products.', sectionType: 'intro', sortOrder: 0 },
+            { heading: 'Our Mission', content: 'To source and deliver high-quality products from multiple categories to customers across Sri Lanka, Europe, and internationally — ensuring authenticity, transparency, and exceptional customer care at every step.', sectionType: 'content', sortOrder: 1 },
+            { heading: 'Our Vision', content: 'To become a trusted global online marketplace, connecting customers with premium products from multiple diverse categories.', sectionType: 'content', sortOrder: 2 },
+            { heading: 'Why Shop With Us', content: 'Every product on our platform is carefully vetted for quality. We work with trusted partners to bring you genuine products and reliable services. Your satisfaction is our priority.', sectionType: 'content', sortOrder: 3 },
+            { heading: 'Our Core Values', content: 'Authenticity — Sourcing genuine products.\n\nGlobal Delivery — Efficient shipping to Sri Lanka, Europe, and worldwide.\n\nCustomer Support — Dedicated service via email and phone.\n\nDiversity — A wide range of categories under one platform.', sectionType: 'values', sortOrder: 4 },
+            { heading: 'Ready to Experience Our Marketplace?', content: 'Browse our curated collection of supplements, hardware, electronics, food, jewellery, fancy items, stationery, and other general products.', sectionType: 'cta', sortOrder: 5, metadata: '{"ctaText":"Shop Now","ctaLink":"/products"}' },
           ],
         },
         {
@@ -332,22 +326,22 @@ export async function ensureOrderColumnsExist(): Promise<void> {
           subtitle: "We're here to help. Reach out to our support team for assistance with your orders, products, or any questions.",
           metaTitle: 'Help Center | KL Lanka Natural',
           sections: [
-            { heading: 'How to Reach Us', content: 'Send us a message using the contact form below and our team will respond as quickly as possible. We aim to respond to all inquiries within 1–2 business days.', sectionType: 'intro', sortOrder: 0 },
-            { heading: 'Support Policy', content: 'We do not offer support over phone, WhatsApp, or third-party messengers. Please submit the contact form or send a direct email to kllankanatural@gmail.com for the fastest response.', sectionType: 'content', sortOrder: 1 },
+            { heading: 'How to Reach Us', content: 'Reach out to us via our official support email kllanka234@gmail.com or call us at 0757726363. Our team is available to assist you with order status, returns, or product inquiries.', sectionType: 'intro', sortOrder: 0 },
+            { heading: 'Support Channels', content: 'For the fastest assistance, please email us directly at kllanka234@gmail.com or submit the contact form on this page.', sectionType: 'content', sortOrder: 1 },
           ],
         },
         {
           slug: 'shipping-policy',
           title: 'Shipping & Delivery Policy',
-          subtitle: 'Delivery information for Sri Lanka and international orders.',
+          subtitle: 'Delivery charges and shipping guidelines for Sri Lanka and international orders.',
           metaTitle: 'Shipping & Delivery Policy | KL Lanka Natural',
           sections: [
-            { heading: 'Delivery Within Sri Lanka', content: 'We offer standard island-wide courier delivery across all provinces and districts in Sri Lanka.\n\nDelivery Fee: Calculated dynamically during checkout.\n\nDelivery Timelines: Courier partners typically deliver packages within 3 to 7 business days from dispatch.', sectionType: 'content', sortOrder: 0 },
-            { heading: 'International Shipping', content: 'We provide international shipping options to select destinations. Because international courier weights, dimensions, and destinations vary widely, shipping costs are calculated on a case-by-case basis.\n\nUpon submitting your international order, our support team will calculate the shipping parameters and email you a verified shipping quote at kllankanatural@gmail.com.', sectionType: 'content', sortOrder: 1 },
-            { heading: 'Custom Portrait Art Orders', content: 'Products under the Custom Portrait Art category represent bespoke artist services rather than pre-stocked inventory.\n\nBespoke Production: Creating custom portrait art requires separate design and painting periods. Delivery times will vary based on artist queues and complexities.\n\nSubmission Validation: Production begins only after a valid reference photo is uploaded during checkout.', sectionType: 'content', sortOrder: 2 },
+            { heading: 'Delivery Within Sri Lanka', content: 'We offer standard island-wide courier delivery across all provinces and districts in Sri Lanka.\n\nEstimated Delivery Charge: $1.20 - $2.10 (calculated at checkout based on your address).\n\nDelivery Timelines: Courier partners typically deliver packages within 2 to 4 business days.', sectionType: 'content', sortOrder: 0 },
+            { heading: 'International & European Shipping', content: 'We provide fast international shipping to Europe and worldwide destinations.\n\nInternational Delivery Charge: $22.30 per KG.\n\nShipping costs are calculated automatically at checkout based on the total quantity of your order (assuming a standard weight approximation of 1 KG per item).', sectionType: 'content', sortOrder: 1 },
+            { heading: 'Payment Methods & Destination Rules', content: 'Sri Lanka: Cash on Delivery (COD) and Card Payment are both fully available.\n\nInternational / Europe: Card Payment is available. Cash on Delivery (COD) is NOT available.', sectionType: 'content', sortOrder: 2 },
             { heading: 'Order Processing', content: 'Standard orders are typically processed and packed within 1 to 2 business days (Monday to Friday, excluding public holidays). Once dispatched, courier hand-off triggers delivery tracking information where available.', sectionType: 'content', sortOrder: 3 },
-            { heading: 'Delivery Address Accuracy', content: 'Customers are solely responsible for ensuring their delivery addresses and contact phone numbers are entered correctly.\n\nWe are not responsible for orders that fail to deliver due to incorrect, incomplete, or invalid address credentials entered at checkout. Address redirections post-dispatch may incur surcharge fees.', sectionType: 'content', sortOrder: 4 },
-            { heading: 'Questions and Delivery Support', content: 'If your package experiences unforeseen delays, or if you need to modify delivery notes prior to shipment, please reach out to us at kllankanatural@gmail.com with your order number.', sectionType: 'content', sortOrder: 5 },
+            { heading: 'Delivery Address Accuracy', content: 'Customers are solely responsible for ensuring their delivery addresses and contact phone numbers are entered correctly. We are not responsible for orders that fail to deliver due to incorrect, incomplete, or invalid address credentials entered at checkout.', sectionType: 'content', sortOrder: 4 },
+            { heading: 'Questions and Delivery Support', content: 'If your package experiences delays or you need to modify delivery details, please email us at kllanka234@gmail.com with your order number.', sectionType: 'content', sortOrder: 5 },
           ],
         },
         {
@@ -356,11 +350,10 @@ export async function ensureOrderColumnsExist(): Promise<void> {
           subtitle: 'Our guidelines for returns, exchanges, and refunds.',
           metaTitle: 'Returns & Refunds Policy | KL Lanka Natural',
           sections: [
-            { heading: 'Damaged, Defective, or Incorrect Products', content: 'If your order arrives damaged, defective, or if you receive the wrong item, please notify us immediately.\n\nNotification Period: Please report the issue within a reasonable period from the delivery date.\n\nRequired Evidence: You must email clear photos of the damaged or incorrect product, along with your order number.\n\nResolution: Upon verification, we will coordinate a replacement or issue an appropriate refund.', sectionType: 'content', sortOrder: 0 },
+            { heading: 'Damaged or Incorrect Items', content: 'If your order arrives damaged, defective, or incorrect, please notify us immediately.\n\nNotification Period: Please report the issue within a reasonable period from the delivery date.\n\nRequired Details: Email kllanka234@gmail.com with your order number and clear photos of the damaged or incorrect product.\n\nResolution: Upon verification, we will coordinate a replacement or issue an appropriate refund.', sectionType: 'content', sortOrder: 0 },
             { heading: 'Custom Portrait Art Orders', content: 'Because Custom Portrait Art items represent personalized, bespoke services painted specifically based on customer reference photos, they are subject to different terms:\n\nOnce work on your custom artwork has commenced or the illustration has been finalized, we cannot cancel or refund the order due to change of mind.\n\nIf the physical print, frame, or canvas arrives damaged during courier transport, please submit photographic evidence to our help desk for a complimentary replacement.', sectionType: 'content', sortOrder: 1 },
-            { heading: 'Non-Returnable Items', content: 'Due to health, hygiene, and product safety regulations, certain types of items cannot be returned:\n\nOpened cosmetics, skin creams, essential wellness oils, or personal care products.\n\nHerbal nutrients or organic food items with broken security seals.\n\nClearance items or promotional gift purchases.', sectionType: 'content', sortOrder: 2 },
-            { heading: 'Refund Process', content: 'Approved refunds are processed through the original method of payment or via bank transfer for Cash on Delivery orders. Please allow a standard processing window for the funds to reflect in your account.', sectionType: 'content', sortOrder: 3 },
-            { heading: 'Contact Support', content: 'To initiate a return or verify your refund status, please send a message directly to our verified support inbox at kllankanatural@gmail.com with your order number and clear photos of the issue.', sectionType: 'content', sortOrder: 4 },
+            { heading: 'Refund Process', content: 'Approved refunds are processed through the original method of payment or via bank transfer for Cash on Delivery orders. Please allow a standard processing window for the funds to reflect in your account.', sectionType: 'content', sortOrder: 2 },
+            { heading: 'Contact Support', content: 'To initiate a return or verify your refund status, please email us directly at kllanka234@gmail.com with your order number.', sectionType: 'content', sortOrder: 3 },
           ],
         },
         {
@@ -371,26 +364,26 @@ export async function ensureOrderColumnsExist(): Promise<void> {
           sections: [
             { heading: 'Information We Collect', content: 'We collect personal information necessary to fulfill your purchases, manage your customer account, and provide customer support. This includes:\n\nAccount details: Full Name, Email Address, and Password hash.\n\nDelivery coordinates: Delivery address (Street, City, District, Province, Postal Code, Country) and contact phone number.\n\nOrder history: Selected products, variant choices, payment status, and order totals.', sectionType: 'content', sortOrder: 0 },
             { heading: 'Custom Portrait Art Reference Images', content: 'For orders containing Custom Portrait Art, we collect the reference photo you upload during checkout.\n\nUploaded reference images are associated directly with your specific order.\n\nThese images are accessed solely by our design team and professional artists to create the custom portrait.\n\nWe protect uploaded files and do not publish or distribute your reference photos publicly without explicit consent.', sectionType: 'content', sortOrder: 1 },
-            { heading: 'Payment Information Handling', content: 'We do not store raw card numbers, CVVs, or credit card PIN codes on our servers.\n\nWhile online card payments are currently in preparation, once activated, card transactions will be securely handled through third-party payment processors.', sectionType: 'content', sortOrder: 2 },
+            { heading: 'Payment Information Handling', content: 'We do not store raw card numbers, CVVs, or credit card PIN codes on our servers. All online card transactions are processed securely through certified payment gateways. No sensitive payment credentials are stored on our servers.', sectionType: 'content', sortOrder: 2 },
             { heading: 'Google Sign-In & Authentication', content: 'If you authenticate using Google Sign-In, we receive basic profile info (Name, Email Address, and Avatar URL) from Google. This data is used solely to construct your customer session and link your orders securely.', sectionType: 'content', sortOrder: 3 },
             { heading: 'Cookies and Local Storage', content: 'We utilize browser cookies and local storage to maintain your active shopping cart state, wishlist preferences, Buy Now selections, and authentication sessions. No tracking cookies are used.', sectionType: 'content', sortOrder: 4 },
-            { heading: 'Privacy Questions and Requests', content: 'If you would like to request deletion of your account, details regarding your stored information, or have any other privacy-related concerns, please reach out to us at kllankanatural@gmail.com.', sectionType: 'content', sortOrder: 5 },
+            { heading: 'Privacy Questions and Requests', content: 'If you would like to request deletion of your account, details regarding your stored information, or have any other privacy-related concerns, please reach out to us at kllanka234@gmail.com.', sectionType: 'content', sortOrder: 5 },
           ],
         },
         {
           slug: 'terms-of-service',
           title: 'Terms of Service',
-          subtitle: 'The terms governing your use of the KL Lanka Natural (PVT) LTD website and services.',
+          subtitle: 'The terms governing your use of the KL Lanka Natural website and services.',
           metaTitle: 'Terms of Service | KL Lanka Natural',
           sections: [
-            { heading: 'Acceptance of Terms', content: 'By accessing, browsing, or purchasing from KL Lanka Natural (PVT) LTD, you agree to comply with and be bound by these Terms of Service. If you do not agree, please do not use the website.', sectionType: 'content', sortOrder: 0 },
+            { heading: 'Acceptance of Terms', content: 'By accessing, browsing, or purchasing from KL Lanka Natural, you agree to comply with and be bound by these Terms of Service. If you do not agree, please do not use the website.', sectionType: 'content', sortOrder: 0 },
             { heading: 'Website Usage', content: 'You represent that you are of legal age to form a binding contract and that all customer information you provide (delivery address, name, email) is accurate, current, and complete.', sectionType: 'content', sortOrder: 1 },
             { heading: 'Customer Accounts', content: 'When creating an account, you are responsible for maintaining the confidentiality of your login credentials and password. You agree to accept responsibility for all activities that occur under your account.', sectionType: 'content', sortOrder: 2 },
-            { heading: 'Products, Pricing & Stock Availability', content: 'We describe natural products, ingredients, perfumes, and jewellery as accurately as possible. However, we do not guarantee that product descriptions are entirely error-free.\n\nPrices are displayed in USD and are subject to change. Delivery fees apply and are calculated during checkout.\n\nWe reserve the right to limit order quantities or cancel orders if items become out of stock.', sectionType: 'content', sortOrder: 3 },
-            { heading: 'Payment Methods and Order Fulfillment', content: 'We support Cash on Delivery (COD) for eligible deliveries within Sri Lanka.\n\nOnline card payment architecture is integrated but is currently in preparation and temporarily unavailable until our merchant payment gateway is fully connected.', sectionType: 'content', sortOrder: 4 },
+            { heading: 'Products, Pricing & Stock Availability', content: 'We describe our products, ingredients, perfumes, and jewellery as accurately as possible. However, we do not guarantee that product descriptions are entirely error-free.\n\nPrices are displayed in USD and are subject to change. Delivery fees apply and are calculated during checkout.\n\nWe reserve the right to limit order quantities or cancel orders if items become out of stock.', sectionType: 'content', sortOrder: 3 },
+            { heading: 'Payment Methods and Order Fulfillment', content: 'We support Cash on Delivery (COD) for eligible deliveries within Sri Lanka. Card Payment is available online for all eligible orders.', sectionType: 'content', sortOrder: 4 },
             { heading: 'Custom Portrait Art Uploads and Responsibilities', content: 'If you purchase a Custom Portrait Art item:\n\nYou must upload a reference photo. By uploading, you confirm that you own the copyrights or have permission to submit the photo.\n\nWe reserve the right to cancel and refund your custom order if the uploaded reference photo is deemed inappropriate or of insufficient quality for our artists.\n\nCustomized goods cannot be returned or cancelled once production has started, except in cases of shipping damage.', sectionType: 'content', sortOrder: 5 },
-            { heading: 'Limitation of Liability', content: 'KL Lanka Natural (PVT) LTD and its directors are not liable for any indirect, incidental, or consequential damages arising from the purchase or use of any product, or from the inability to use this website.', sectionType: 'content', sortOrder: 6 },
-            { heading: 'Support and Contact Details', content: 'For questions regarding these Terms of Service or to resolve any legal concerns, please write to us at kllankanatural@gmail.com.', sectionType: 'content', sortOrder: 7 },
+            { heading: 'Limitation of Liability', content: 'KL Lanka Natural and its directors are not liable for any indirect, incidental, or consequential damages arising from the purchase or use of any product, or from the inability to use this website.', sectionType: 'content', sortOrder: 6 },
+            { heading: 'Support and Contact Details', content: 'For questions regarding these Terms of Service or to resolve any legal concerns, please write to us at kllanka234@gmail.com.', sectionType: 'content', sortOrder: 7 },
           ],
         },
         {
@@ -400,7 +393,7 @@ export async function ensureOrderColumnsExist(): Promise<void> {
           metaTitle: 'Track Your Order | KL Lanka Natural',
           sections: [
             { heading: 'Order Tracking — Coming Soon', content: 'Real-time order tracking is currently being developed and will be available soon. In the meantime, you can check your order status by contacting our support team directly.', sectionType: 'content', sortOrder: 0 },
-            { heading: 'How to Track Your Order', content: 'To get the current status of your order:\n\n1. Email us at kllankanatural@gmail.com\n2. Include your Order Number (format: KLN-XXXXXX) in the subject line\n3. Include the email address used at checkout\n\nOur team will respond with your current order status as quickly as possible.', sectionType: 'content', sortOrder: 1 },
+            { heading: 'How to Track Your Order', content: 'To get the current status of your order:\n\n1. Email us at kllanka234@gmail.com\n2. Include your Order Number (format: KLN-XXXXXX) in the subject line\n3. Include the email address used at checkout\n\nOur team will respond with your current order status as quickly as possible.', sectionType: 'content', sortOrder: 1 },
             { heading: 'Find Your Order Number', content: 'Your order number is in the format KLN-XXXXXX and can be found in:\n\nYour order confirmation email\nYour Account → My Orders section on this website', sectionType: 'content', sortOrder: 2 },
           ],
         },
@@ -414,30 +407,37 @@ export async function ensureOrderColumnsExist(): Promise<void> {
       ];
 
       for (const pageData of cmsDefaults) {
-        const existing = await prisma.cmsPage.findUnique({ where: { slug: pageData.slug } });
-        if (!existing) {
-          const created = await prisma.cmsPage.create({
+        const created = await prisma.cmsPage.upsert({
+          where: { slug: pageData.slug },
+          update: {
+            title: pageData.title,
+            subtitle: pageData.subtitle,
+            metaTitle: pageData.metaTitle,
+            status: 'PUBLISHED',
+          },
+          create: {
+            slug: pageData.slug,
+            title: pageData.title,
+            subtitle: pageData.subtitle,
+            metaTitle: pageData.metaTitle,
+            status: 'PUBLISHED',
+          },
+        });
+
+        // Delete old sections and recreate to ensure they stay synced
+        await prisma.cmsSection.deleteMany({ where: { pageId: created.id } });
+        for (const sec of pageData.sections) {
+          await prisma.cmsSection.create({
             data: {
-              slug: pageData.slug,
-              title: pageData.title,
-              subtitle: pageData.subtitle,
-              metaTitle: pageData.metaTitle,
-              status: 'PUBLISHED',
+              pageId: created.id,
+              heading: sec.heading,
+              content: sec.content,
+              sectionType: sec.sectionType,
+              sortOrder: sec.sortOrder,
+              isVisible: true,
+              metadata: sec.metadata ?? null,
             },
           });
-          for (const sec of pageData.sections) {
-            await prisma.cmsSection.create({
-              data: {
-                pageId: created.id,
-                heading: sec.heading,
-                content: sec.content,
-                sectionType: sec.sectionType,
-                sortOrder: sec.sortOrder,
-                isVisible: true,
-                metadata: sec.metadata ?? null,
-              },
-            });
-          }
         }
       }
     } catch (err) {
@@ -458,13 +458,13 @@ export async function ensureOrderColumnsExist(): Promise<void> {
           { question: 'Can I add Custom Portrait Art to my regular cart?', answer: 'No. Custom Portrait Art must be purchased using Buy Now to ensure your reference photo is correctly linked to your order.', category: 'Custom Portrait Art', sortOrder: 2 },
           { question: 'What types of photos should I upload?', answer: 'Upload clear, high-resolution photos with good lighting. The face and subject should be clearly visible. Avoid blurry or heavily filtered images.', category: 'Custom Portrait Art', sortOrder: 3 },
           { question: 'Are my uploaded reference photos kept private?', answer: 'Yes. Your uploaded reference photos are only accessed by our design team and professional artists. They are never shared publicly.', category: 'Custom Portrait Art', sortOrder: 4 },
-          { question: 'Do you deliver island-wide in Sri Lanka?', answer: 'Yes, we offer standard courier delivery across all provinces and districts in Sri Lanka. Standard delivery rates apply based on our current settings.', category: 'Delivery & Shipping', sortOrder: 0 },
-          { question: 'Do you ship internationally?', answer: 'Yes, we ship to select international destinations. Shipping costs are calculated per-order based on weight and destination. You will receive a shipping quote via email after placing your order.', category: 'Delivery & Shipping', sortOrder: 1 },
-          { question: 'How long does delivery take?', answer: 'Standard Sri Lanka deliveries typically arrive within 3 to 7 business days from dispatch. International delivery times vary by destination.', category: 'Delivery & Shipping', sortOrder: 2 },
-          { question: 'What payment methods are available?', answer: 'Currently, Cash on Delivery (COD) is available for eligible Sri Lanka orders.', category: 'Payments', sortOrder: 0 },
-          { question: 'Is online card payment available?', answer: 'Online card payment functionality is currently in preparation. We will announce when card payments become available.', category: 'Payments', sortOrder: 1 },
-          { question: 'Is my payment information secure?', answer: 'We do not store any card numbers or payment credentials on our servers. All future card payment processing will be handled by certified third-party payment processors.', category: 'Payments', sortOrder: 2 },
-          { question: 'How do I return a damaged or incorrect item?', answer: 'Email us at kllankanatural@gmail.com with your order number and clear photos of the damaged or incorrect item. Our team will arrange a replacement or refund.', category: 'Returns & Refunds', sortOrder: 0 },
+          { question: 'Do you deliver island-wide in Sri Lanka?', answer: 'Yes, we offer standard courier delivery across all provinces and districts in Sri Lanka. Estimated delivery charge is $1.20 - $2.10.', category: 'Delivery & Shipping', sortOrder: 0 },
+          { question: 'Do you ship internationally?', answer: 'Yes, we ship internationally and to European countries. Shipping costs are calculated at checkout at a rate of $22.30 per KG (approx. 1 KG per item).', category: 'Delivery & Shipping', sortOrder: 1 },
+          { question: 'How long does delivery take?', answer: 'Standard Sri Lanka deliveries typically arrive within 2 to 4 business days from dispatch. International delivery times vary by destination.', category: 'Delivery & Shipping', sortOrder: 2 },
+          { question: 'What payment methods are available?', answer: 'We support Cash on Delivery (for Sri Lanka orders only) and Card Payment (for all local and international orders).', category: 'Payments', sortOrder: 0 },
+          { question: 'Is online card payment available?', answer: 'Yes, Online Card Payment is available and can be selected at checkout.', category: 'Payments', sortOrder: 1 },
+          { question: 'Is my payment information secure?', answer: 'We do not store any card numbers or payment credentials on our servers. All card payment processing is securely handled by certified third-party payment processors.', category: 'Payments', sortOrder: 2 },
+          { question: 'How do I return a damaged or incorrect item?', answer: 'Email us at kllanka234@gmail.com with your order number and clear photos of the damaged or incorrect item. Our team will arrange a replacement or refund.', category: 'Returns & Refunds', sortOrder: 0 },
           { question: 'Can I return a Custom Portrait Art order?', answer: 'Once work has commenced on your custom artwork, it cannot be returned or cancelled. However, if the physical product arrives damaged during shipping, we will arrange a complimentary replacement.', category: 'Returns & Refunds', sortOrder: 1 },
           { question: 'Are all products genuine and certified?', answer: 'Yes. We only source products from verified, trusted suppliers. All products are tested for authenticity and quality before being listed on our platform.', category: 'Product Quality', sortOrder: 0 },
         ];

@@ -2,14 +2,14 @@ import { getCmsPage, parseMetadata } from '@/lib/cms';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
-import { Leaf, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, ArrowRight, CheckCircle2 } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getCmsPage('about');
   return {
     title: page?.metaTitle || 'About Us | KL Lanka Natural',
-    description: page?.subtitle || "Sri Lanka's premier destination for authentic natural wellness.",
+    description: page?.subtitle || "KL Lanka Natural is a leading multi-category online marketplace offering supplements, hardware, electronics, food, jewellery, fancy items, stationery, and other general products.",
     alternates: {
       canonical: '/about',
     },
@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AboutPage() {
   const page = await getCmsPage('about');
   const title = page?.title || 'About KL Lanka Natural';
-  const subtitle = page?.subtitle || "Sri Lanka's premier destination for authentic natural wellness, exquisite perfumes, and handcrafted jewellery.";
+  const subtitle = page?.subtitle || "KL Lanka Natural is a leading multi-category online marketplace offering supplements, hardware, electronics, food, jewellery, fancy items, stationery, and other general products.";
   const sections = page?.sections ?? [];
 
   const introSection = sections.find(s => s.sectionType === 'intro');
@@ -67,7 +67,7 @@ export default async function AboutPage() {
             </div>
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20 flex-shrink-0">
-                <Leaf className="text-emerald-300" size={32} />
+                <ShoppingBag className="text-emerald-300" size={32} />
               </div>
               <div>
                 <h1 className="text-4xl md:text-5xl font-black text-white leading-tight">{title}</h1>

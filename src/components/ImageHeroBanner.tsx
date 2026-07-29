@@ -13,7 +13,7 @@ export default function ImageHeroBanner() {
   return (
     <section
       className="w-full relative overflow-hidden bg-[#f4f0e9]"
-      aria-label="KL Lanka Natural — Natural Choices, Better Life"
+      aria-label="KL Lanka Natural — Multi-Category Online Marketplace"
     >
       {/* 
         Responsive container:
@@ -25,7 +25,7 @@ export default function ImageHeroBanner() {
       >
         <Image
           src="/hero-banner.png"
-          alt="KL Lanka Natural — Natural Choices, Better Life. All-in-one shopping for Ayurvedic, vitamins, skincare, hair care, perfumes, fashion, and health products delivered across Sri Lanka."
+          alt="KL Lanka Natural — Multi-Category Online Marketplace. Shop supplements, hardware, electronics, food, jewellery, fancy items, stationery, and other general products. Fast delivery to Sri Lanka, Europe, and worldwide."
           fill
           priority
           quality={92}

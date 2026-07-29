@@ -141,12 +141,11 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    if (paymentMethod === "CARD" && !paymentProvider.isConfigured()) {
-      return NextResponse.json({
-        error: isSriLanka
-          ? "Online card payments are currently unavailable. Please select Cash on Delivery."
-          : "Online card payment is currently unavailable for international orders. Please check back soon."
-      }, { status: 400 });
+    // If the payment gateway is configured, we would call the gateway API here.
+    // Since the gateway credentials are not connected yet, we allow the checkout to create the order
+    // with PENDING payment status, ensuring a seamless future plug-in of the payment gateway.
+    if (paymentMethod === "CARD" && paymentProvider.isConfigured()) {
+      // Future payment gateway session creation goes here
     }
 
     // 4. Delivery Method validation
@@ -347,9 +346,10 @@ export async function POST(request: Request) {
       const allFreeDelivery = productsForFreeCheck.length > 0 &&
         productsForFreeCheck.every(p => p.isFreeDelivery === true);
 
+      const totalWeightKg = orderItemsToCreate.reduce((sum, item) => sum + item.quantity, 0);
       const deliveryFee = isSriLanka
-        ? (allFreeDelivery ? 0 : (isNaN(dbDeliveryCost) ? 4.99 : dbDeliveryCost))
-        : 0;
+        ? (allFreeDelivery ? 0 : (isNaN(dbDeliveryCost) ? 1.50 : dbDeliveryCost))
+        : (22.30 * totalWeightKg);
       const finalTotalAmount = subtotal + deliveryFee;
 
       const orderNumber = await generateOrderNumber(tx);

@@ -10,14 +10,14 @@ import type { CategoryData } from '@/types/product';
 export default function Footer() {
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [settings, setSettings] = useState({
-    companyAddress: 'No. 124, Galle Road, Colombo 03, Sri Lanka',
-    phoneNumber: '+94 11 234 5678',
-    supportEmail: 'kllankanatural@gmail.com',
+    companyAddress: '97/15H, Avissawella Road, Wellampitiya, Sri Lanka',
+    phoneNumber: '0757726363',
+    supportEmail: 'kllanka234@gmail.com',
     facebookUrl: 'https://facebook.com',
     instagramUrl: 'https://instagram.com',
     linkedinUrl: 'https://linkedin.com',
     newsletterTitle: 'Subscribe to our Newsletter',
-    newsletterDescription: 'Get the latest updates on natural wellness, organic foods, and exclusive offers.',
+    newsletterDescription: 'Get the latest updates on products and exclusive offers.',
     helpLink_trackOrder: '/track-order',
     helpLink_shippingPolicy: '/shipping-policy',
     helpLink_returnsRefunds: '/returns-refunds',
@@ -141,15 +141,15 @@ export default function Footer() {
           <ul className="flex flex-col gap-3 text-sm">
             <li className="flex items-start gap-3">
               <MapPin className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-              <span className="leading-relaxed">{settings.companyAddress || "No. 124, Galle Road, Colombo 03, Sri Lanka"}</span>
+              <span className="leading-relaxed">{settings.companyAddress || "97/15H, Avissawella Road, Wellampitiya, Sri Lanka"}</span>
             </li>
             <li className="flex items-center gap-3">
               <Phone className="w-5 h-5 text-emerald-500 shrink-0" />
-              <a href={settings.phoneNumber ? `tel:${settings.phoneNumber.replace(/[^+\d]/g, '')}` : "tel:+94112345678"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">{settings.phoneNumber || "+94 11 234 5678"}</a>
+              <a href={settings.phoneNumber ? `tel:${settings.phoneNumber.replace(/[^+\d]/g, '')}` : "tel:0757726363"} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">{settings.phoneNumber || "0757726363"}</a>
             </li>
             <li className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-emerald-500 shrink-0" />
-              <a href={`mailto:${settings.supportEmail || "kllankanatural@gmail.com"}`} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">{settings.supportEmail || "kllankanatural@gmail.com"}</a>
+              <a href={`mailto:${settings.supportEmail || "kllanka234@gmail.com"}`} className="hover:text-emerald-500 hover:underline transition-colors focus:outline-none">{settings.supportEmail || "kllanka234@gmail.com"}</a>
             </li>
           </ul>
         </div>
@@ -158,7 +158,7 @@ export default function Footer() {
       {/* Lower Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-500">
         <div className="flex flex-col md:flex-row items-center gap-2 md:gap-6 text-center md:text-left">
-          <p>&copy; {new Date().getFullYear()} KL Lanka Natural (PVT) LTD. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} KL Lanka Natural. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link href="/privacy-policy" className="hover:text-slate-350 hover:underline transition-colors focus:outline-none">Privacy Policy</Link>
             <Link href="/terms-of-service" className="hover:text-slate-350 hover:underline transition-colors focus:outline-none">Terms of Service</Link>

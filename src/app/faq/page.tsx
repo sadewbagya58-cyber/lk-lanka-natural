@@ -3,7 +3,7 @@ import FaqClient from './FaqClient';
 
 export const metadata: Metadata = {
   title: 'Frequently Asked Questions (FAQ) | KL Lanka Natural',
-  description: 'Find answers to the most common questions about shopping, orders, delivery, custom portrait art, and natural wellness products.',
+  description: 'Find answers to the most common questions about shopping, orders, payments, delivery, and products on our marketplace.',
   alternates: {
     canonical: '/faq',
   },

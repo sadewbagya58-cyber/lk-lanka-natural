@@ -8,7 +8,7 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState({
     companyAddress: '',
     phoneNumber: '',
-    supportEmail: 'kllankanatural@gmail.com',
+    supportEmail: 'kllanka234@gmail.com',
     facebookUrl: '',
     instagramUrl: '',
     linkedinUrl: '',
@@ -19,7 +19,7 @@ export default function AdminSettingsPage() {
     helpLink_returnsRefunds: '',
     helpLink_faq: '',
     helpLink_helpCenter: '',
-    deliveryCost: '4.99',
+    deliveryCost: '1.50',
   });
 
   const [loading, setLoading] = useState(true);
@@ -139,13 +139,13 @@ export default function AdminSettingsPage() {
                   type="email"
                   value={settings.supportEmail}
                   onChange={(e) => setSettings({ ...settings, supportEmail: e.target.value })}
-                  placeholder="kllankanatural@gmail.com"
+                  placeholder="kllanka234@gmail.com"
                   required
                   maxLength={100}
                   className="w-full px-4 py-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none font-medium"
                 />
               </div>
-              <span className="text-[9px] text-slate-450 font-medium">Default: kllankanatural@gmail.com</span>
+              <span className="text-[9px] text-slate-450 font-medium">Default: kllanka234@gmail.com</span>
             </div>
 
             {/* Address */}
@@ -183,7 +183,7 @@ export default function AdminSettingsPage() {
                   type="text"
                   value={settings.phoneNumber}
                   onChange={(e) => setSettings({ ...settings, phoneNumber: e.target.value })}
-                  placeholder="e.g. +94 11 234 5678"
+                  placeholder="e.g. 0757726363"
                   maxLength={50}
                   className="w-full px-4 py-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none font-medium"
                 />
