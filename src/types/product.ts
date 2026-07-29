@@ -41,6 +41,7 @@ export interface ProductCardData {
   stockQuantity?: number;
   totalStock?: number;
   lowStockThreshold?: number;
+  moq?: number;
   categoryId?: string;
   description?: string;
   tags?: string[];

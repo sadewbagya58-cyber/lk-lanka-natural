@@ -79,6 +79,7 @@ export async function ensureOrderColumnsExist(): Promise<void> {
       "ALTER TABLE `Product` MODIFY COLUMN `subCategoryId` VARCHAR(191) NULL",
       "ALTER TABLE `User` ADD COLUMN IF NOT EXISTS `role` VARCHAR(191) NOT NULL DEFAULT 'USER'",
       "ALTER TABLE `Product` ADD COLUMN IF NOT EXISTS `isFreeDelivery` TINYINT(1) NOT NULL DEFAULT 0",
+      "ALTER TABLE `Product` ADD COLUMN IF NOT EXISTS `moq` INT NOT NULL DEFAULT 1",
     ];
 
     for (const query of productModifyQueries) {

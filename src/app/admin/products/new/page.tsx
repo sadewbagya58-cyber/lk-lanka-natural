@@ -45,6 +45,7 @@ export default function NewProductPage() {
   const [badge, setBadge] = useState('');
   const [stockQuantity, setStockQuantity] = useState('10');
   const [lowStockThreshold, setLowStockThreshold] = useState('5');
+  const [moq, setMoq] = useState('1');
   const [categoryId, setCategoryId] = useState('');
   const [brandId, setBrandId] = useState('');
   const [images, setImages] = useState<MultiImageItem[]>([]);
@@ -158,6 +159,7 @@ export default function NewProductPage() {
           lowStockThreshold: hasVariants ? 5 : (parseInt(lowStockThreshold) || 5),
           totalStock: hasVariants ? 0 : (parseInt(stockQuantity) || 0),
           inStock: hasVariants ? false : (parseInt(stockQuantity) > 0),
+          moq: parseInt(moq) || 1,
           categoryId: categoryId.trim(),
           brandId: brandId && brandId.trim() !== '' ? brandId.trim() : null,
           images: images.map((img, index) => ({
@@ -347,6 +349,22 @@ export default function NewProductPage() {
               placeholder="5"
               className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium disabled:opacity-50"
             />
+          </div>
+        </div>
+
+        {/* MOQ */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Min. Order Qty (MOQ)</label>
+            <input
+              type="number"
+              min="1"
+              value={moq}
+              onChange={(e) => setMoq(e.target.value)}
+              placeholder="1"
+              className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
+            />
+            <span className="text-[10px] text-slate-400">Customers must order at least this many units.</span>
           </div>
         </div>
 

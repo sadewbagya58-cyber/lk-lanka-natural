@@ -39,6 +39,7 @@ export interface ProductDetailData {
   stockQuantity: number;
   lowStockThreshold: number;
   totalStock: number;
+  moq: number;
   rating: number;
   reviewsCount: number;
   gradient: string;
@@ -62,7 +63,9 @@ export default function ProductDetail({
   setSelectedVariant: propSetSelectedVariant,
 }: ProductDetailProps) {
   const { data: session } = useSession();
-  const [quantity, setQuantity] = useState(1);
+  // Initialize quantity at the product's MOQ (Minimum Order Quantity)
+  const moq = product.moq ?? 1;
+  const [quantity, setQuantity] = useState(moq);
   const [isAdded, setIsAdded] = useState(false);
   
   const [localSelectedVariant, setLocalSelectedVariant] = useState<ProductVariant | null>(null);
@@ -198,7 +201,8 @@ export default function ProductDetail({
     setQuantity((prev) => {
       const next = prev + delta;
       const maxQty = selectedVariant ? currentStock : (hasVariants ? 99 : product.stockQuantity);
-      return next > 0 ? Math.min(next, maxQty) : 1;
+      // Cannot go below MOQ
+      return next >= moq ? Math.min(next, maxQty) : moq;
     });
   };
 
@@ -246,21 +250,14 @@ export default function ProductDetail({
               <>
                 <span className="w-2 h-2 rounded-full bg-rose-500" />
                 <span className="font-bold text-xs uppercase tracking-wider text-rose-600">
-                  Out of Stock (Currently unavailable)
-                </span>
-              </>
-            ) : isLow ? (
-              <>
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                <span className="font-bold text-xs uppercase tracking-wider text-amber-700">
-                  Low Stock — Only {currentStock} items left!
+                  Out of Stock
                 </span>
               </>
             ) : (
               <>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="font-bold text-xs uppercase tracking-wider text-slate-700">
-                  In Stock ({currentStock} available - Ready to dispatch)
+                  In Stock
                 </span>
               </>
             )
@@ -269,14 +266,14 @@ export default function ProductDetail({
               <>
                 <span className="w-2 h-2 rounded-full bg-rose-500" />
                 <span className="font-bold text-xs uppercase tracking-wider text-rose-600">
-                  Out of Stock (All options sold out)
+                  Out of Stock
                 </span>
               </>
             ) : (
               <>
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 <span className="font-bold text-xs uppercase tracking-wider text-emerald-700 animate-pulse">
-                  Multiple Options Available ({product.variants!.reduce((sum, v) => sum + v.stockQuantity, 0)} units total)
+                  In Stock
                 </span>
               </>
             )
@@ -285,21 +282,14 @@ export default function ProductDetail({
               <>
                 <span className="w-2 h-2 rounded-full bg-rose-500" />
                 <span className="font-bold text-xs uppercase tracking-wider text-rose-600">
-                  Out of Stock (Currently unavailable)
-                </span>
-              </>
-            ) : isLow ? (
-              <>
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                <span className="font-bold text-xs uppercase tracking-wider text-amber-700">
-                  Low Stock — Only {product.stockQuantity} items left!
+                  Out of Stock
                 </span>
               </>
             ) : (
               <>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="font-bold text-xs uppercase tracking-wider text-slate-700">
-                  In Stock ({product.stockQuantity} available - Ready to dispatch)
+                  In Stock
                 </span>
               </>
             )
@@ -414,10 +404,13 @@ export default function ProductDetail({
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end mt-2">
         <div className="flex flex-col gap-2 shrink-0">
           <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Quantity</span>
+          {moq > 1 && (
+            <span className="text-[10px] text-slate-500 font-medium">Min. order: {moq} units</span>
+          )}
           <div className="flex items-center border border-slate-200 rounded-xl h-12 bg-white w-full sm:w-32 shadow-sm focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-550">
             <button
               onClick={() => handleQuantity(-1)}
-              disabled={isOut || quantity <= 1 || (hasVariants && !selectedVariant)}
+              disabled={isOut || quantity <= moq || (hasVariants && !selectedVariant)}
               className="w-10 h-full flex items-center justify-center text-slate-450 hover:text-slate-800 disabled:opacity-30 transition-colors focus:outline-none"
               aria-label="Decrease quantity"
             >

@@ -130,6 +130,7 @@ export async function POST(request: Request) {
       visualSeed,
       stockQuantity = 0,
       lowStockThreshold = 5,
+      moq = 1,
       categoryId,
       subCategoryId,
       brandId,
@@ -161,6 +162,7 @@ export async function POST(request: Request) {
     const parsedOriginalPrice = originalPrice && !isNaN(parseFloat(originalPrice)) ? parseFloat(originalPrice) : null;
     const parsedStock = Math.max(0, parseInt(stockQuantity) || 0);
     const parsedLowStock = Math.max(0, parseInt(lowStockThreshold) || 5);
+    const parsedMoq = Math.max(1, parseInt(moq) || 1);
 
     const hasVariants = Array.isArray(variants) && variants.length > 0;
     const finalStock = hasVariants
@@ -189,6 +191,7 @@ export async function POST(request: Request) {
           stockQuantity: finalStock,
           lowStockThreshold: parsedLowStock,
           totalStock: finalStock,
+          moq: parsedMoq,
           categoryId: categoryId.trim(),
           subCategoryId: finalSubCategoryId,
           brandId: finalBrandId,
@@ -274,6 +277,7 @@ export async function PUT(request: Request) {
       visualSeed,
       stockQuantity,
       lowStockThreshold,
+      moq,
       categoryId,
       subCategoryId,
       brandId,
@@ -304,6 +308,7 @@ export async function PUT(request: Request) {
     const parsedOriginalPrice = originalPrice && !isNaN(parseFloat(originalPrice)) ? parseFloat(originalPrice) : null;
     const parsedStock = stockQuantity !== undefined ? Math.max(0, parseInt(stockQuantity) || 0) : 0;
     const parsedLowStock = lowStockThreshold !== undefined ? Math.max(0, parseInt(lowStockThreshold) || 5) : 5;
+    const parsedMoq = moq !== undefined ? Math.max(1, parseInt(moq) || 1) : 1;
 
     const hasVariants = Array.isArray(variants) && variants.length > 0;
     const finalStock = hasVariants
@@ -450,6 +455,7 @@ export async function PUT(request: Request) {
           stockQuantity: finalStock,
           lowStockThreshold: parsedLowStock,
           totalStock: finalStock,
+          moq: parsedMoq,
           categoryId: categoryId ? categoryId.trim() : undefined,
           subCategoryId: subCategoryId !== undefined ? (subCategoryId && typeof subCategoryId === 'string' && subCategoryId.trim() !== '' ? subCategoryId.trim() : null) : undefined,
           brandId: brandId !== undefined ? (brandId && typeof brandId === 'string' && brandId.trim() !== '' ? brandId.trim() : null) : undefined,

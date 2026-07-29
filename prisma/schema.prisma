@@ -133,6 +133,7 @@ model Product {
   stockQuantity     Int              @default(0)
   lowStockThreshold Int              @default(5)
   totalStock        Int              @default(100)
+  moq               Int              @default(1)  // Minimum Order Quantity
 
   // Ratings
   rating            Float            @default(0)

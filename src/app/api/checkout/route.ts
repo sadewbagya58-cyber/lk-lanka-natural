@@ -280,6 +280,12 @@ export async function POST(request: Request) {
             throw new Error(`Product not found.`);
           }
 
+          // Enforce MOQ server-side
+          const productMoq = product.moq ?? 1;
+          if (item.quantity < productMoq) {
+            throw new Error(`Minimum order quantity for '${product.name}' is ${productMoq}. Please update your cart.`);
+          }
+
           const isCustomPortrait = isCustomPortraitArt({
             slug: product.slug,
             categorySlug: product.category?.slug,

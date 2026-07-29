@@ -46,6 +46,7 @@ export async function GET() {
         stockQuantity: p.stockQuantity,
         totalStock: p.totalStock,
         lowStockThreshold: p.lowStockThreshold,
+        moq: p.moq ?? 1,
         description: p.description,
         tags: p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
         variants: p.variants.map((v) => ({

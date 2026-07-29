@@ -47,9 +47,10 @@ export async function POST(request: Request) {
         const productIds = items.map((i: SyncCartItem) => i.productId);
         const products = await tx.product.findMany({
           where: { id: { in: productIds } },
-          select: { id: true, stockQuantity: true }
+          select: { id: true, stockQuantity: true, moq: true }
         });
         const productStockMap = new Map(products.map(p => [p.id, p.stockQuantity]));
+        const productMoqMap = new Map(products.map(p => [p.id, p.moq ?? 1]));
         const validProductIds = new Set(products.map(p => p.id));
 
         // Fetch inventory limits for variants
@@ -80,7 +81,9 @@ export async function POST(request: Request) {
             targetQuantity = Math.max(dbItem.quantity, item.quantity);
           }
 
-          const finalQuantity = Math.min(targetQuantity, maxStock);
+          // Enforce MOQ: quantity must be at least the product's minimum order quantity
+          const productMoq = productMoqMap.get(item.productId) ?? 1;
+          const finalQuantity = Math.min(Math.max(targetQuantity, productMoq), maxStock);
 
           await tx.cartItem.upsert({
             where: {

@@ -115,6 +115,7 @@ export default async function ProductPage({ params }: PageProps) {
     stockQuantity: p.stockQuantity,
     lowStockThreshold: p.lowStockThreshold,
     totalStock: p.totalStock,
+    moq: p.moq ?? 1,
     rating: p.rating,
     reviewsCount: p.reviewsCount,
     gradient: p.gradient,
