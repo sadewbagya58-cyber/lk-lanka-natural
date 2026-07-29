@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import ImageHeroBanner from "@/components/ImageHeroBanner";
 import QuickCategories from "@/components/QuickCategories";
 import ProductGrid from "@/components/ProductGrid";
 import FlashDeals from "@/components/FlashDeals";
@@ -90,6 +91,9 @@ export default function Home() {
       <Navbar />
 
       <main className="flex-grow flex flex-col">
+        {/* Hero Banner — Full-width brand image, Kapruka-style */}
+        <ImageHeroBanner />
+
         {/* Quick Category Bar */}
         <QuickCategories />
 
