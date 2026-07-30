@@ -55,8 +55,9 @@ export default function FlashDeals() {
 
   const handleAddToCart = (prod: ProductCardData, e: React.MouseEvent) => {
     e.preventDefault();
+    const moq = Math.max(1, prod.moq ?? 1);
     const displayImage = prod.image || (prod.images && prod.images[0]) || null;
-    addToCart(prod.id, 1, null, prod.price, displayImage);
+    addToCart(prod.id, moq, null, prod.price, displayImage);
     setAddedIds((prev) => [...prev, prod.id]);
     setTimeout(() => setAddedIds((prev) => prev.filter((id) => id !== prod.id)), 2000);
   };
@@ -68,11 +69,12 @@ export default function FlashDeals() {
       router.push(`/products/${prod.slug}?buyNow=true`);
       return;
     }
+    const moq = Math.max(1, prod.moq ?? 1);
     const displayImage = prod.image || (prod.images && prod.images[0]) || null;
     setBuyNowItem({
       productId: prod.id,
       variantId: null,
-      quantity: 1,
+      quantity: moq,
       unitPrice: prod.price,
       image: displayImage,
     });

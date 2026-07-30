@@ -225,6 +225,11 @@ export async function POST(request: Request) {
             throw new Error(`Selected option for product is no longer available.`);
           }
 
+          const productMoq = variant.product.moq ?? 1;
+          if (item.quantity < productMoq) {
+            throw new Error(`Minimum order quantity for '${variant.product.name}' is ${productMoq}. Please update your cart.`);
+          }
+
           if (variant.stockQuantity < item.quantity) {
             throw new Error(`Insufficient stock for '${variant.product.name} (${variant.name})'. Available: ${variant.stockQuantity}, Requested: ${item.quantity}`);
           }
@@ -349,7 +354,7 @@ export async function POST(request: Request) {
       const totalWeightKg = orderItemsToCreate.reduce((sum, item) => sum + item.quantity, 0);
       const deliveryFee = isSriLanka
         ? (allFreeDelivery ? 0 : (isNaN(dbDeliveryCost) ? 1.50 : dbDeliveryCost))
-        : (22.30 * totalWeightKg);
+        : 0;
       const finalTotalAmount = subtotal + deliveryFee;
 
       const orderNumber = await generateOrderNumber(tx);

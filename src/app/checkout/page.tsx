@@ -131,17 +131,20 @@ function CheckoutContent() {
   // Compute Subtotal & Totals
   const currentItems = useMemo(() => {
     if (isBuyNow && buyNowItem) {
+      const prod = productMap[buyNowItem.productId];
+      const productMoq = Math.max(1, prod?.moq ?? 1);
+      const effectiveQty = Math.max(buyNowItem.quantity || 1, productMoq);
       return [
         {
           productId: buyNowItem.productId,
           selectedVariantId: buyNowItem.variantId,
-          quantity: buyNowItem.quantity,
+          quantity: effectiveQty,
           unitPrice: buyNowItem.unitPrice,
         },
       ];
     }
     return cartItems;
-  }, [isBuyNow, buyNowItem, cartItems]);
+  }, [isBuyNow, buyNowItem, cartItems, productMap]);
 
   const hasCustomPortraitArt = useMemo(() => {
     return currentItems.some((item) => {
@@ -206,7 +209,9 @@ function CheckoutContent() {
       const price = typeof buyNowItem.unitPrice === 'number' && !isNaN(buyNowItem.unitPrice) && buyNowItem.unitPrice > 0
         ? buyNowItem.unitPrice
         : (variant?.price ?? prod?.price ?? 0);
-      return price * buyNowItem.quantity;
+      const productMoq = Math.max(1, prod?.moq ?? 1);
+      const effectiveQty = Math.max(buyNowItem.quantity || 1, productMoq);
+      return price * effectiveQty;
     }
     return getCartSubtotal();
   }, [isBuyNow, buyNowItem, productMap, getCartSubtotal]);
@@ -216,10 +221,11 @@ function CheckoutContent() {
     return currentItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
   }, [currentItems]);
 
-  // Delivery fee logic: Sri Lanka = dynamic deliveryCost (or free if all items have isFreeDelivery). International = $22.30 per KG.
+  // Delivery fee logic: Sri Lanka = dynamic deliveryCost (or free if all items have isFreeDelivery).
+  // International = USD 22.30 / KG rate shown separately for information only; fee is NOT added to Final Total.
   const shippingCost = isSriLanka
     ? (hasAllFreeDelivery ? 0 : deliveryCost)
-    : (BUSINESS_CONFIG.delivery.international.ratePerKg * totalWeightKg);
+    : 0;
   const total = subtotal + shippingCost;
 
   // Load User Saved Profile Address & Product Display Data
@@ -871,14 +877,14 @@ function CheckoutContent() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 font-bold text-xs text-slate-900">
                       <Globe className="w-4 h-4 text-emerald-600" />
-                      <span>International Shipping ({deliveryAddress.country})</span>
+                      <span>International Delivery</span>
                     </div>
                     <span className="text-[10px] font-black text-emerald-700 uppercase tracking-wider bg-white px-2 py-0.5 rounded border border-emerald-200">
-                      {formatPrice(shippingCost)}
+                      USD 22.30 / KG
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                    Shipping rate: {BUSINESS_CONFIG.delivery.international.display}. Total weight: {totalWeightKg} KG.
+                    International Delivery — USD 22.30 / KG
                   </p>
                 </div>
               )}
@@ -1014,12 +1020,19 @@ function CheckoutContent() {
                   <span>Subtotal</span>
                   <span className="font-bold text-slate-800">{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-slate-500 font-medium">
-                  <span>Delivery Fee</span>
-                  <span className="font-bold text-slate-800">
-                    {isSriLanka ? (shippingCost === 0 ? 'FREE' : formatPrice(shippingCost)) : formatPrice(shippingCost)}
-                  </span>
-                </div>
+                {isSriLanka ? (
+                  <div className="flex justify-between text-slate-500 font-medium">
+                    <span>Delivery Fee</span>
+                    <span className="font-bold text-slate-800">
+                      {hasAllFreeDelivery || shippingCost === 0 ? 'FREE' : formatPrice(shippingCost)}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between text-slate-500 font-medium">
+                    <span>International Delivery</span>
+                    <span className="font-bold text-slate-800">USD 22.30 / KG</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm font-bold text-slate-900 border-t border-slate-100 pt-3 mt-1">
                   <span>Final Total</span>
                   <span className="text-lg font-black text-slate-950">{formatPrice(total)}</span>
