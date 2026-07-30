@@ -92,6 +92,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               const variantName = variant?.name;
               const displayImage = variant?.imageUrl || product?.image || item.image;
 
+              const productMoq = Math.max(1, product?.moq ?? item.moq ?? 1);
+              const isAtMinMoq = item.quantity <= productMoq;
+
               return (
                 <div
                   key={`${item.productId}-${item.selectedVariantId || ''}-${item.customUploadImage || ''}`}
@@ -116,6 +119,11 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                           Option: {variantName}
                         </span>
                       )}
+                      {productMoq > 1 && (
+                        <span className="text-[10px] text-amber-700 font-bold bg-amber-50 border border-amber-200/60 px-1.5 py-0.5 rounded-md mt-1 ml-1 inline-block">
+                          MOQ: {productMoq}
+                        </span>
+                      )}
                       {item.customUploadImage && (
                         <div className="mt-1">
                           <span className="text-[9px] font-black text-purple-700 bg-purple-100 border border-purple-200/50 px-1.5 py-0.5 rounded-md inline-flex items-center gap-1 select-none">
@@ -129,21 +137,39 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       {/* Quantity switcher */}
                       <div className="flex items-center border border-slate-200 rounded-lg h-8 bg-white overflow-hidden shadow-sm">
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity - 1, item.selectedVariantId, undefined, item.customUploadImage)}
-                          className="w-7 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 focus:outline-none"
+                          onClick={() => {
+                            if (isAtMinMoq) return;
+                            updateQuantity(
+                              item.productId,
+                              Math.max(productMoq, item.quantity - 1),
+                              item.selectedVariantId,
+                              undefined,
+                              item.customUploadImage,
+                              productMoq
+                            );
+                          }}
+                          disabled={isAtMinMoq}
+                          className={`w-7 h-full flex items-center justify-center transition-colors focus:outline-none ${
+                            isAtMinMoq
+                              ? 'text-slate-300 bg-slate-50 cursor-not-allowed'
+                              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                          }`}
                           aria-label="Decrease quantity"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
                         <span className="w-8 text-center text-xs font-bold text-slate-900">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(
-                            item.productId,
-                            item.quantity + 1,
-                            item.selectedVariantId,
-                            variant ? variant.stockQuantity : product?.stockQuantity,
-                            item.customUploadImage
-                          )}
+                          onClick={() =>
+                            updateQuantity(
+                              item.productId,
+                              item.quantity + 1,
+                              item.selectedVariantId,
+                              variant ? variant.stockQuantity : product?.stockQuantity,
+                              item.customUploadImage,
+                              productMoq
+                            )
+                          }
                           className="w-7 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 focus:outline-none"
                           aria-label="Increase quantity"
                         >

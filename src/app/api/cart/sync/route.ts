@@ -83,7 +83,11 @@ export async function POST(request: Request) {
 
           // Enforce MOQ: quantity must be at least the product's minimum order quantity
           const productMoq = productMoqMap.get(item.productId) ?? 1;
-          const finalQuantity = Math.min(Math.max(targetQuantity, productMoq), maxStock);
+          let finalQuantity = Math.max(targetQuantity, productMoq);
+          if (maxStock > 0) {
+            finalQuantity = Math.min(finalQuantity, maxStock);
+          }
+          finalQuantity = Math.max(finalQuantity, productMoq);
 
           await tx.cartItem.upsert({
             where: {
@@ -107,13 +111,14 @@ export async function POST(request: Request) {
       }
     });
 
-    // Fetch the final merged state from the database with prices and images
+    // Fetch the final merged state from the database with prices, images, and MOQ
     const finalDbItems = await prisma.cartItem.findMany({
       where: { userId },
       include: {
         product: {
           select: {
             price: true,
+            moq: true,
             images: { orderBy: { sortOrder: 'asc' } },
             variants: {
               select: { id: true, price: true, imageUrl: true }
@@ -127,6 +132,7 @@ export async function POST(request: Request) {
       cartItems: finalDbItems.map((item) => {
         let unitPrice = item.product?.price ?? 0;
         let image: string | null = item.product?.images?.[0]?.url ?? null;
+        const moq = item.product?.moq ?? 1;
 
         if (item.variantId) {
           const v = item.product?.variants?.find((varItem) => varItem.id === item.variantId);
@@ -144,6 +150,7 @@ export async function POST(request: Request) {
           selectedVariantId: item.variantId === "" ? null : item.variantId,
           unitPrice,
           image,
+          moq,
         };
       }),
     });

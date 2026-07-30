@@ -72,7 +72,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       return;
     }
     if (isOut) return;
-    addToCart(product.id, moq, null, product.price, displayImage);
+    addToCart(product.id, moq, null, product.price, displayImage, undefined, null, moq);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };

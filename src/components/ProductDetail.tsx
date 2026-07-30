@@ -169,7 +169,8 @@ export default function ProductDetail({
   const handleAddToCart = () => {
     if (!canAdd) return;
     const displayImage = selectedVariant?.imageUrl || null;
-    addToCart(product.id, quantity, selectedVariant?.id ?? null, activePrice, displayImage);
+    const productMoq = Math.max(1, product.moq ?? 1);
+    addToCart(product.id, quantity, selectedVariant?.id ?? null, activePrice, displayImage, undefined, null, productMoq);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };

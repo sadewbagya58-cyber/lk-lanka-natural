@@ -12,6 +12,7 @@ export interface CartItem {
   /** Primary product or variant image URL */
   image?: string | null;
   customUploadImage?: string | null;
+  moq?: number;
 }
 
 interface CartState {
@@ -23,7 +24,8 @@ interface CartState {
     unitPrice: number,
     image?: string | null,
     maxStock?: number,
-    customUploadImage?: string | null
+    customUploadImage?: string | null,
+    moq?: number
   ) => void;
   removeFromCart: (productId: string, selectedVariantId?: string | null, customUploadImage?: string | null) => void;
   updateQuantity: (
@@ -45,11 +47,12 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       cartItems: [],
 
-      addToCart: (productId, quantity = 1, selectedVariantId = null, unitPrice, image = null, maxStock, customUploadImage = null) => {
+      addToCart: (productId, quantity = 1, selectedVariantId = null, unitPrice, image = null, maxStock, customUploadImage = null, moq) => {
         if (maxStock !== undefined && maxStock <= 0) return;
 
         const items = get().cartItems;
         const normalizedVariantId = selectedVariantId ?? null;
+        const effectiveMoq = Math.max(1, moq ?? 1);
 
         const existingIndex = items.findIndex(
           (item) =>
@@ -64,20 +67,22 @@ export const useCartStore = create<CartState>()(
           if (maxStock !== undefined) {
             newQty = Math.min(newQty, maxStock);
           }
+          newQty = Math.max(newQty, effectiveMoq);
 
           const updatedItems = [...items];
           updatedItems[existingIndex] = {
             ...updatedItems[existingIndex],
             quantity: newQty,
             image: image || updatedItems[existingIndex].image || null,
+            moq: effectiveMoq,
           };
           set({ cartItems: updatedItems });
         } else {
-          let initialQty = quantity;
+          let initialQty = Math.max(quantity, effectiveMoq);
           if (maxStock !== undefined) {
             initialQty = Math.min(initialQty, maxStock);
           }
-          if (initialQty <= 0) return;
+          initialQty = Math.max(initialQty, effectiveMoq);
 
           set({
             cartItems: [
@@ -89,6 +94,7 @@ export const useCartStore = create<CartState>()(
                 unitPrice,
                 image: image ?? null,
                 customUploadImage: customUploadImage ?? null,
+                moq: effectiveMoq,
               },
             ],
           });
@@ -109,26 +115,33 @@ export const useCartStore = create<CartState>()(
         });
       },
 
-      updateQuantity: (productId, quantity, selectedVariantId = null, maxStock, customUploadImage = null, minMoq = 1) => {
+      updateQuantity: (productId, quantity, selectedVariantId = null, maxStock, customUploadImage = null, minMoq) => {
         const normalizedVariantId = selectedVariantId ?? null;
-        if (quantity <= 0) {
-          get().removeFromCart(productId, normalizedVariantId, customUploadImage);
-          return;
-        }
+        const existingItem = get().cartItems.find(
+          (item) =>
+            item.productId === productId &&
+            (item.selectedVariantId ?? null) === normalizedVariantId &&
+            (item.customUploadImage ?? null) === (customUploadImage ?? null)
+        );
 
-        const effectiveMin = Math.max(1, minMoq || 1);
-        let targetQty = Math.max(quantity, effectiveMin);
+        // Final client-side MOQ authority: read item's stored MOQ or minMoq parameter
+        const effectiveMoq = Math.max(1, minMoq ?? existingItem?.moq ?? 1);
+
+        // Clamping: Never allow a quantity below effectiveMoq.
+        // If quantity requested is less than effectiveMoq (whether 9, 1, 0, or negative), clamp to effectiveMoq.
+        // Do NOT call removeFromCart or delete the item inside updateQuantity.
+        let targetQty = Math.max(quantity, effectiveMoq);
         if (maxStock !== undefined) {
           targetQty = Math.min(targetQty, maxStock);
         }
-        targetQty = Math.max(targetQty, effectiveMin);
+        targetQty = Math.max(targetQty, effectiveMoq);
 
         set({
           cartItems: get().cartItems.map((item) =>
             item.productId === productId &&
             (item.selectedVariantId ?? null) === normalizedVariantId &&
             (item.customUploadImage ?? null) === (customUploadImage ?? null)
-              ? { ...item, quantity: targetQty }
+              ? { ...item, quantity: targetQty, moq: item.moq ?? effectiveMoq }
               : item
           ),
         });

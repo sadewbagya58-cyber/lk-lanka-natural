@@ -57,7 +57,7 @@ export default function FlashDeals() {
     e.preventDefault();
     const moq = Math.max(1, prod.moq ?? 1);
     const displayImage = prod.image || (prod.images && prod.images[0]) || null;
-    addToCart(prod.id, moq, null, prod.price, displayImage);
+    addToCart(prod.id, moq, null, prod.price, displayImage, undefined, null, moq);
     setAddedIds((prev) => [...prev, prod.id]);
     setTimeout(() => setAddedIds((prev) => prev.filter((id) => id !== prod.id)), 2000);
   };
