@@ -2,12 +2,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 /**
- * ImageHeroBanner — Full-width shopping banner image component.
- * Displays the KL Lanka Natural brand hero image at the top of the homepage.
- * Kapruka-style: edge-to-edge, responsive, priority-loaded.
- *
- * Mobile: aspect-ratio preserves the full image (center-focused on the phone + branding).
- * Desktop: capped at 560px height, image covers naturally.
+ * ImageHeroBanner — Full-width responsive shopping hero banner image component.
+ * Displays the official KL Lanka Natural hero banner at the top of the homepage.
+ * 
+ * Mobile: Preserves exact 1862x845 (~2.2:1) aspect ratio so logo, text, products, and phone numbers remain 100% visible without cropping or zooming.
+ * Desktop: Uses controlled heights (340px-480px) matching Kapruka-style e-commerce marketplace layouts, keeping the banner full-width while allowing categories below to be visible.
  */
 export default function ImageHeroBanner() {
   return (
@@ -17,35 +16,33 @@ export default function ImageHeroBanner() {
     >
       {/* 
         Responsive container:
-        - Mobile: uses aspect-[2/1] to preserve the full composition and prevent distortion.
-        - Tablet/Desktop: overrides aspect ratio to use fixed heights matching premium e-commerce layouts.
+        - Mobile: uses aspect-[1862/845] to preserve the exact natural image composition and prevent any distortion or cropping of branding elements.
+        - Tablet/Desktop: uses controlled fixed heights matching Kapruka-style e-commerce marketplace layouts.
       */}
       <div
-        className="relative w-full aspect-[2/1] sm:aspect-auto sm:h-[360px] md:h-[420px] lg:h-[460px]"
+        className="relative w-full aspect-[1862/845] sm:aspect-auto sm:h-[340px] md:h-[400px] lg:h-[440px] xl:h-[480px]"
       >
         <Image
           src="/hero-banner.png"
           alt="KL Lanka Natural — Multi-Category Online Marketplace. Shop supplements, hardware, electronics, food, jewellery, fancy items, stationery, and other general products. Fast delivery to Sri Lanka, Europe, and worldwide."
           fill
           priority
-          quality={92}
+          quality={95}
           sizes="100vw"
           className="object-cover object-center"
         />
 
         {/* 
-          Bottom gradient on mobile to soften transition.
+          Bottom gradient on mobile to soften transition to content below.
         */}
         <div
-          className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-50/60 to-transparent pointer-events-none sm:hidden"
+          className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-slate-50/50 to-transparent pointer-events-none sm:hidden"
           aria-hidden="true"
         />
       </div>
 
       {/* 
-        Transparent clickable overlay for accessibility + keyboard navigation.
-        tabIndex=-1 so it is not in the tab order (the image's own CTA is already prominent).
-        Screen readers get an explicit label for context.
+        Transparent clickable overlay for accessibility + quick navigation.
       */}
       <Link
         href="/products"
