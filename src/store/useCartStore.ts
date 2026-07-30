@@ -31,7 +31,8 @@ interface CartState {
     quantity: number,
     selectedVariantId?: string | null,
     maxStock?: number,
-    customUploadImage?: string | null
+    customUploadImage?: string | null,
+    minMoq?: number
   ) => void;
   clearCart: () => void;
   setCartItems: (items: CartItem[]) => void;
@@ -108,17 +109,19 @@ export const useCartStore = create<CartState>()(
         });
       },
 
-      updateQuantity: (productId, quantity, selectedVariantId = null, maxStock, customUploadImage = null) => {
+      updateQuantity: (productId, quantity, selectedVariantId = null, maxStock, customUploadImage = null, minMoq = 1) => {
         const normalizedVariantId = selectedVariantId ?? null;
         if (quantity <= 0) {
           get().removeFromCart(productId, normalizedVariantId, customUploadImage);
           return;
         }
 
-        let targetQty = quantity;
+        const effectiveMin = Math.max(1, minMoq || 1);
+        let targetQty = Math.max(quantity, effectiveMin);
         if (maxStock !== undefined) {
           targetQty = Math.min(targetQty, maxStock);
         }
+        targetQty = Math.max(targetQty, effectiveMin);
 
         set({
           cartItems: get().cartItems.map((item) =>

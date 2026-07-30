@@ -53,6 +53,25 @@ export default function CartPage() {
       .catch(console.error);
   }, [cartItems.length]);
 
+  // Enforce MOQ clamping for existing cart items once product details are loaded
+  useEffect(() => {
+    if (Object.keys(productMap).length === 0 || cartItems.length === 0) return;
+    cartItems.forEach((item) => {
+      const prod = productMap[item.productId];
+      const productMoq = Math.max(1, prod?.moq ?? 1);
+      if (productMoq > 1 && item.quantity < productMoq) {
+        updateQuantity(
+          item.productId,
+          productMoq,
+          item.selectedVariantId,
+          undefined,
+          item.customUploadImage,
+          productMoq
+        );
+      }
+    });
+  }, [productMap, cartItems, updateQuantity]);
+
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
@@ -86,6 +105,9 @@ export default function CartPage() {
                   const variantName = variant?.name;
                   const displayImage = variant?.imageUrl || product?.image || item.image;
 
+                  const productMoq = Math.max(1, product?.moq ?? 1);
+                  const isAtMinMoq = item.quantity <= productMoq;
+
                   return (
                     <div
                       key={`${item.productId}-${item.selectedVariantId || ''}-${item.customUploadImage || ''}`}
@@ -114,6 +136,11 @@ export default function CartPage() {
                                 Option: {variantName}
                               </span>
                             )}
+                            {productMoq > 1 && (
+                              <span className="text-[10px] text-amber-700 font-bold bg-amber-50 border border-amber-200/60 px-1.5 py-0.5 rounded-md mt-1 ml-1 inline-block">
+                                Minimum order quantity: {productMoq}
+                              </span>
+                            )}
                             {item.customUploadImage && (
                               <div className="mt-1">
                                 <span className="text-[9px] font-black text-purple-700 bg-purple-100 border border-purple-200/50 px-1.5 py-0.5 rounded-md inline-flex items-center gap-1 select-none">
@@ -136,28 +163,52 @@ export default function CartPage() {
                           <div className="flex items-center gap-4">
                             {/* Quantity switcher */}
                             <div className="flex items-center border border-slate-200 rounded-lg h-9 bg-white shadow-sm overflow-hidden">
-                              <button onClick={() => updateQuantity(item.productId, item.quantity - 1, item.selectedVariantId, undefined, item.customUploadImage)}
-                                className="w-8 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors focus:outline-none"
-                                aria-label="Decrease quantity">
+                              <button
+                                onClick={() => {
+                                  if (isAtMinMoq) return;
+                                  updateQuantity(
+                                    item.productId,
+                                    Math.max(productMoq, item.quantity - 1),
+                                    item.selectedVariantId,
+                                    undefined,
+                                    item.customUploadImage,
+                                    productMoq
+                                  );
+                                }}
+                                disabled={isAtMinMoq}
+                                className={`w-8 h-full flex items-center justify-center transition-colors focus:outline-none ${
+                                  isAtMinMoq
+                                    ? 'text-slate-300 bg-slate-50 cursor-not-allowed'
+                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                                }`}
+                                aria-label="Decrease quantity"
+                              >
                                 <Minus className="w-3.5 h-3.5" />
                               </button>
                               <span className="w-9 text-center text-xs font-black text-slate-950">{item.quantity}</span>
-                              <button onClick={() => updateQuantity(
-                                item.productId,
-                                item.quantity + 1,
-                                item.selectedVariantId,
-                                variant ? variant.stockQuantity : product?.stockQuantity,
-                                item.customUploadImage
-                              )}
+                              <button
+                                onClick={() =>
+                                  updateQuantity(
+                                    item.productId,
+                                    item.quantity + 1,
+                                    item.selectedVariantId,
+                                    variant ? variant.stockQuantity : product?.stockQuantity,
+                                    item.customUploadImage,
+                                    productMoq
+                                  )
+                                }
                                 className="w-8 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors focus:outline-none"
-                                aria-label="Increase quantity">
+                                aria-label="Increase quantity"
+                              >
                                 <Plus className="w-3.5 h-3.5" />
                               </button>
                             </div>
                             {/* Remove */}
-                            <button onClick={() => removeFromCart(item.productId, item.selectedVariantId, item.customUploadImage)}
+                            <button
+                              onClick={() => removeFromCart(item.productId, item.selectedVariantId, item.customUploadImage)}
                               className="p-2 hover:bg-rose-50 text-slate-450 hover:text-rose-600 rounded-xl transition-colors focus:outline-none"
-                              aria-label="Remove item">
+                              aria-label="Remove item"
+                            >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
