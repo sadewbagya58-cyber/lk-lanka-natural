@@ -62,6 +62,10 @@ export default function EditProductPage() {
   const [isNewArrival, setIsNewArrival] = useState(false);
   const [isFreeDelivery, setIsFreeDelivery] = useState(false);
 
+  // SEO (Optional)
+  const [seoTags, setSeoTags] = useState('');
+  const [seoKeywords, setSeoKeywords] = useState('');
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -101,6 +105,8 @@ export default function EditProductPage() {
           setIsBestSeller(Boolean(p.isBestSeller));
           setIsNewArrival(Boolean(p.isNewArrival));
           setIsFreeDelivery(Boolean(p.isFreeDelivery));
+          setSeoTags(p.seoTags || '');
+          setSeoKeywords(p.seoKeywords || '');
 
           if (p.images && p.images.length > 0) {
             setImages(
@@ -227,6 +233,8 @@ export default function EditProductPage() {
             isPrimary: img.isPrimary,
             sortOrder: index,
           })),
+          seoTags: seoTags.trim() || null,
+          seoKeywords: seoKeywords.trim() || null,
           variants: hasVariants ? variants.map((v) => ({
             id: v.id || undefined,
             name: v.name.trim(),
@@ -679,6 +687,38 @@ export default function EditProductPage() {
             placeholder="Detailed product description..."
             className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium h-28"
           />
+        </div>
+
+        {/* SEO Settings (Optional) */}
+        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col gap-3">
+          <div className="flex flex-col">
+            <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest">SEO Settings (Optional)</h4>
+            <span className="text-[10px] text-slate-450 font-medium">Add optional search tags and keywords to boost product discoverability.</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">SEO Tags (Optional)</label>
+              <input
+                type="text"
+                value={seoTags}
+                onChange={(e) => setSeoTags(e.target.value)}
+                placeholder="e.g. supplements, health, natural products"
+                className="w-full px-4 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium bg-white"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">SEO Keywords (Optional)</label>
+              <input
+                type="text"
+                value={seoKeywords}
+                onChange={(e) => setSeoKeywords(e.target.value)}
+                placeholder="e.g. buy supplements online, natural supplements Sri Lanka"
+                className="w-full px-4 py-2 text-xs sm:text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium bg-white"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-6 py-2">

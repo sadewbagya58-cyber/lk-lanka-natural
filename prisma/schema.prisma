@@ -150,6 +150,8 @@ model Product {
   // SEO
   metaTitle         String?
   metaDescription   String?
+  seoTags           String?          @db.Text
+  seoKeywords       String?          @db.Text
 
   images            ProductImage[]
   variants          ProductVariant[]

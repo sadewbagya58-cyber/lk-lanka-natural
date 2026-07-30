@@ -1,18 +1,51 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import ProductCard from './ProductCard';
-import { Sparkles, Flame, CheckCircle2, LayoutGrid, Package, RefreshCw } from 'lucide-react';
+import { Sparkles, Flame, CheckCircle2, LayoutGrid, Package, RefreshCw, ArrowRight } from 'lucide-react';
 import type { ProductCardData } from '@/types/product';
 
 import { fetchWithRetry } from '@/lib/fetcher';
+
+// Deterministic Pseudo-Random Number Generator (Mulberry32)
+function seededRandom(seed: number) {
+  let t = (seed += 0x6d2b79f5);
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+// Deterministic Fisher-Yates Shuffle using 15-minute window seed
+function seededShuffle<T>(array: T[], seed: number): T[] {
+  const result = [...array];
+  let currentSeed = seed;
+  for (let i = result.length - 1; i > 0; i--) {
+    const r = seededRandom(currentSeed++);
+    const j = Math.floor(r * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
 
 export default function ProductGrid() {
   const [activeTab, setActiveTab] = useState<'all' | 'featured' | 'bestseller' | 'new'>('all');
   const [allProducts, setAllProducts] = useState<ProductCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [windowSeed, setWindowSeed] = useState<number>(() => Math.floor(Date.now() / (15 * 60 * 1000)));
+
+  // Update windowSeed every minute to transition seamlessly at 15-minute boundaries
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentSeed = Math.floor(Date.now() / (15 * 60 * 1000));
+      if (currentSeed !== windowSeed) {
+        setWindowSeed(currentSeed);
+      }
+    }, 60 * 1000);
+    return () => clearInterval(interval);
+  }, [windowSeed]);
 
   const tabs = [
     { id: 'all', label: 'All Products', icon: LayoutGrid },
@@ -43,11 +76,18 @@ export default function ProductGrid() {
     loadProducts();
   }, [loadProducts]);
 
+  // Select up to 45 products deterministically randomized based on the 15-minute window seed
+  const randomizedHomepageProducts = useMemo(() => {
+    if (allProducts.length === 0) return [];
+    const shuffled = seededShuffle(allProducts, windowSeed);
+    return shuffled.slice(0, 45);
+  }, [allProducts, windowSeed]);
+
   const dataMap: Record<string, ProductCardData[]> = {
-    all: allProducts,
-    featured: allProducts.filter((p) => p.isFeatured),
-    bestseller: allProducts.filter((p) => p.isBestSeller),
-    new: allProducts.filter((p) => p.isNewArrival),
+    all: randomizedHomepageProducts,
+    featured: randomizedHomepageProducts.filter((p) => p.isFeatured),
+    bestseller: randomizedHomepageProducts.filter((p) => p.isBestSeller),
+    new: randomizedHomepageProducts.filter((p) => p.isNewArrival),
   };
 
   const filteredProducts = dataMap[activeTab] || [];
@@ -142,26 +182,39 @@ export default function ProductGrid() {
             </button>
           </div>
         ) : (
-          /* Product Card Grid */
-          <motion.div
-            layout
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6"
-          >
-            <AnimatePresence mode="popLayout">
-              {filteredProducts.map((prod) => (
-                <motion.div
-                  key={prod.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <ProductCard product={prod} />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          /* Product Card Grid & View All Navigation */
+          <>
+            <motion.div
+              layout
+              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6"
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredProducts.map((prod) => (
+                  <motion.div
+                    key={prod.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <ProductCard product={prod} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* View All Button */}
+            <div className="flex justify-center mt-10">
+              <Link
+                href="/products"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 group"
+              >
+                <span>View All</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          </>
         )}
 
       </div>

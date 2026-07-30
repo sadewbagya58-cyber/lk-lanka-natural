@@ -80,6 +80,8 @@ export async function ensureOrderColumnsExist(): Promise<void> {
       "ALTER TABLE `User` ADD COLUMN IF NOT EXISTS `role` VARCHAR(191) NOT NULL DEFAULT 'USER'",
       "ALTER TABLE `Product` ADD COLUMN IF NOT EXISTS `isFreeDelivery` TINYINT(1) NOT NULL DEFAULT 0",
       "ALTER TABLE `Product` ADD COLUMN IF NOT EXISTS `moq` INT NOT NULL DEFAULT 1",
+      "ALTER TABLE `Product` ADD COLUMN IF NOT EXISTS `seoTags` TEXT NULL",
+      "ALTER TABLE `Product` ADD COLUMN IF NOT EXISTS `seoKeywords` TEXT NULL",
     ];
 
     for (const query of productModifyQueries) {
@@ -209,15 +211,17 @@ export async function ensureOrderColumnsExist(): Promise<void> {
         { key: 'helpLink_faq', value: '/faq' },
         { key: 'helpLink_helpCenter', value: '/contact' },
         { key: 'deliveryCost', value: '1.50' },
+        { key: 'internationalDeliveryCost', value: '22.30' },
       ];
 
       for (const setting of defaultSettings) {
-        // Upsert settings so we force update them to the new values
-        await prisma.websiteSetting.upsert({
-          where: { key: setting.key },
-          update: { value: setting.value },
-          create: { key: setting.key, value: setting.value, updatedAt: new Date() }
-        });
+        // Create default if missing, preserving any existing admin settings
+        const existingSetting = await prisma.websiteSetting.findUnique({ where: { key: setting.key } });
+        if (!existingSetting) {
+          await prisma.websiteSetting.create({
+            data: { key: setting.key, value: setting.value }
+          });
+        }
       }
     } catch (err) {
       console.warn('WebsiteSetting seed notice:', (err as Error).message);

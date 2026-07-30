@@ -142,6 +142,8 @@ export async function POST(request: Request) {
       isFlashDeal = false,
       isFreeDelivery = false,
       flashDealEndsAt = null,
+      seoTags = null,
+      seoKeywords = null,
     } = await request.json();
 
     if (!name || !slug || !price || !categoryId) {
@@ -201,6 +203,8 @@ export async function POST(request: Request) {
           isFlashDeal: Boolean(isFlashDeal),
           isFreeDelivery: Boolean(isFreeDelivery),
           flashDealEndsAt: flashDealEndsAt ? new Date(flashDealEndsAt) : null,
+          seoTags: seoTags ? String(seoTags).trim() : null,
+          seoKeywords: seoKeywords ? String(seoKeywords).trim() : null,
           images: {
             create: (images as Array<{ url: string; alt?: string; isPrimary?: boolean }>).map(
               (img, index) => ({
@@ -289,6 +293,8 @@ export async function PUT(request: Request) {
       isFlashDeal,
       isFreeDelivery,
       flashDealEndsAt,
+      seoTags,
+      seoKeywords,
     } = await request.json();
 
     if (!id || !name || !slug || !price) {
@@ -448,7 +454,9 @@ export async function PUT(request: Request) {
           originalPrice: parsedOriginalPrice,
           currency: currency || "USD",
           badge: badge || null,
-          tags: tags || undefined,
+          tags: tags !== undefined ? tags : undefined,
+          seoTags: seoTags !== undefined ? (seoTags ? String(seoTags).trim() : null) : undefined,
+          seoKeywords: seoKeywords !== undefined ? (seoKeywords ? String(seoKeywords).trim() : null) : undefined,
           gradient: gradient || undefined,
           visualSeed: visualSeed || undefined,
           inStock: finalInStock,

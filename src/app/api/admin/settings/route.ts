@@ -54,6 +54,7 @@ export async function PUT(request: Request) {
       'helpLink_faq',
       'helpLink_helpCenter',
       'deliveryCost',
+      'internationalDeliveryCost',
     ];
 
     // Validation
@@ -74,10 +75,10 @@ export async function PUT(request: Request) {
         }
       }
 
-      if (key === 'deliveryCost') {
+      if (key === 'deliveryCost' || key === 'internationalDeliveryCost') {
         const costVal = parseFloat(val);
         if (isNaN(costVal) || costVal < 0) {
-          return NextResponse.json({ error: 'Delivery cost must be a non-negative number.' }, { status: 400 });
+          return NextResponse.json({ error: `${key === 'deliveryCost' ? 'Sri Lanka delivery cost' : 'International delivery rate'} must be a non-negative number.` }, { status: 400 });
         }
       }
     }

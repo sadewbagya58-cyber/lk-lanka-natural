@@ -26,6 +26,8 @@ export async function generateMetadata({ params }: PageProps) {
       price: true,
       brand: { select: { name: true } },
       category: { select: { name: true } },
+      seoTags: true,
+      seoKeywords: true,
       images: { orderBy: { sortOrder: 'asc' }, take: 1, select: { url: true } },
     },
   });
@@ -36,14 +38,19 @@ export async function generateMetadata({ params }: PageProps) {
     ? (p.images[0].url.startsWith('http') ? p.images[0].url : `https://kllankanatural.com${p.images[0].url}`)
     : 'https://kllankanatural.com/logo.png';
 
-  const keywords = [
+  const extraKeywords = p.seoKeywords ? p.seoKeywords.split(',').map((k) => k.trim()).filter(Boolean) : [];
+  const extraTags = p.seoTags ? p.seoTags.split(',').map((t) => t.trim()).filter(Boolean) : [];
+
+  const keywords = Array.from(new Set([
+    ...extraKeywords,
+    ...extraTags,
     p.name,
     p.brand?.name,
     p.category?.name,
     'buy online Sri Lanka',
     'KL Lanka Natural',
     'natural products Sri Lanka',
-  ].filter(Boolean) as string[];
+  ].filter(Boolean))) as string[];
 
   return {
     title: `${p.name} | KL Lanka Natural`,

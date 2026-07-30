@@ -75,6 +75,7 @@ function CheckoutContent() {
   const [deliveryMethod, setDeliveryMethod] = useState('STANDARD_COURIER');
   const [paymentMethod, setPaymentMethod] = useState('COD');
   const [deliveryCost, setDeliveryCost] = useState(1.50);
+  const [internationalDeliveryRate, setInternationalDeliveryRate] = useState(22.30);
 
   const [productMap, setProductMap] = useState<Record<string, ProductCardData>>({});
   const [loading, setLoading] = useState(true);
@@ -271,8 +272,12 @@ function CheckoutContent() {
 
         if (settingsRes.status === 'fulfilled' && settingsRes.value?.success && settingsRes.value?.settings) {
           const cost = parseFloat(settingsRes.value.settings.deliveryCost);
-          if (!isNaN(cost)) {
+          if (!isNaN(cost) && cost >= 0) {
             setDeliveryCost(cost);
+          }
+          const intlCost = parseFloat(settingsRes.value.settings.internationalDeliveryCost);
+          if (!isNaN(intlCost) && intlCost >= 0) {
+            setInternationalDeliveryRate(intlCost);
           }
         }
       } catch (err) {
@@ -880,11 +885,11 @@ function CheckoutContent() {
                       <span>International Delivery</span>
                     </div>
                     <span className="text-[10px] font-black text-emerald-700 uppercase tracking-wider bg-white px-2 py-0.5 rounded border border-emerald-200">
-                      USD 22.30 / KG
+                      USD {internationalDeliveryRate.toFixed(2)} / KG
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                    International Delivery — USD 22.30 / KG
+                    International Delivery — USD {internationalDeliveryRate.toFixed(2)} / KG
                   </p>
                 </div>
               )}
@@ -1030,7 +1035,7 @@ function CheckoutContent() {
                 ) : (
                   <div className="flex justify-between text-slate-500 font-medium">
                     <span>International Delivery</span>
-                    <span className="font-bold text-slate-800">USD 22.30 / KG</span>
+                    <span className="font-bold text-slate-800">USD {internationalDeliveryRate.toFixed(2)} / KG</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm font-bold text-slate-900 border-t border-slate-100 pt-3 mt-1">

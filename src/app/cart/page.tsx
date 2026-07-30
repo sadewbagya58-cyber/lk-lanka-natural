@@ -18,6 +18,7 @@ export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, getCartSubtotal, clearCart } = useCartStore();
   const [productMap, setProductMap] = useState<Record<string, ProductCardData>>({});
   const [deliveryCost, setDeliveryCost] = useState(1.50);
+  const [intlRate, setIntlRate] = useState(22.30);
 
   const subtotal = getCartSubtotal();
   const shippingCost = deliveryCost;
@@ -40,8 +41,12 @@ export default function CartPage() {
       .then((data) => {
         if (data && data.success && data.settings) {
           const cost = parseFloat(data.settings.deliveryCost);
-          if (!isNaN(cost)) {
+          if (!isNaN(cost) && cost >= 0) {
             setDeliveryCost(cost);
+          }
+          const intl = parseFloat(data.settings.internationalDeliveryCost);
+          if (!isNaN(intl) && intl >= 0) {
+            setIntlRate(intl);
           }
         }
       })
@@ -190,7 +195,7 @@ export default function CartPage() {
                     </div>
                     <div className="flex justify-between">
                       <span>International Delivery</span>
-                      <span>{BUSINESS_CONFIG.delivery.international.display}</span>
+                      <span>USD {intlRate.toFixed(2)} per KG</span>
                     </div>
                   </div>
                 </div>
