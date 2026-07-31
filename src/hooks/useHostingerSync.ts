@@ -56,12 +56,16 @@ export function useHostingerSync() {
     isSyncingCartRef.current = true;
 
     async function doCartSync() {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
       try {
         const response = await fetch('/api/cart/sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cartItems, merge: isFirstMerge }),
+          signal: controller.signal,
         });
+        clearTimeout(timeoutId);
 
         if (response.ok) {
           const data = await response.json();
@@ -88,6 +92,7 @@ export function useHostingerSync() {
           }
         }
       } catch (err) {
+        clearTimeout(timeoutId);
         console.error('Failed to sync cart to Hostinger DB:', err);
       } finally {
         isSyncingCartRef.current = false;
@@ -117,12 +122,16 @@ export function useHostingerSync() {
     isSyncingWishlistRef.current = true;
 
     async function doWishlistSync() {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
       try {
         const response = await fetch('/api/wishlist/sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ wishlistIds, merge: isFirstMerge }),
+          signal: controller.signal,
         });
+        clearTimeout(timeoutId);
 
         if (response.ok) {
           const data = await response.json();
@@ -141,6 +150,7 @@ export function useHostingerSync() {
           }
         }
       } catch (err) {
+        clearTimeout(timeoutId);
         console.error('Failed to sync wishlist to Hostinger DB:', err);
       } finally {
         isSyncingWishlistRef.current = false;

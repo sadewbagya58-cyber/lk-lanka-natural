@@ -36,8 +36,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
 
   const refetch = async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     try {
-      const res = await fetch('/api/auth/session');
+      const res = await fetch('/api/auth/session', { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const data = await res.json();
         if (data.session) {
@@ -55,6 +58,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setStatus((prevStatus) => (prevStatus === 'loading' ? 'unauthenticated' : prevStatus));
       }
     } catch (err) {
+      clearTimeout(timeoutId);
       console.warn('Session check network warning:', err);
       // Retain current session on network failure unless on initial page load
       setStatus((prevStatus) => (prevStatus === 'loading' ? 'unauthenticated' : prevStatus));

@@ -5,14 +5,27 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-function createPrismaClient() {
+function createPrismaClient(): PrismaClient {
   const databaseUrl = process.env.DATABASE_URL || "mysql://username:password@localhost:3306/dbname";
-  
+
   try {
-    // Map mysql:// protocol to mariadb:// for compatibility with the mariadb driver
-    const mariadbUrl = databaseUrl.replace(/^mysql:\/\//, 'mariadb://');
-    const adapter = new PrismaMariaDb(mariadbUrl);
-    
+    const rawUrl = databaseUrl.replace(/^mysql:\/\//, 'http://').replace(/^mariadb:\/\//, 'http://');
+    const url = new URL(rawUrl);
+
+    const poolConfig = {
+      host: url.hostname || 'localhost',
+      port: url.port ? parseInt(url.port, 10) : 3306,
+      user: decodeURIComponent(url.username || ''),
+      password: decodeURIComponent(url.password || ''),
+      database: url.pathname ? url.pathname.replace(/^\//, '') : '',
+      connectionLimit: 15,
+      connectTimeout: 8000,
+      acquireTimeout: 8000,
+      idleTimeout: 30000,
+      minimumIdle: 2,
+    };
+
+    const adapter = new PrismaMariaDb(poolConfig as any);
     return new PrismaClient({ adapter });
   } catch (error) {
     console.error("Failed to initialize database driver adapter:", error);

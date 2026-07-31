@@ -23,8 +23,8 @@ export async function fetchWithRetry<T>(
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const controller = new AbortController();
-      // 10s timeout per attempt — generous for slow hosting but not infinite
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      // 5s timeout per attempt — fast feedback for slow hosting without hanging UI
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       const res = await fetch(url, {
         ...options,
